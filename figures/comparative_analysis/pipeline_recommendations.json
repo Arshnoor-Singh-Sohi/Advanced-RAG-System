@@ -1,0 +1,39 @@
+{
+  "best_chunking": {
+    "chunking_strategy": "fixed",
+    "retrieval_method": "vector",
+    "metric": "metric_mrr",
+    "score": 1.0,
+    "chunk_size": 64,
+    "chunk_overlap": 0
+  },
+  "best_embedding": {
+    "embedding_model": "all-MiniLM-L6-v2",
+    "embedding_dim": 384,
+    "metric": "metric_mrr",
+    "score": 1.0
+  },
+  "best_retrieval": {
+    "retrieval_method": "vector",
+    "retrieval_type": "vector",
+    "query_expansion": "none",
+    "metric": "metric_mrr",
+    "score": 1.0
+  },
+  "best_reranking": {
+    "reranking_method": "no_reranking",
+    "description": "Base retrieval without reranking",
+    "metric": "metric_mrr",
+    "score": 1.0,
+    "reranking_time_sec": 12.298849821090698
+  },
+  "best_generation": {
+    "metric": "metric_answer_precision",
+    "score": 0.2141439583616024,
+    "prompt_template": "basic",
+    "prompt_description": "Basic prompt",
+    "retrieval_config": "reranked_3",
+    "retrieval_description": "Top 10, reranked, top 3 used",
+    "generation_time_sec": 33.47233963012695
+  }
+}

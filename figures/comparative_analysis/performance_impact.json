@@ -1,0 +1,20 @@
+{
+  "chunking": {
+    "baseline": "fixed",
+    "best": "fixed",
+    "absolute_improvement": 0.0,
+    "relative_improvement": 0.0
+  },
+  "retrieval": {
+    "baseline": "vector",
+    "best": "vector",
+    "absolute_improvement": 0.0,
+    "relative_improvement": 0.0
+  },
+  "reranking": {
+    "baseline": "no_reranking",
+    "best": "no_reranking",
+    "absolute_improvement": 0.0,
+    "relative_improvement": 0.0
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "best_performance": {
+    "technique": "original",
+    "description": "Original query without modification",
+    "metric": "metric_mrr",
+    "score": 1.0,
+    "processing_time_sec": 21.019408464431763
+  },
+  "best_efficiency": {
+    "technique": "original",
+    "description": "Original query without modification",
+    "processing_time_sec": 7.116507768630981,
+    "score": 1.0
+  },
+  "best_balance": {
+    "technique": "original",
+    "description": "Original query without modification",
+    "score": 1.0,
+    "processing_time_sec": 7.116507768630981
+  }
+}

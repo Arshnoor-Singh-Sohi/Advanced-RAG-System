@@ -1,0 +1,33 @@
+{
+  "best_performance": {
+    "metric": "metric_answer_precision",
+    "score": 0.2141439583616024,
+    "prompt_template": "basic",
+    "prompt_description": "Basic prompt",
+    "retrieval_config": "reranked_3",
+    "retrieval_description": "Top 10, reranked, top 3 used",
+    "generation_time_sec": 33.47233963012695
+  },
+  "by_metric": {
+    "answer_precision": {
+      "score": 0.2141439583616024,
+      "prompt_template": "basic",
+      "retrieval_config": "reranked_3"
+    },
+    "faithfulness": {
+      "score": 0.8241088133140495,
+      "prompt_template": "basic",
+      "retrieval_config": "top_5"
+    },
+    "citation_rate": {
+      "score": 0.0,
+      "prompt_template": "basic",
+      "retrieval_config": "top_3"
+    },
+    "answer_correctness": {
+      "score": 0.7200000000000001,
+      "prompt_template": "basic",
+      "retrieval_config": "reranked_3"
+    }
+  }
+}

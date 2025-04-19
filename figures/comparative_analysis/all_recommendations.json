@@ -1,0 +1,205 @@
+{
+  "chunking": {
+    "best_overall": {
+      "chunking_strategy": "fixed",
+      "retrieval_method": "vector",
+      "metric": "metric_mrr",
+      "score": 1.0,
+      "chunk_size": 64,
+      "chunk_overlap": 0
+    },
+    "by_retrieval_method": {
+      "vector": {
+        "chunking_strategy": "fixed",
+        "score": 1.0,
+        "chunk_size": 64,
+        "chunk_overlap": 0
+      },
+      "bm25": {
+        "chunking_strategy": "fixed",
+        "score": 1.0,
+        "chunk_size": 64,
+        "chunk_overlap": 0
+      },
+      "hybrid": {
+        "chunking_strategy": "fixed",
+        "score": 1.0,
+        "chunk_size": 64,
+        "chunk_overlap": 0
+      }
+    }
+  },
+  "embedding": {
+    "best_performance": {
+      "embedding_model": "all-MiniLM-L6-v2",
+      "embedding_dim": 384,
+      "metric": "metric_mrr",
+      "score": 1.0
+    },
+    "best_efficiency": {
+      "embedding_model": "BAAI/bge-small-en-v1.5",
+      "embedding_dim": 384,
+      "docs_per_second": 9.11929120804457,
+      "score": 1.0
+    }
+  },
+  "generation": {
+    "best_performance": {
+      "metric": "metric_answer_precision",
+      "score": 0.2141439583616024,
+      "prompt_template": "basic",
+      "prompt_description": "Basic prompt",
+      "retrieval_config": "reranked_3",
+      "retrieval_description": "Top 10, reranked, top 3 used",
+      "generation_time_sec": 33.47233963012695
+    },
+    "by_metric": {
+      "answer_precision": {
+        "score": 0.2141439583616024,
+        "prompt_template": "basic",
+        "retrieval_config": "reranked_3"
+      },
+      "faithfulness": {
+        "score": 0.8241088133140495,
+        "prompt_template": "basic",
+        "retrieval_config": "top_5"
+      },
+      "citation_rate": {
+        "score": 0.0,
+        "prompt_template": "basic",
+        "retrieval_config": "top_3"
+      },
+      "answer_correctness": {
+        "score": 0.7200000000000001,
+        "prompt_template": "basic",
+        "retrieval_config": "reranked_3"
+      }
+    }
+  },
+  "query_processing": {
+    "best_performance": {
+      "technique": "original",
+      "description": "Original query without modification",
+      "metric": "metric_mrr",
+      "score": 1.0,
+      "processing_time_sec": 21.019408464431763
+    },
+    "best_efficiency": {
+      "technique": "original",
+      "description": "Original query without modification",
+      "processing_time_sec": 7.116507768630981,
+      "score": 1.0
+    },
+    "best_balance": {
+      "technique": "original",
+      "description": "Original query without modification",
+      "score": 1.0,
+      "processing_time_sec": 7.116507768630981
+    }
+  },
+  "reranking": {
+    "best_performance": {
+      "reranking_method": "no_reranking",
+      "description": "Base retrieval without reranking",
+      "metric": "metric_mrr",
+      "score": 1.0,
+      "reranking_time_sec": 12.298849821090698
+    },
+    "improvements_over_baseline": {
+      "cross_encoder": {
+        "absolute_improvement": 0.0,
+        "relative_improvement": 0.0,
+        "score": 1.0,
+        "reranking_time_sec": 20.187553485234577
+      },
+      "llm_reranking": {
+        "absolute_improvement": -0.033333333333333326,
+        "relative_improvement": -0.033333333333333326,
+        "score": 0.9666666666666667,
+        "reranking_time_sec": 8.651623964309692
+      },
+      "hybrid_fusion": {
+        "absolute_improvement": 0.0,
+        "relative_improvement": 0.0,
+        "score": 1.0,
+        "reranking_time_sec": 15.89322837193807
+      },
+      "cross_encoder_fusion": {
+        "absolute_improvement": 0.0,
+        "relative_improvement": 0.0,
+        "score": 1.0,
+        "reranking_time_sec": 17.354916016260784
+      },
+      "multi_stage": {
+        "absolute_improvement": -0.19999999999999984,
+        "relative_improvement": -0.19999999999999984,
+        "score": 0.8000000000000002,
+        "reranking_time_sec": 18.478780508041382
+      },
+      "keyword_fusion": {
+        "absolute_improvement": -0.19999999999999984,
+        "relative_improvement": -0.19999999999999984,
+        "score": 0.8000000000000002,
+        "reranking_time_sec": 23.174375613530476
+      }
+    },
+    "most_efficient": {
+      "reranking_method": "cross_encoder",
+      "description": "Cross-encoder reranking",
+      "improvement_per_second": 0.0,
+      "score": 1.0,
+      "reranking_time_sec": 27.406757354736328
+    }
+  },
+  "retrieval": {
+    "best_performance": {
+      "retrieval_method": "vector",
+      "retrieval_type": "vector",
+      "query_expansion": "none",
+      "metric": "metric_mrr",
+      "score": 1.0
+    },
+    "by_retrieval_type": {
+      "vector": {
+        "retrieval_method": "vector",
+        "query_expansion": "none",
+        "score": 1.0
+      },
+      "bm25": {
+        "retrieval_method": "bm25",
+        "query_expansion": "none",
+        "score": 1.0
+      },
+      "hybrid": {
+        "retrieval_method": "hybrid_0.3",
+        "query_expansion": "none",
+        "score": 1.0,
+        "alpha": 0.3
+      }
+    },
+    "query_expansion_impact": {
+      "vector": {
+        "best_expansion": "simple",
+        "improvement": 0.0,
+        "base_score": 1.0,
+        "with_expansion_score": 1.0
+      },
+      "bm25": {
+        "best_expansion": "simple",
+        "improvement": 0.0,
+        "base_score": 1.0,
+        "with_expansion_score": 1.0
+      },
+      "hybrid": {
+        "best_expansion": "simple",
+        "improvement": 0.0,
+        "base_score": 1.0,
+        "with_expansion_score": 1.0
+      }
+    },
+    "best_hybrid_alpha": {
+      "alpha": 0.3,
+      "score": 1.0
+    }
+  }
+}

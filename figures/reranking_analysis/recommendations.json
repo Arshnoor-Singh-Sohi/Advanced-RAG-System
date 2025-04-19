@@ -1,0 +1,54 @@
+{
+  "best_performance": {
+    "reranking_method": "no_reranking",
+    "description": "Base retrieval without reranking",
+    "metric": "metric_mrr",
+    "score": 1.0,
+    "reranking_time_sec": 12.298849821090698
+  },
+  "improvements_over_baseline": {
+    "cross_encoder": {
+      "absolute_improvement": 0.0,
+      "relative_improvement": 0.0,
+      "score": 1.0,
+      "reranking_time_sec": 20.187553485234577
+    },
+    "llm_reranking": {
+      "absolute_improvement": -0.033333333333333326,
+      "relative_improvement": -0.033333333333333326,
+      "score": 0.9666666666666667,
+      "reranking_time_sec": 8.651623964309692
+    },
+    "hybrid_fusion": {
+      "absolute_improvement": 0.0,
+      "relative_improvement": 0.0,
+      "score": 1.0,
+      "reranking_time_sec": 15.89322837193807
+    },
+    "cross_encoder_fusion": {
+      "absolute_improvement": 0.0,
+      "relative_improvement": 0.0,
+      "score": 1.0,
+      "reranking_time_sec": 17.354916016260784
+    },
+    "multi_stage": {
+      "absolute_improvement": -0.19999999999999984,
+      "relative_improvement": -0.19999999999999984,
+      "score": 0.8000000000000002,
+      "reranking_time_sec": 18.478780508041382
+    },
+    "keyword_fusion": {
+      "absolute_improvement": -0.19999999999999984,
+      "relative_improvement": -0.19999999999999984,
+      "score": 0.8000000000000002,
+      "reranking_time_sec": 23.174375613530476
+    }
+  },
+  "most_efficient": {
+    "reranking_method": "cross_encoder",
+    "description": "Cross-encoder reranking",
+    "improvement_per_second": 0.0,
+    "score": 1.0,
+    "reranking_time_sec": 27.406757354736328
+  }
+}

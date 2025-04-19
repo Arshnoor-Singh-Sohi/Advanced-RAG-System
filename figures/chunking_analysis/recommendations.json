@@ -1,0 +1,30 @@
+{
+  "best_overall": {
+    "chunking_strategy": "fixed",
+    "retrieval_method": "vector",
+    "metric": "metric_mrr",
+    "score": 1.0,
+    "chunk_size": 64,
+    "chunk_overlap": 0
+  },
+  "by_retrieval_method": {
+    "vector": {
+      "chunking_strategy": "fixed",
+      "score": 1.0,
+      "chunk_size": 64,
+      "chunk_overlap": 0
+    },
+    "bm25": {
+      "chunking_strategy": "fixed",
+      "score": 1.0,
+      "chunk_size": 64,
+      "chunk_overlap": 0
+    },
+    "hybrid": {
+      "chunking_strategy": "fixed",
+      "score": 1.0,
+      "chunk_size": 64,
+      "chunk_overlap": 0
+    }
+  }
+}

@@ -1,0 +1,5 @@
+embedding_model,embedding_dim,metric_precision_at_1,metric_precision_at_3,metric_precision_at_5,metric_recall_at_3,metric_recall_at_5,metric_mrr,metric_answer_precision,metric_answer_recall,metric_faithfulness,metric_citation_rate,metric_answer_correctness,metric_precision,metric_recall,docs_per_second,embedding_time_sec
+BAAI/bge-small-en-v1.5,384.0,1.0,1.0,1.0,0.75,1.0,1.0,,,,,,,,4.624213733402947,2.0938886801401773
+all-MiniLM-L6-v2,384.0,1.0,1.0,1.0,0.75,1.0,1.0,,,,,,,,0.1410528955386667,35.915970166524254
+all-mpnet-base-v2,768.0,1.0,1.0,1.0,0.75,1.0,1.0,,,,,,,,2.082513749939084,5.9636062781016035
+multi-qa-mpnet-base-dot-v1,768.0,1.0,1.0,1.0,0.75,1.0,1.0,,,,,,,,2.190702428119492,10.09310515721639

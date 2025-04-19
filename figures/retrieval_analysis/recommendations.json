@@ -1,0 +1,51 @@
+{
+  "best_performance": {
+    "retrieval_method": "vector",
+    "retrieval_type": "vector",
+    "query_expansion": "none",
+    "metric": "metric_mrr",
+    "score": 1.0
+  },
+  "by_retrieval_type": {
+    "vector": {
+      "retrieval_method": "vector",
+      "query_expansion": "none",
+      "score": 1.0
+    },
+    "bm25": {
+      "retrieval_method": "bm25",
+      "query_expansion": "none",
+      "score": 1.0
+    },
+    "hybrid": {
+      "retrieval_method": "hybrid_0.3",
+      "query_expansion": "none",
+      "score": 1.0,
+      "alpha": 0.3
+    }
+  },
+  "query_expansion_impact": {
+    "vector": {
+      "best_expansion": "simple",
+      "improvement": 0.0,
+      "base_score": 1.0,
+      "with_expansion_score": 1.0
+    },
+    "bm25": {
+      "best_expansion": "simple",
+      "improvement": 0.0,
+      "base_score": 1.0,
+      "with_expansion_score": 1.0
+    },
+    "hybrid": {
+      "best_expansion": "simple",
+      "improvement": 0.0,
+      "base_score": 1.0,
+      "with_expansion_score": 1.0
+    }
+  },
+  "best_hybrid_alpha": {
+    "alpha": 0.3,
+    "score": 1.0
+  }
+}

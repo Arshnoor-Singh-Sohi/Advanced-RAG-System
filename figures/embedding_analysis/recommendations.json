@@ -1,0 +1,14 @@
+{
+  "best_performance": {
+    "embedding_model": "all-MiniLM-L6-v2",
+    "embedding_dim": 384,
+    "metric": "metric_mrr",
+    "score": 1.0
+  },
+  "best_efficiency": {
+    "embedding_model": "BAAI/bge-small-en-v1.5",
+    "embedding_dim": 384,
+    "docs_per_second": 9.11929120804457,
+    "score": 1.0
+  }
+}
