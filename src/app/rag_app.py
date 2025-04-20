@@ -353,12 +353,63 @@ class RAGApplication:
         prompt_template = self.config["prompt_template"]
         prompt = prompt_template.format(context=context_str, query=query)
         
-        # For now, use a simple extractive approach
-        # In a production system, you would use an LLM here
-        answer = self._extractive_answer(query, context_texts)
+        # Generate answer based on selected mode
+        response_mode = getattr(self, "response_mode", "extractive")
+        
+        if response_mode == "llm":
+            # Use LLM for answer generation
+            answer = self._llm_answer(query, context_texts)
+        else:
+            # Use extractive approach
+            answer = self._extractive_answer(query, context_texts)
         
         return answer, retrieved_docs
     
+
+    def _llm_answer(self, query: str, contexts: List[str]) -> str:
+        """Generate answer using OpenAI's language model"""
+        try:
+            from openai import OpenAI
+            import os
+            from dotenv import load_dotenv
+            
+            load_dotenv()
+            
+            # Initialize OpenAI client
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            
+            # Prepare the prompt with context and query
+            context_str = "\n\n".join(contexts)
+            prompt = f"""
+            Answer the question based ONLY on the following context:
+            
+            Context:
+            {context_str}
+            
+            Question: {query}
+            
+            Provide a comprehensive, well-structured answer. If the information is not in the context, say you don't have enough information.
+            """
+            temperature = getattr(self, "temperature", 0.3)
+
+            # Call the OpenAI API
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",  # You can use "gpt-4" for better quality if you have access
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that provides accurate information based only on the given context."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=temperature,  # Lower temperature for more consistent responses
+                max_tokens=500  # Adjust based on how detailed you want responses to be
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            # Log the error and fall back to extractive method
+            print(f"Error using OpenAI API: {e}")
+            return self._extractive_answer(query, contexts)
+        
     def _extractive_answer(self, query: str, contexts: List[str]) -> str:
         """
         Generate a simple extractive answer from contexts

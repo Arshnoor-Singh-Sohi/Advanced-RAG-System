@@ -5,11 +5,17 @@ This module provides a web interface for the RAG application using Streamlit.
 """
 
 import os
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+import torch
+torch.set_num_threads(1)
+
 import sys
 import pickle
 import json
 import numpy as np
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Callable
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,15 +23,20 @@ import seaborn as sns
 import time
 import base64
 from io import BytesIO
+import traceback
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Import RAG components
-from src.components.rag_components import DocumentChunker, EmbeddingProvider, RetrievalMethods, QueryProcessor
-from src.components.reranking import RerankerModule
-from src.components.evaluation import RAGEvaluator
-from src.app.rag_app import RAGApplication
+try:
+    from src.components.rag_components import DocumentChunker, EmbeddingProvider, RetrievalMethods, QueryProcessor
+    from src.components.reranking import RerankerModule
+    from src.components.evaluation import RAGEvaluator
+    from src.app.rag_app import RAGApplication
+except ImportError as e:
+    st.error(f"Failed to import necessary RAG components: {e}. Please ensure src is in the Python path.")
+    st.stop() # Stop execution if core components can't be imported
 
 # Set page config
 st.set_page_config(
@@ -35,49 +46,99 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Define CSS styles
+# Define CSS styles - simplified and compatible with dark theme
 st.markdown("""
 <style>
+    /* Basic styles */
     .main-header {
-        font-size: 2.5rem;
-        color: #1E88E5;
+        font-size: 2rem;
+        font-weight: 600;
         margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(250, 250, 250, 0.2);
     }
     .sub-header {
         font-size: 1.5rem;
-        color: #0D47A1;
+        font-weight: 500;
         margin-bottom: 1rem;
+    }
+    
+    /* Content boxes */
+    .content-box {
+        border-radius: 5px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(250, 250, 250, 0.1);
     }
     .info-box {
-        background-color: #E3F2FD;
+        background-color: rgba(66, 165, 245, 0.1);
+        border-left: 3px solid #42A5F5;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .warning-box {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-left: 3px solid #FF9800;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .success-box {
+        background-color: rgba(76, 175, 80, 0.1);
+        border-left: 3px solid #4CAF50;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .error-box {
+        background-color: rgba(244, 67, 54, 0.1);
+        border-left: 3px solid #F44336;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Chat elements */
+    .user-message {
+        background-color: rgba(66, 165, 245, 0.1);
         border-radius: 5px;
         padding: 1rem;
         margin-bottom: 1rem;
     }
-    .result-box {
-        background-color: #E8F5E9;
+    .assistant-message {
+        background-color: rgba(76, 175, 80, 0.1);
         border-radius: 5px;
         padding: 1rem;
         margin-bottom: 1rem;
     }
-    .source-box {
-        background-color: #FFF8E1;
-        border-radius: 5px;
-        padding: 0.5rem;
+    .message-header {
+        font-weight: 600;
         margin-bottom: 0.5rem;
     }
-    .metric-card {
-        background-color: #F3E5F5;
-        border-radius: 5px;
-        padding: 1rem;
-        text-align: center;
-        margin-bottom: 1rem;
+    .source-box {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-left: 3px solid #FFC107;
+        border-radius: 4px;
+        padding: 0.8rem;
+        margin-bottom: 0.8rem;
     }
-    .config-section {
-        background-color: #F5F5F5;
+    
+    /* Navigation */
+    .nav-item {
+        padding: 0.5rem;
+        margin-bottom: 0.3rem;
         border-radius: 5px;
-        padding: 1rem;
-        margin-bottom: 1rem;
+    }
+    .nav-active {
+        background-color: rgba(66, 165, 245, 0.2);
+        font-weight: 600;
+    }
+    
+    /* Separator */
+    .separator {
+        margin: 1.5rem 0;
+        border-top: 1px solid rgba(250, 250, 250, 0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -130,6 +191,24 @@ if "config" not in st.session_state:
         "prompt_template": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:"
     }
 
+if 'response_mode' not in st.session_state:
+    st.session_state.response_mode = "Extractive (Basic Retrieval)" # Default value
+
+if 'enable_comparison' not in st.session_state:
+    st.session_state.enable_comparison = False # Default to comparison being off
+
+if 'temperature' not in st.session_state:
+    st.session_state.temperature = 0.3 # Default temperature value
+
+# --- START OF ADDED HELPER FUNCTION ---
+def calculate_lexical_diversity(text):
+    """Calculate lexical diversity (ratio of unique words to total words)"""
+    words = text.lower().split()
+    if not words: # Handle empty text
+        return 0.0
+    return len(set(words)) / len(words) # Simplified from max(len(words), 1) as len(words) > 0 here
+# --- END OF ADDED HELPER FUNCTION ---
+
 # Functions for file operations
 def save_uploaded_file(uploaded_file):
     """Save uploaded file to disk"""
@@ -144,27 +223,57 @@ def save_uploaded_file(uploaded_file):
 def convert_file_to_corpus(file_path):
     """Convert an uploaded file to a corpus format"""
     _, file_ext = os.path.splitext(file_path)
-    
     corpus = []
     
     # Process based on file type
     if file_ext.lower() == ".txt":
         with open(file_path, "r", encoding="utf-8") as f:
             text = f.read()
-            
         # Split by double newlines for paragraphs
         paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
-        
         for i, para in enumerate(paragraphs):
             corpus.append({
                 "title": f"Paragraph_{i+1}",
                 "text": para
             })
+    
+    elif file_ext.lower() == ".pdf":
+        try:
+            import PyPDF2
             
+            with open(file_path, "rb") as f:
+                pdf_reader = PyPDF2.PdfReader(f)
+                
+                # Process each page
+                for i, page in enumerate(pdf_reader.pages):
+                    text = page.extract_text()
+                    if text.strip():
+                        # Split long pages into manageable chunks
+                        if len(text) > 2000:
+                            # Split by paragraphs or similar logical breaks
+                            chunks = [p.strip() for p in text.split("\n\n") if p.strip()]
+                            for j, chunk in enumerate(chunks):
+                                corpus.append({
+                                    "title": f"Page_{i+1}_Section_{j+1}",
+                                    "text": chunk
+                                })
+                        else:
+                            corpus.append({
+                                "title": f"Page_{i+1}",
+                                "text": text
+                            })
+            
+            # If no text was extracted, inform the user
+            if not corpus:
+                st.warning("No text could be extracted from the PDF. It may be image-based or protected.")
+                
+        except Exception as e:
+            st.error(f"Error processing PDF: {str(e)}")
+            return None, []
+    
     elif file_ext.lower() == ".csv":
         import pandas as pd
         df = pd.read_csv(file_path)
-        
         # Assume the CSV has at least two columns: title and text
         if "title" in df.columns and "text" in df.columns:
             for _, row in df.iterrows():
@@ -210,7 +319,7 @@ def convert_file_to_corpus(file_path):
     corpus_path = os.path.join("data", "corpus.pkl")
     with open(corpus_path, "wb") as f:
         pickle.dump(corpus, f)
-        
+    
     return corpus_path, corpus
 
 # Initialize the RAG Application
@@ -270,34 +379,50 @@ def process_query(query):
 # Sidebar navigation
 def sidebar():
     """Create the sidebar navigation"""
-    st.sidebar.markdown('<p class="main-header">🧠 Advanced RAG System</p>', unsafe_allow_html=True)
-    
-    # Navigation
-    st.sidebar.markdown("## Navigation")
-    pages = ["Chat", "Configuration", "Metrics", "Experiment Lab", "About"]
-    selected_page = st.sidebar.radio("Go to", pages)
-    
-    # Update current page
-    st.session_state.current_page = selected_page
-    
-    # Show additional settings based on current page
-    if selected_page == "Chat":
-        st.sidebar.markdown("## Knowledge Base")
+    with st.sidebar:
+        st.markdown("## 🧠 Advanced RAG System")
         
-        corpus_option = st.sidebar.radio(
-            "Knowledge Source",
-            ["Upload Documents", "Use Example Dataset"]
-        )
+        # Navigation
+        st.markdown("### Navigation")
         
-        if corpus_option == "Upload Documents":
-            uploaded_file = st.sidebar.file_uploader(
-                "Upload your knowledge base file",
-                type=["txt", "csv", "json", "jsonl", "pkl"]
+        # Create custom navigation with icons
+        nav_options = {
+            "Chat": "💬 Chat",
+            "Configuration": "⚙️ Configuration",
+            "Metrics": "📊 Metrics",
+            "Experiment Lab": "🧪 Experiment Lab",
+            "About": "ℹ️ About"
+        }
+        
+        # Highlight the current page in the navigation
+        for page, label in nav_options.items():
+            if st.session_state.current_page == page:
+                st.markdown(f'<div class="nav-item nav-active">{label}</div>', unsafe_allow_html=True)
+            else:
+                if st.button(label, key=f"nav_{page}", use_container_width=True):
+                    st.session_state.current_page = page
+                    st.rerun()
+        
+        # Show additional settings based on current page
+        if st.session_state.current_page == "Chat":
+            st.markdown("---")
+            st.markdown("### Knowledge Base")
+            
+            corpus_option = st.radio(
+                "Knowledge Source",
+                ["Upload Documents", "Use Example Dataset"],
+                key="corpus_option_radio",
+                horizontal=True
             )
             
-            if uploaded_file is not None:
-                if st.sidebar.button("Process Uploaded File"):
-                    with st.sidebar:
+            if corpus_option == "Upload Documents":
+                uploaded_file = st.file_uploader(
+                    "Upload your knowledge base file",
+                    type=["txt", "csv", "json", "jsonl", "pkl", "pdf"]
+                )
+                
+                if uploaded_file is not None:
+                    if st.button("Process Uploaded File", key="process_file_button"):
                         with st.spinner("Processing file..."):
                             # Save the uploaded file
                             file_path = save_uploaded_file(uploaded_file)
@@ -323,9 +448,8 @@ def sidebar():
                             st.session_state.corpus_uploaded = True
                             st.success("File processed successfully!")
                             
-        else:
-            if st.sidebar.button("Load Example Dataset"):
-                with st.sidebar:
+            else:
+                if st.button("Load Example Dataset", key="load_example_button"):
                     with st.spinner("Loading example dataset..."):
                         # Create example dataset if it doesn't exist
                         os.makedirs("data", exist_ok=True)
@@ -373,99 +497,283 @@ def sidebar():
                         
                         st.session_state.corpus_uploaded = True
                         st.success("Example dataset loaded!")
-    
-    elif selected_page == "Configuration":
-        st.sidebar.markdown("## Help")
-        st.sidebar.info(
-            "Configure your RAG system settings in the main panel. "
-            "Changes will apply to new queries."
-        )
-        
-    elif selected_page == "Experiment Lab":
-        st.sidebar.markdown("## Experiment Controls")
-        st.sidebar.info(
-            "Run experiments to compare different RAG configurations. "
-            "Results will be shown in the main panel."
-        )
+                        st.rerun()
+
+            st.markdown("---")
+            st.markdown("### Response Settings")
+            
+            # Get current value from radio button
+            response_mode_options = ["Extractive (Basic Retrieval)", "LLM-Enhanced (OpenAI)"]
+            current_response_mode_index = response_mode_options.index(st.session_state.response_mode)
+            
+            selected_response_mode = st.radio(
+                "Response Generation Method",
+                response_mode_options,
+                index=current_response_mode_index,
+                key='response_mode_radio',
+                horizontal=True
+            )
+            # Update session state ONLY if the selection changed
+            if selected_response_mode != st.session_state.response_mode:
+                st.session_state.response_mode = selected_response_mode
+                st.rerun()
+            
+            enable_comparison_checkbox = st.checkbox(
+                "Enable Side-by-Side Comparison",
+                value=st.session_state.enable_comparison,
+                key='comparison_checkbox',
+                help="Generate responses using both methods for comparison"
+            )
+            # Update session state if checkbox value changes
+            if enable_comparison_checkbox != st.session_state.enable_comparison:
+                st.session_state.enable_comparison = enable_comparison_checkbox
+                st.rerun()
+
+            # --- LLM SETTINGS SECTION ---
+            if st.session_state.response_mode == "LLM-Enhanced (OpenAI)" or st.session_state.enable_comparison:
+                st.markdown("---")
+                st.markdown("### LLM Settings")
+
+                # Temperature Slider
+                current_temperature = st.slider(
+                    "Temperature",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=st.session_state.temperature,
+                    step=0.05,
+                    key='temperature_slider',
+                    help="Controls randomness. Higher values = more creative/random, Lower values = more deterministic/focused."
+                )
+
+                # Update session state if the slider value changes
+                if current_temperature != st.session_state.temperature:
+                    st.session_state.temperature = current_temperature
+            # --- END LLM SETTINGS SECTION ---
+            
+        elif st.session_state.current_page == "Configuration":
+            st.markdown("---")
+            st.markdown("### Help")
+            st.info(
+                "Configure your RAG system settings in the main panel. "
+                "Changes will apply to new queries."
+            )
+            
+        elif st.session_state.current_page == "Experiment Lab":
+            st.markdown("---")
+            st.markdown("### Experiment Controls")
+            st.info(
+                "Run experiments to compare different RAG configurations. "
+                "Results will be shown in the main panel."
+            )
 
 # Page: Chat Interface
 def chat_page():
     """Chat interface page"""
-    st.markdown('<p class="main-header">Advanced RAG Chat Interface</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">💬 Advanced RAG Chat Interface</p>', unsafe_allow_html=True)
     
     # Check if corpus is loaded
     if not st.session_state.corpus_uploaded:
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
         st.warning("⚠️ No knowledge base loaded. Please upload documents or load the example dataset from the sidebar.")
         st.markdown('</div>', unsafe_allow_html=True)
         return
         
     # Initialize RAG app if needed
     if st.session_state.rag_app is None:
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.info("Initializing RAG application...")
+        st.markdown('</div>', unsafe_allow_html=True)
         initialize_rag_app()
+        st.rerun() 
     
-    # Chat history display
-    if st.session_state.conversation_history:
-        for i, exchange in enumerate(st.session_state.conversation_history):
-            # User query
-            st.markdown(f"### 🧑 User")
-            st.markdown(f"{exchange['query']}")
-            
-            # Assistant response
-            st.markdown(f"### 🤖 Assistant")
-            st.markdown('<div class="result-box">', unsafe_allow_html=True)
-            st.markdown(f"{exchange['answer']}")
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Sources
-            st.markdown("**Sources:**")
-            for j, doc in enumerate(exchange['contexts'][:3]):
-                st.markdown('<div class="source-box">', unsafe_allow_html=True)
-                source = doc.get("title", doc.get("chunk_id", f"Document {j+1}"))
-                st.markdown(f"**{source}**")
-                st.markdown(f"{doc['text'][:200]}..." if len(doc['text']) > 200 else doc['text'])
-                st.markdown('</div>', unsafe_allow_html=True)
-                
-            # Metrics
-            st.markdown(f"*Retrieved in {exchange['time']:.2f} seconds*")
-            
-            # Separator between exchanges
-            if i < len(st.session_state.conversation_history) - 1:
-                st.markdown("---")
-    
-    # Query input
+    # Chat input at the top for better UX
     st.markdown("### Ask a question")
-    query = st.text_input("Enter your question:", key="query_input")
-    col1, col2 = st.columns([1, 5])
     
+    query = st.text_input("Enter your question:", key="query_input", placeholder="Type your question here...")
+    
+    col1, col2 = st.columns([1, 5])
     with col1:
-        if st.button("Send", key="send_button"):
-            if query:
+        if st.button("Send", key="send_button", use_container_width=True):
+            if query and st.session_state.rag_app:
+                start_time = time.time()
                 with st.spinner("Processing query..."):
-                    answer, contexts = process_query(query)
-                st.experimental_rerun()
-                
+                    try:
+                        # Use the comparison flag from session state
+                        if st.session_state.enable_comparison:
+                            # --- Comparison Path ---
+                            # Get Extractive Response
+                            st.session_state.rag_app.response_mode = "extractive"
+                            extractive_answer, contexts = st.session_state.rag_app.process_query(query)
+
+                            # Get LLM Response
+                            st.session_state.rag_app.response_mode = "llm"
+                            llm_answer, _ = st.session_state.rag_app.process_query(query)
+
+                            # Store both answers in history
+                            st.session_state.conversation_history.append({
+                                "query": query,
+                                "extractive_answer": extractive_answer,
+                                "llm_answer": llm_answer,
+                                "contexts": contexts,
+                                "time": time.time() - start_time
+                            })
+                            # --- End Comparison Path ---
+
+                        else:
+                            # --- Single Response Path ---
+                            # Set RAG app mode based on sidebar radio button
+                            if st.session_state.response_mode == "Extractive (Basic Retrieval)":
+                                st.session_state.rag_app.response_mode = "extractive"
+                            else:
+                                st.session_state.rag_app.response_mode = "llm"
+
+                            # Process query once
+                            answer, contexts = st.session_state.rag_app.process_query(query)
+
+                            # Store single answer in history
+                            st.session_state.conversation_history.append({
+                                "query": query,
+                                "answer": answer,
+                                "contexts": contexts,
+                                "time": time.time() - start_time
+                            })
+                            # --- End Single Response Path ---
+
+                    except Exception as e:
+                        st.error(f"An error occurred: {e}")
+
+                # Rerun Streamlit to update the display with the new history entry
+                st.rerun()
+
+            elif not query:
+                st.warning("Please enter a question.")
+            elif not st.session_state.rag_app:
+                st.error("RAG application not initialized.")
+    
     with col2:
         if st.button("Clear Chat History", key="clear_button"):
             st.session_state.conversation_history = []
-            st.experimental_rerun()
+            st.rerun()
+                
+    # Chat history display
+    if st.session_state.conversation_history:
+        st.markdown("### Conversation History")
+        
+        for i, exchange in enumerate(st.session_state.conversation_history):
+            # User query
+            st.markdown('<div class="user-message">', unsafe_allow_html=True)
+            st.markdown('<span class="message-header">🧑 User</span>', unsafe_allow_html=True)
+            st.markdown(f"{exchange['query']}")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Assistant response
+            if "extractive_answer" in exchange and "llm_answer" in exchange:
+                # Comparison view with two columns
+                st.markdown("### 🤖 Assistant")
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("#### Extractive Response")
+                    st.markdown('<div class="assistant-message">', unsafe_allow_html=True)
+                    st.markdown(f"{exchange['extractive_answer']}")
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+                with col2:
+                    st.markdown("#### LLM-Enhanced Response")
+                    st.markdown('<div class="assistant-message">', unsafe_allow_html=True)
+                    st.markdown(f"{exchange['llm_answer']}")
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Add a metrics section below the comparison columns
+                st.markdown("#### Response Metrics")
+                metric_col1, metric_col2, metric_col3 = st.columns(3)
+
+                # Calculate lengths safely
+                extractive_ans_text = exchange.get('extractive_answer', '')
+                llm_ans_text = exchange.get('llm_answer', '')
+                extractive_len = len(extractive_ans_text.split())
+                llm_len = len(llm_ans_text.split())
+
+                with metric_col1:
+                    st.metric("Extractive Word Count", extractive_len)
+
+                with metric_col2:
+                    st.metric("LLM Word Count", llm_len)
+
+                with metric_col3:
+                    # Word count difference as percentage
+                    if extractive_len > 0:
+                        difference = ((llm_len - extractive_len) / extractive_len) * 100
+                        st.metric("Length Difference", f"{difference:.1f}%",
+                                delta=f"{difference:.1f}%",
+                                help="Percentage difference relative to extractive length. Positive means LLM is longer.")
+                    else:
+                        st.metric("Length Difference", "N/A", help="Extractive answer is empty.")
+                
+                # Lexical Diversity Calculation
+                lexical_diversity = calculate_lexical_diversity(llm_ans_text)
+                st.metric("Lexical Diversity (LLM)", f"{lexical_diversity:.3f}", 
+                        help="Ratio of unique words to total words in LLM response. Higher is more varied.")
+                
+            elif "answer" in exchange:
+                # Regular single response view
+                st.markdown('<div class="assistant-message">', unsafe_allow_html=True)
+                st.markdown('<span class="message-header">🤖 Assistant</span>', unsafe_allow_html=True)
+                st.markdown(f"{exchange['answer']}")
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                # Handle potential malformed history entry
+                st.markdown('<div class="error-box">', unsafe_allow_html=True)
+                st.warning("Could not display assistant response for this entry.")
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Sources
+            if exchange.get("contexts"):
+                st.markdown("**Sources:**")
+                for j, doc in enumerate(exchange["contexts"][:3]):
+                    st.markdown('<div class="source-box">', unsafe_allow_html=True)
+                    source = doc.get("title", doc.get("chunk_id", f"Source {j+1}"))
+                    text_preview = doc.get('text','N/A')
+                    st.markdown(f"**{source}**")
+                    st.markdown(f"{text_preview[:200]}..." if len(text_preview) > 200 else text_preview)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Metrics
+                if "time" in exchange:
+                    st.markdown(f"*Processed in {exchange['time']:.2f} seconds*")
+
+            # Separator between conversations
+            if i < len(st.session_state.conversation_history) - 1:
+                st.markdown('<div class="separator"></div>', unsafe_allow_html=True)
+                
+    else:
+        # Show welcome message when no conversation exists
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown("""
+        👋 **Welcome to the RAG Chat Interface!**
+        
+        Ask questions about your knowledge base to see how the system retrieves and generates answers.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # Page: Configuration
 def configuration_page():
     """Configuration page"""
-    st.markdown('<p class="main-header">RAG System Configuration</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">⚙️ RAG System Configuration</p>', unsafe_allow_html=True)
     
+    st.markdown('<div class="info-box">', unsafe_allow_html=True)
     st.markdown("Configure your RAG system with the settings below. Changes will apply to new queries.")
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Create tabs for different configuration categories
     tabs = st.tabs([
-        "Knowledge Base", 
-        "Chunking", 
-        "Embedding", 
-        "Retrieval", 
-        "Query Processing", 
-        "Reranking",
-        "Generation"
+        "📚 Knowledge Base", 
+        "✂️ Chunking", 
+        "🔢 Embedding", 
+        "🔍 Retrieval", 
+        "❓ Query Processing", 
+        "🔄 Reranking",
+        "💬 Generation"
     ])
     
     # Tab: Knowledge Base
@@ -478,20 +786,28 @@ def configuration_page():
                 with open(st.session_state.config["corpus_path"], "rb") as f:
                     corpus = pickle.load(f)
                     
-                st.markdown('<div class="info-box">', unsafe_allow_html=True)
-                st.markdown(f"**Current Knowledge Base:** {os.path.basename(st.session_state.config['corpus_path'])}")
-                st.markdown(f"**Number of Documents:** {len(corpus)}")
+                st.markdown('<div class="content-box">', unsafe_allow_html=True)
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown(f"**Current Knowledge Base:** {os.path.basename(st.session_state.config['corpus_path'])}")
+                with col2:
+                    st.markdown(f"**Number of Documents:** {len(corpus)}")
+                st.markdown('</div>', unsafe_allow_html=True)
                 
                 # Show sample documents
                 st.markdown("**Sample Documents:**")
                 for i, doc in enumerate(corpus[:3]):
-                    st.markdown(f"*{doc.get('title', f'Document {i+1}')}*: {doc['text'][:100]}...")
+                    st.markdown('<div class="source-box">', unsafe_allow_html=True)
+                    st.markdown(f"**{doc.get('title', f'Document {i+1}')}**")
+                    st.markdown(f"{doc['text'][:100]}..." if len(doc['text']) > 100 else doc['text'])
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
-                st.markdown('</div>', unsafe_allow_html=True)
             except:
                 st.warning("Error loading corpus information.")
         else:
+            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
             st.warning("No knowledge base loaded. Please upload documents or load the example dataset from the sidebar.")
+            st.markdown('</div>', unsafe_allow_html=True)
             
         # Advanced options
         st.markdown("### Advanced Options")
@@ -744,7 +1060,7 @@ def configuration_page():
             """)
     
     # Button to apply configuration changes
-    if st.button("Apply Configuration Changes"):
+    if st.button("Apply Configuration Changes", use_container_width=True):
         # Clear any existing RAG app
         st.session_state.rag_app = None
         
@@ -763,11 +1079,11 @@ def configuration_page():
 # Page: Metrics
 def metrics_page():
     """Metrics and analytics page"""
-    st.markdown('<p class="main-header">RAG System Metrics & Analytics</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">📊 RAG System Metrics & Analytics</p>', unsafe_allow_html=True)
     
     # Check if there's conversation history
     if not st.session_state.conversation_history:
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
         st.warning("No conversation data available. Use the Chat interface to generate metrics.")
         st.markdown('</div>', unsafe_allow_html=True)
         return
@@ -779,19 +1095,19 @@ def metrics_page():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown('<div class="content-box">', unsafe_allow_html=True)
         avg_time = sum(exchange["time"] for exchange in st.session_state.conversation_history) / len(st.session_state.conversation_history)
         st.metric("Average Response Time", f"{avg_time:.2f} sec")
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col2:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown('<div class="content-box">', unsafe_allow_html=True)
         total_queries = len(st.session_state.conversation_history)
         st.metric("Total Queries", total_queries)
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col3:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown('<div class="content-box">', unsafe_allow_html=True)
         avg_context_len = sum(len(exchange["contexts"]) for exchange in st.session_state.conversation_history) / len(st.session_state.conversation_history)
         st.metric("Avg. Retrieved Documents", f"{avg_context_len:.1f}")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -812,7 +1128,7 @@ def metrics_page():
     history_df = pd.DataFrame(history_data)
     
     # Display as a table
-    st.dataframe(history_df)
+    st.dataframe(history_df, use_container_width=True)
     
     # Response time visualization
     st.markdown("### Response Time Analysis")
@@ -854,16 +1170,18 @@ def metrics_page():
 # Page: Experiment Lab
 def experiment_lab_page():
     """Experiment laboratory page"""
-    st.markdown('<p class="main-header">RAG Experiment Laboratory</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">🧪 RAG Experiment Laboratory</p>', unsafe_allow_html=True)
     
+    st.markdown('<div class="info-box">', unsafe_allow_html=True)
     st.markdown("""
     Compare different RAG configurations to find the optimal setup for your specific use case.
     Run experiments across different chunking strategies, retrieval methods, and more.
     """)
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Check if corpus is loaded
     if not st.session_state.corpus_uploaded:
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
         st.warning("⚠️ No knowledge base loaded. Please upload documents or load the example dataset from the Chat page.")
         st.markdown('</div>', unsafe_allow_html=True)
         return
@@ -873,15 +1191,22 @@ def experiment_lab_page():
         initialize_rag_app()
     
     # Create experiment setup tabs
-    tabs = st.tabs(["Chunking Experiment", "Retrieval Experiment", "Combined Experiment", "Results"])
+    tabs = st.tabs([
+        "🧩 Chunking Experiment", 
+        "🔍 Retrieval Experiment", 
+        "🔄 Combined Experiment", 
+        "📊 Results"
+    ])
     
     # Tab: Chunking Experiment
     with tabs[0]:
         st.markdown('<p class="sub-header">Chunking Strategy Experiment</p>', unsafe_allow_html=True)
         
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("""
         Compare different document chunking strategies to find which works best for your knowledge base.
         """)
+        st.markdown('</div>', unsafe_allow_html=True)
         
         # Test query
         test_query = st.text_input(
@@ -1037,8 +1362,8 @@ def experiment_lab_page():
                 st.markdown("### Generated Answers")
                 
                 for result in st.session_state.chunking_results:
+                    st.markdown('<div class="content-box">', unsafe_allow_html=True)
                     st.markdown(f"**{result['Strategy']} Strategy:**")
-                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
                     st.markdown(result["Answer"])
                     st.markdown('</div>', unsafe_allow_html=True)
     
@@ -1046,9 +1371,11 @@ def experiment_lab_page():
     with tabs[1]:
         st.markdown('<p class="sub-header">Retrieval Method Experiment</p>', unsafe_allow_html=True)
         
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("""
         Compare different retrieval methods to find which works best for your knowledge base and queries.
         """)
+        st.markdown('</div>', unsafe_allow_html=True)
         
         # Test query
         test_query = st.text_input(
@@ -1229,8 +1556,8 @@ def experiment_lab_page():
                 st.markdown("### Generated Answers")
                 
                 for result in st.session_state.retrieval_results:
+                    st.markdown('<div class="content-box">', unsafe_allow_html=True)
                     st.markdown(f"**{result['Method']} Method:**")
-                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
                     st.markdown(result["Answer"])
                     st.markdown('</div>', unsafe_allow_html=True)
     
@@ -1238,12 +1565,9 @@ def experiment_lab_page():
     with tabs[2]:
         st.markdown('<p class="sub-header">Combined Experiment</p>', unsafe_allow_html=True)
         
-        st.markdown("""
-        Run a comprehensive experiment testing multiple configurations across chunking, embedding, 
-        and retrieval methods.
-        """)
-        
+        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
         st.warning("⚠️ This experiment may take several minutes to complete.")
+        st.markdown('</div>', unsafe_allow_html=True)
         
         # Test queries
         st.markdown("### Test Queries")
@@ -1310,6 +1634,9 @@ def experiment_lab_page():
                 
             # Run the experiment
             with st.spinner("Running comprehensive experiment... This may take a while."):
+                progress_bar = st.progress(0)
+                progress_status = st.empty()
+                
                 # List to store all configurations to test
                 configs_to_test = []
                 
@@ -1346,9 +1673,19 @@ def experiment_lab_page():
                 # List to store experiment results
                 combined_results = []
                 
+                # Calculate total iterations for progress bar
+                total_iterations = len(configs_to_test) * len(test_queries)
+                current_iteration = 0
+                
                 # Test each configuration with each query
                 for config in configs_to_test:
                     for query in test_queries:
+                        # Update progress
+                        current_iteration += 1
+                        progress = current_iteration / total_iterations
+                        progress_bar.progress(progress)
+                        progress_status.text(f"Processing configuration {current_iteration} of {total_iterations}...")
+                        
                         # Create a RAG app with this configuration
                         app = RAGApplication()
                         app.config = config
@@ -1373,6 +1710,10 @@ def experiment_lab_page():
                         
                 # Store results in session state
                 st.session_state.combined_results = combined_results
+                
+                # Clean up progress indicators
+                progress_bar.empty()
+                progress_status.empty()
                 
                 # Show success message
                 st.success(f"Combined experiment completed with {len(combined_results)} configurations!")
@@ -1415,6 +1756,8 @@ def experiment_lab_page():
                 ax.set_title("Average Processing Time by Configuration")
                 ax.grid(True, linestyle='--', alpha=0.7)
                 
+                plt.tight_layout()
+                
                 # Convert plot to image for Streamlit
                 buf = BytesIO()
                 fig.savefig(buf, format="png", bbox_inches='tight')
@@ -1425,9 +1768,11 @@ def experiment_lab_page():
     with tabs[3]:
         st.markdown('<p class="sub-header">Experiment Results & Analysis</p>', unsafe_allow_html=True)
         
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("""
         View and analyze results from all your experiments. Export data for further analysis or for your research paper.
         """)
+        st.markdown('</div>', unsafe_allow_html=True)
         
         # Check if there are any results
         has_chunking_results = hasattr(st.session_state, "chunking_results")
@@ -1435,7 +1780,7 @@ def experiment_lab_page():
         has_combined_results = hasattr(st.session_state, "combined_results")
         
         if not (has_chunking_results or has_retrieval_results or has_combined_results):
-            st.markdown('<div class="info-box">', unsafe_allow_html=True)
+            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
             st.warning("No experiment results available. Run experiments to generate results.")
             st.markdown('</div>', unsafe_allow_html=True)
             return
@@ -1593,7 +1938,7 @@ def experiment_lab_page():
 # Page: About
 def about_page():
     """About page with information about the system"""
-    st.markdown('<p class="main-header">About Advanced RAG Knowledge Management System</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">ℹ️ About Advanced RAG Knowledge Management System</p>', unsafe_allow_html=True)
     
     st.markdown("""
     This Advanced RAG Knowledge Management System is a comprehensive platform for implementing, 

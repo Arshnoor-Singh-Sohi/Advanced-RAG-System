@@ -79,7 +79,7 @@ advanced_rag_system/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/advanced-rag-system.git
+git clone https://github.com/Arshnoor-Singh-Sohi/Advanced-RAG-System.git
 cd advanced-rag-system
 ```
 
@@ -244,9 +244,6 @@ def your_search(query: str, ...) -> List[Tuple[str, float]]:
     return results
 ```
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Citation
 
@@ -254,9 +251,8 @@ If you use this system in your research, please cite:
 
 ```
 @article{your_name2025advanced,
-  title={Advanced RAG-Based Knowledge Management System and Medical Diagnostic Support Application},
-  author={Your Name},
-  journal={IEEE Conference on Neural Networks and Deep Learning},
+  title={Advanced RAG-Based Knowledge Management System},
+  author={Arshnoor Singh Sohi},
   year={2025}
 }
 ```

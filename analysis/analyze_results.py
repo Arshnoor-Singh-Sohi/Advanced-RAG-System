@@ -21,78 +21,168 @@ import traceback # Added for better error printing if needed
 # Add project root if necessary (assuming it's needed based on previous context)
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# --- analyze_experiment_results Function (WITH ALL PREVIOUS FIXES) ---
 def analyze_experiment_results(results_dirs: Optional[List[str]] = None, output_dir: str = "figures"):
     """
-    Analyze and visualize results from experiments (Corrected Directory Handling & NameError Fix)
+    Analyze and visualize results from experiments.
+    Combines robust directory handling with enhanced logging and NaN checks.
 
     Args:
         results_dirs: List of result directories to analyze (if None, searches in results/)
         output_dir: Directory to save output figures and analysis
     """
-    # Create output directory
+    # Create output directory (from both implementations)
     os.makedirs(output_dir, exist_ok=True)
 
+    # --- Robust Directory Handling (from Implementation 1) ---
     actual_experiment_dirs_to_process = [] # List to store paths like 'results/chunking_...'
     base_dirs_to_scan = []
     if results_dirs is None:
         default_base = "results"
         if os.path.exists(default_base) and os.path.isdir(default_base):
-             base_dirs_to_scan = [default_base]
-        else: print(f"Default results directory '{default_base}' not found."); return
-    else: base_dirs_to_scan = results_dirs
+            base_dirs_to_scan = [default_base]
+        else:
+            print(f"Default results directory '{default_base}' not found or not a directory.")
+            return # Cannot proceed
+    else:
+        # Use the list of directories provided as input
+        base_dirs_to_scan = results_dirs
 
+    # Scan each base directory provided
     for base_dir in base_dirs_to_scan:
-        if not os.path.exists(base_dir): print(f"Warning: Provided directory '{base_dir}' not found."); continue
-        if not os.path.isdir(base_dir): print(f"Warning: Provided path '{base_dir}' is not a directory."); continue
+        if not os.path.exists(base_dir):
+            print(f"Warning: Provided directory '{base_dir}' not found. Skipping.")
+            continue
+        if not os.path.isdir(base_dir):
+            print(f"Warning: Provided path '{base_dir}' is not a directory. Skipping.")
+            continue
+
+        # Look for experiment subdirectories *within* this base_dir
         try:
             found_subdirs_in_base = False
             for item in os.listdir(base_dir):
                 item_path = os.path.join(base_dir, item)
+                # Check if it's a directory AND looks like an experiment result folder
                 if os.path.isdir(item_path) and "experiment" in item and os.path.exists(os.path.join(item_path, "results.csv")):
-                    actual_experiment_dirs_to_process.append(item_path); found_subdirs_in_base = True
+                    actual_experiment_dirs_to_process.append(item_path)
+                    found_subdirs_in_base = True
+
+            # Special case: If no subdirs were found in the base_dir,
+            # maybe the base_dir itself *is* the experiment directory
             if not found_subdirs_in_base and os.path.exists(os.path.join(base_dir, "results.csv")):
-                 print(f"Note: Treating '{base_dir}' as a single experiment directory."); actual_experiment_dirs_to_process.append(base_dir)
-        except Exception as e: print(f"Error scanning directory '{base_dir}': {e}")
+                print(f"Note: Treating '{base_dir}' as a single experiment directory.")
+                actual_experiment_dirs_to_process.append(base_dir)
 
-    if not actual_experiment_dirs_to_process: print("No valid experiment result directories found."); return
+        except Exception as e:
+            print(f"Error scanning directory '{base_dir}': {e}")
 
+    # Check if any valid directories were found overall
+    if not actual_experiment_dirs_to_process:
+        print("No valid experiment result directories found to analyze.")
+        return
+    # --- End Robust Directory Handling ---
+
+    # --- Initialize lists (from Implementation 2) ---
     all_results = []
+    experiment_types = []
+
+    # Load results from each identified experiment directory
     for result_dir in actual_experiment_dirs_to_process:
         result_csv = os.path.join(result_dir, "results.csv")
-        if not os.path.exists(result_csv): continue # Skip dirs without results.csv silently
+        # Skip silently if CSV doesn't exist (already handled by dir scan logic, but good safety)
+        if not os.path.exists(result_csv):
+            continue
 
-        # --- Define experiment_name (Moved definition here, includes NameError fix) ---
+        # --- Robust experiment_name derivation (from Implementation 1) ---
         try:
-             dir_name = os.path.basename(result_dir)
-             dir_parts = dir_name.split('_'); timestamp_index = -1
-             for i, part in enumerate(dir_parts):
-                  if part.isdigit() and len(part) >= 8: timestamp_index = i; break
-             if timestamp_index > 0: experiment_name = "_".join(dir_parts[:timestamp_index])
-             else: experiment_name = dir_name if "experiment" in dir_name else dir_parts[0]
-        except Exception as e_name: print(f"Warning: Could not derive experiment name from dir '{result_dir}': {e_name}"); experiment_name = "unknown"
-        # --- End Define experiment_name ---
+            dir_name = os.path.basename(result_dir)
+            dir_parts = dir_name.split('_'); timestamp_index = -1
+            for i, part in enumerate(dir_parts):
+                if part.isdigit() and len(part) >= 8: timestamp_index = i; break
+            if timestamp_index > 0: experiment_name_full = "_".join(dir_parts[:timestamp_index]) # e.g., "chunking_experiment"
+            else: experiment_name_full = dir_name if "experiment" in dir_name else dir_parts[0]
+            # Simplify name for column and tracking
+            experiment_name = experiment_name_full.replace("_experiment", "")
+        except Exception as e_name:
+            print(f"Warning: Could not derive experiment name from dir '{result_dir}': {e_name}")
+            experiment_name = "unknown"
+        # --- End experiment_name derivation ---
 
-        try: # Load results df
+        # Track experiment types found (from Implementation 2)
+        experiment_types.append(experiment_name)
+
+        # Load results DataFrame
+        try:
             df = pd.read_csv(result_csv)
-            df["experiment"] = experiment_name.replace("_experiment", "") # Simplify name
+
+            # Check for missing metrics (Feature from Implementation 2)
+            metric_cols = [col for col in df.columns if col.startswith("metric_")]
+            if metric_cols:
+                missing_metrics = df[metric_cols].isnull().sum().sum()
+                if missing_metrics > 0:
+                    print(f"Warning: {missing_metrics} missing metric values found in {experiment_name} results ({os.path.basename(result_dir)})")
+
+            # Add experiment name column (from both implementations)
+            df["experiment"] = experiment_name
+
+            # Append to combined results (from both implementations)
             all_results.append(df)
-        except Exception as e: print(f"Error reading CSV {result_csv}: {e}")
 
-    if not all_results: print("No results found to analyze"); return
-    combined_df = pd.concat(all_results, ignore_index=True)
-    try: # Save combined results
-        combined_df.to_csv(os.path.join(output_dir, "combined_results.csv"), index=False)
-    except Exception as e_comb: print(f"Warning: Failed to save combined results: {e_comb}")
+        except Exception as e:
+            print(f"Error loading or processing results from {result_dir}: {e}")
+            # traceback.print_exc() # Optionally uncomment for detailed error
+            continue # Skip this directory if loading fails
 
-    # --- Call analysis functions (Keep as is) ---
-    if "chunking" in combined_df["experiment"].values: analyze_chunking_results(combined_df, output_dir)
-    if "embedding" in combined_df["experiment"].values: analyze_embedding_results(combined_df, output_dir)
-    if "retrieval" in combined_df["experiment"].values: analyze_retrieval_results(combined_df, output_dir)
-    if "query_processing" in combined_df["experiment"].values: analyze_query_processing_results(combined_df, output_dir)
-    if "reranking" in combined_df["experiment"].values: analyze_reranking_results(combined_df, output_dir)
-    if "generation" in combined_df["experiment"].values: analyze_generation_results(combined_df, output_dir)
-    generate_comparative_analysis(combined_df, output_dir)
+    # Check if results were loaded
+    if not all_results:
+        print("No results successfully loaded to analyze")
+        return
+
+    # --- Combine results and preprocess (incorporating features from Impl 2) ---
+    print(f"Combining results from experiments: {', '.join(sorted(list(set(experiment_types))))}") # Use set for unique names, sort for consistency
+    try:
+        combined_df = pd.concat(all_results, ignore_index=True)
+
+        # Fill NaN in string columns (Feature from Implementation 2)
+        string_columns = combined_df.select_dtypes(include=['object']).columns
+        combined_df[string_columns] = combined_df[string_columns].fillna('')
+
+        # Save combined results (from both, with added print message)
+        combined_csv_path = os.path.join(output_dir, "combined_results.csv")
+        combined_df.to_csv(combined_csv_path, index=False)
+        print(f"Saved combined results to {combined_csv_path}")
+
+    except Exception as e_comb:
+        print(f"Error combining or saving results: {e_comb}")
+        # traceback.print_exc()
+        return # Cannot proceed if combination fails
+
+    # --- Generate analysis using looped approach (from Implementation 2) ---
+    processed_types = set(experiment_types) # Use unique types found
+    for experiment_type in sorted(list(processed_types)): # Sort for consistent order
+        print(f"Analyzing {experiment_type} experiment results...")
+        # Ensure the required analysis function exists before calling
+        analysis_function_name = f"analyze_{experiment_type}_results"
+        if analysis_function_name in globals() and callable(globals()[analysis_function_name]):
+            try:
+                # Pass the combined_df, filtering will happen inside the specific function
+                globals()[analysis_function_name](combined_df, output_dir)
+            except Exception as e_analyze:
+                print(f"Error during analysis function '{analysis_function_name}': {e_analyze}")
+                # traceback.print_exc() # Optionally uncomment for details
+        else:
+            print(f"Warning: Analysis function '{analysis_function_name}' not found. Skipping analysis for {experiment_type}.")
+
+    # --- Conditional comparative analysis (from Implementation 2) ---
+    if len(processed_types) > 1:
+        print("Generating comparative analysis across experiments...")
+        try:
+            generate_comparative_analysis(combined_df, output_dir)
+        except Exception as e_compare:
+            print(f"Error during comparative analysis: {e_compare}")
+            # traceback.print_exc()
+
+    # --- Final message (from Implementation 2) ---
+    print(f"Analysis complete. Outputs saved to {output_dir}")
 # --- End analyze_experiment_results ---
 
 
