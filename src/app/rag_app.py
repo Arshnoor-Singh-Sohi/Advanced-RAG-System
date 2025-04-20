@@ -21,6 +21,17 @@ from src.components.rag_components import DocumentChunker, EmbeddingProvider, Re
 from src.components.reranking import RerankerModule
 from src.components.evaluation import RAGEvaluator
 
+# In src/app/rag_app.py
+
+# Replace the original imports with these:
+from src.components.data_processing import DocumentChunker, get_text_from_file, create_document_from_text
+from src.components.vectorstore_handler import EmbeddingProvider, RetrievalMethods, save_vectorstore, load_vectorstore
+from src.components.llm_integrations import LLMProvider, get_conversation_chain, generate_response, extract_answer_from_context
+from src.components.rag_components import QueryProcessor
+from src.components.reranking import RerankerModule
+from src.components.evaluation import RAGEvaluator
+from src.utils.utils import ensure_directory, save_json, load_json
+
 
 class RAGApplication:
     """

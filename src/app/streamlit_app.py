@@ -24,6 +24,7 @@ import time
 import base64
 from io import BytesIO
 import traceback
+import matplotlib as mpl
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -758,7 +759,7 @@ def chat_page():
 
 # Page: Configuration
 def configuration_page():
-    """Configuration page"""
+    """Configuration page with enhanced RAG parameter controls"""
     st.markdown('<p class="main-header">⚙️ RAG System Configuration</p>', unsafe_allow_html=True)
     
     st.markdown('<div class="info-box">', unsafe_allow_html=True)
@@ -820,17 +821,30 @@ def configuration_page():
         )
         st.session_state.config["index_path"] = index_path
     
-    # Tab: Chunking
+    # Tab: Chunking - ENHANCED
     with tabs[1]:
         st.markdown('<p class="sub-header">Chunking Configuration</p>', unsafe_allow_html=True)
         
-        # Chunking strategy
-        chunking_strategy = st.selectbox(
-            "Chunking Strategy",
-            ["fixed", "paragraph", "semantic"],
-            index=["fixed", "paragraph", "semantic"].index(st.session_state.config["chunking_strategy"]),
-            help="Method used to split documents into chunks"
-        )
+        # Chunking strategy with info button
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            chunking_strategy = st.selectbox(
+                "Chunking Strategy",
+                ["fixed", "paragraph", "semantic"],
+                index=["fixed", "paragraph", "semantic"].index(st.session_state.config["chunking_strategy"]),
+                help="Method used to split documents into chunks"
+            )
+        with col2:
+            st.markdown('<div style="padding-top: 25px">', unsafe_allow_html=True)
+            chunking_help = st.expander("About Strategies")
+            with chunking_help:
+                st.markdown("""
+                - **Fixed**: Splits documents into chunks of a fixed token size with optional overlap
+                - **Paragraph**: Splits documents at paragraph boundaries
+                - **Semantic**: Attempts to split documents while preserving semantic units and coherence
+                """)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
         st.session_state.config["chunking_strategy"] = chunking_strategy
         
         # Chunk size and overlap (only for fixed strategy)
@@ -859,94 +873,276 @@ def configuration_page():
                 )
                 st.session_state.config["chunk_overlap"] = chunk_overlap
                 
-        # Explanation of chunking strategies
-        with st.expander("About Chunking Strategies"):
-            st.markdown("""
-            - **Fixed**: Splits documents into chunks of a fixed token size with optional overlap
-            - **Paragraph**: Splits documents at paragraph boundaries
-            - **Semantic**: Attempts to split documents while preserving semantic units and coherence
-            """)
+            # Add visualization of chunk size and overlap
+            st.markdown("### Chunk Size and Overlap Visualization")
+            
+            # Simple visualization of chunks
+            visualization_cols = st.columns([1, 6, 1])
+            with visualization_cols[1]:
+                fig, ax = plt.subplots(figsize=(10, 2))
+                
+                # Calculate number of chunks to show
+                doc_length = 1000  # Just for visualization
+                step = chunk_size - chunk_overlap
+                num_chunks = (doc_length - chunk_overlap) // step
+                
+                # Draw chunks
+                for i in range(num_chunks):
+                    start = i * step
+                    end = start + chunk_size
+                    rect = plt.Rectangle((start, 0), chunk_size, 1, fill=True, alpha=0.5, 
+                                        color='blue', linewidth=1, edgecolor='black')
+                    ax.add_patch(rect)
+                    
+                ax.set_xlim(0, doc_length)
+                ax.set_ylim(0, 1.5)
+                ax.set_yticks([])
+                ax.set_xlabel("Document position (tokens)")
+                ax.set_title("Chunking Visualization")
+                
+                # Add labels for size and overlap
+                plt.annotate(f"Chunk Size: {chunk_size}", (doc_length/2, 1.3), 
+                            ha='center', va='center', fontsize=10)
+                
+                if chunk_overlap > 0:
+                    plt.annotate(f"Overlap: {chunk_overlap}", (step + chunk_overlap/2, 1.1), 
+                                ha='center', va='center', fontsize=9, 
+                                arrowprops=dict(arrowstyle='->'))
+                    
+                plt.tight_layout()
+                st.pyplot(fig)
+        
+        # Show additional explanation for each strategy
+        if chunking_strategy == "paragraph":
+            st.info("Paragraph chunking divides text at natural paragraph breaks, preserving document structure. Good for well-formatted documents with clear section breaks.")
+            
+        elif chunking_strategy == "semantic":
+            st.info("Semantic chunking preserves meaning by keeping related content together. It analyzes sentence relationships to determine logical boundaries.")
+            
+            # Add advanced semantic chunking options
+            st.markdown("### Advanced Semantic Chunking Options")
+            advanced_semantic = st.checkbox("Enable advanced semantic chunking options", value=False)
+            
+            if advanced_semantic:
+                semantic_method = st.selectbox(
+                    "Semantic Chunking Method",
+                    ["basic", "semantic_segmentation", "topic_modeling"],
+                    index=0,
+                    help="Method used for semantic chunking"
+                )
+                st.session_state.config["semantic_method"] = semantic_method
+                
+                if semantic_method in ["semantic_segmentation", "topic_modeling"]:
+                    st.warning("These advanced methods require additional computational resources and may slow down processing.")
     
-    # Tab: Embedding
+    # Tab: Embedding - ENHANCED
     with tabs[2]:
         st.markdown('<p class="sub-header">Embedding Configuration</p>', unsafe_allow_html=True)
         
-        # Embedding model
+        # Embedding model with categorized options
+        st.markdown("### Embedding Model Selection")
+        
+        # Group embedding models by type
+        embedding_categories = {
+            "Lightweight (Fast)": ["all-MiniLM-L6-v2", "BAAI/bge-small-en-v1.5"],
+            "Balanced": ["all-mpnet-base-v2"],
+            "Specialized": ["multi-qa-mpnet-base-dot-v1"],
+            "Commercial API": ["text-embedding-ada-002"]
+        }
+        
+        # Create a two-step selection process
+        embedding_category = st.radio(
+            "Model Category",
+            list(embedding_categories.keys()),
+            horizontal=True
+        )
+        
+        # Get current model
+        current_model = st.session_state.config["embedding_model"]
+        
+        # Find default selection index
+        default_index = 0
+        for i, model in enumerate(embedding_categories[embedding_category]):
+            if model == current_model:
+                default_index = i
+                break
+        
         embedding_model = st.selectbox(
             "Embedding Model",
-            [
-                "all-MiniLM-L6-v2",
-                "all-mpnet-base-v2",
-                "multi-qa-mpnet-base-dot-v1",
-                "BAAI/bge-small-en-v1.5",
-                "text-embedding-ada-002"
-            ],
-            index=["all-MiniLM-L6-v2", "all-mpnet-base-v2", "multi-qa-mpnet-base-dot-v1", 
-                   "BAAI/bge-small-en-v1.5", "text-embedding-ada-002"].index(
-                st.session_state.config["embedding_model"]
-            ) if st.session_state.config["embedding_model"] in ["all-MiniLM-L6-v2", "all-mpnet-base-v2", 
-                                                              "multi-qa-mpnet-base-dot-v1", "BAAI/bge-small-en-v1.5", 
-                                                              "text-embedding-ada-002"] else 0,
+            embedding_categories[embedding_category],
+            index=min(default_index, len(embedding_categories[embedding_category])-1),
             help="Model used to generate vector embeddings"
         )
         st.session_state.config["embedding_model"] = embedding_model
         
+        # Display model information
+        model_info = {
+            "all-MiniLM-L6-v2": {
+                "dimensions": 384,
+                "speed": "Fast",
+                "quality": "Good",
+                "description": "Lightweight general-purpose embedding model with good balance of speed and quality."
+            },
+            "all-mpnet-base-v2": {
+                "dimensions": 768,
+                "speed": "Medium",
+                "quality": "Excellent",
+                "description": "Higher quality general-purpose embedding model with strong semantic understanding."
+            },
+            "multi-qa-mpnet-base-dot-v1": {
+                "dimensions": 768,
+                "speed": "Medium",
+                "quality": "Excellent for QA",
+                "description": "Optimized specifically for question-answering tasks."
+            },
+            "BAAI/bge-small-en-v1.5": {
+                "dimensions": 384,
+                "speed": "Fast",
+                "quality": "Very Good",
+                "description": "Efficient embedding model with high performance on retrieval tasks."
+            },
+            "text-embedding-ada-002": {
+                "dimensions": 1536,
+                "speed": "Varies (API)",
+                "quality": "Very Good",
+                "description": "OpenAI's embedding model, requires API key."
+            }
+        }
+        
+        # Show model information
+        if embedding_model in model_info:
+            info = model_info[embedding_model]
+            st.markdown('<div class="content-box">', unsafe_allow_html=True)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Dimensions", info["dimensions"])
+            with col2:
+                st.metric("Speed", info["speed"])
+            with col3:
+                st.metric("Quality", info["quality"])
+            st.markdown(f"**Description:** {info['description']}")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
         # Warning for OpenAI model
         if embedding_model == "text-embedding-ada-002":
             st.warning("OpenAI API key required. Set OPENAI_API_KEY environment variable.")
             
-        # Explanation of embedding models
-        with st.expander("About Embedding Models"):
-            st.markdown("""
-            - **all-MiniLM-L6-v2**: Lightweight, fast, general-purpose embedding model (384 dimensions)
-            - **all-mpnet-base-v2**: Higher quality, general-purpose embedding model (768 dimensions)
-            - **multi-qa-mpnet-base-dot-v1**: Optimized for question-answering tasks (768 dimensions)
-            - **BAAI/bge-small-en-v1.5**: BGE small English model, good performance/speed trade-off
-            - **text-embedding-ada-002**: OpenAI's embedding model, requires API key (1536 dimensions)
-            """)
+            # API key input
+            openai_api_key = st.text_input(
+                "OpenAI API Key (optional, recommended to set via environment variable)",
+                type="password"
+            )
+            if openai_api_key:
+                st.session_state.openai_api_key = openai_api_key
     
-    # Tab: Retrieval
+    # Tab: Retrieval - ENHANCED
     with tabs[3]:
         st.markdown('<p class="sub-header">Retrieval Configuration</p>', unsafe_allow_html=True)
         
-        # Retrieval method
-        retrieval_method = st.selectbox(
-            "Retrieval Method",
-            ["vector", "bm25", "hybrid"],
-            index=["vector", "bm25", "hybrid"].index(st.session_state.config["retrieval_method"]),
-            help="Method used to retrieve documents"
-        )
-        st.session_state.config["retrieval_method"] = retrieval_method
+        # Main retrieval settings
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Retrieval method
+            retrieval_method = st.selectbox(
+                "Retrieval Method",
+                ["vector", "bm25", "hybrid"],
+                index=["vector", "bm25", "hybrid"].index(st.session_state.config["retrieval_method"]),
+                help="Method used to retrieve documents"
+            )
+            st.session_state.config["retrieval_method"] = retrieval_method
+            
+        with col2:
+            # Top-k
+            top_k = st.slider(
+                "Number of Retrieved Documents (Top-K)",
+                min_value=1,
+                max_value=20,
+                value=st.session_state.config["top_k"],
+                step=1,
+                help="Number of documents to retrieve for each query"
+            )
+            st.session_state.config["top_k"] = top_k
+        
+        # Advanced retrieval settings
+        st.markdown("### Advanced Retrieval Settings")
         
         # Hybrid alpha (only for hybrid method)
         if retrieval_method == "hybrid":
-            retrieval_alpha = st.slider(
-                "Vector Search Weight (Alpha)",
-                min_value=0.0,
-                max_value=1.0,
-                value=st.session_state.config["retrieval_alpha"],
-                step=0.1,
-                help="Weight of vector search (1-Alpha for BM25)"
-            )
-            st.session_state.config["retrieval_alpha"] = retrieval_alpha
+            col1, col2 = st.columns([3, 2])
             
-        # Top-k
-        top_k = st.slider(
-            "Number of Retrieved Documents (Top-K)",
-            min_value=1,
-            max_value=20,
-            value=st.session_state.config["top_k"],
-            step=1,
-            help="Number of documents to retrieve for each query"
-        )
-        st.session_state.config["top_k"] = top_k
+            with col1:
+                retrieval_alpha = st.slider(
+                    "Vector Search Weight (Alpha)",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=st.session_state.config["retrieval_alpha"],
+                    step=0.1,
+                    help="Weight of vector search (1-Alpha for BM25)"
+                )
+                st.session_state.config["retrieval_alpha"] = retrieval_alpha
+            
+            with col2:
+                st.markdown('<div style="padding-top: 40px">', unsafe_allow_html=True)
+                st.info(f"BM25 Weight: {1-retrieval_alpha:.1f}")
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Add a visualization of weight distribution
+            fig, ax = plt.subplots(figsize=(6, 1))
+            ax.barh(["Weights"], [retrieval_alpha], color='blue', alpha=0.6, label='Vector')
+            ax.barh(["Weights"], [1-retrieval_alpha], left=[retrieval_alpha], color='green', alpha=0.6, label='BM25')
+            
+            # Add labels
+            ax.text(retrieval_alpha/2, 0, f"Vector: {retrieval_alpha:.1f}", 
+                    ha='center', va='center', color='white' if retrieval_alpha > 0.3 else 'black')
+            ax.text(retrieval_alpha + (1-retrieval_alpha)/2, 0, f"BM25: {1-retrieval_alpha:.1f}", 
+                    ha='center', va='center', color='white' if (1-retrieval_alpha) > 0.3 else 'black')
+            
+            ax.set_xlim(0, 1)
+            ax.set_yticks([])
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['left'].set_visible(False)
+            plt.tight_layout()
+            st.pyplot(fig)
         
-        # Explanation of retrieval methods
-        with st.expander("About Retrieval Methods"):
+        # Advanced BM25 options    
+        if retrieval_method == "bm25":
+            st.markdown("### BM25 Parameters")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                bm25_k1 = st.slider(
+                    "k1 Parameter",
+                    min_value=0.5,
+                    max_value=3.0,
+                    value=1.5,
+                    step=0.1,
+                    help="Controls term frequency saturation"
+                )
+                st.session_state.config["bm25_k1"] = bm25_k1
+                
+            with col2:
+                bm25_b = st.slider(
+                    "b Parameter",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.75,
+                    step=0.05,
+                    help="Controls document length normalization"
+                )
+                st.session_state.config["bm25_b"] = bm25_b
+            
+            st.info("Higher k1 values increase the impact of term frequency. Higher b values increase normalization for document length.")
+            
+        # Compare retrieval methods
+        with st.expander("Retrieval Method Comparison"):
             st.markdown("""
-            - **Vector**: Uses semantic similarity between query and document embeddings
-            - **BM25**: Uses keyword-based statistics (similar to TF-IDF)
-            - **Hybrid**: Combines vector and BM25 scores for balanced retrieval
+            | Method | Strengths | Weaknesses |
+            | ------ | --------- | ---------- |
+            | **Vector** | Semantic understanding, handles concepts | Misses exact matches, needs good embeddings |
+            | **BM25** | Fast, exact match capability, no training | Limited semantic understanding |
+            | **Hybrid** | Balances semantic and keyword matching | Requires tuning alpha parameter |
             """)
     
     # Tab: Query Processing
@@ -965,24 +1161,83 @@ def configuration_page():
         if query_expansion:
             expansion_method = st.selectbox(
                 "Expansion Method",
-                ["simple", "llm"],
-                index=["simple", "llm"].index(st.session_state.config["expansion_method"]),
+                ["simple", "llm", "hybrid"],
+                index=["simple", "llm", "hybrid"].index(st.session_state.config["expansion_method"]) 
+                      if st.session_state.config["expansion_method"] in ["simple", "llm", "hybrid"] else 0,
                 help="Method used for query expansion"
             )
             st.session_state.config["expansion_method"] = expansion_method
             
-            # Warning for LLM method
-            if expansion_method == "llm":
-                st.warning("LLM expansion requires an LLM API. Currently using a simple fallback.")
-                
-        # Explanation of query processing
-        with st.expander("About Query Processing"):
-            st.markdown("""
-            **Query Expansion** generates variations of the original query to improve retrieval recall. Methods include:
+            # Expansion visualization
+            st.markdown("### Example Query Expansion")
+            example_query = st.text_input("Try an example query", value="How does chunking work in RAG?")
             
-            - **Simple**: Uses WordNet to find synonyms for query terms
-            - **LLM**: Uses a language model to generate query variations (requires LLM API)
-            """)
+            if example_query:
+                st.markdown("**Original Query:** " + example_query)
+                st.markdown("**Expanded Queries:**")
+                
+                if expansion_method == "simple":
+                    expansions = [
+                        example_query,
+                        example_query.replace("chunking", "segmentation"),
+                        example_query.replace("work", "function")
+                    ]
+                elif expansion_method == "llm":
+                    expansions = [
+                        example_query,
+                        "What are the mechanisms of document chunking in RAG?",
+                        "Explain document segmentation techniques for retrieval augmented generation"
+                    ]
+                else:  # hybrid
+                    expansions = [
+                        example_query,
+                        example_query.replace("chunking", "segmentation"),
+                        "Explain document segmentation techniques for retrieval augmented generation"
+                    ]
+                
+                for i, exp in enumerate(expansions):
+                    st.markdown(f"{i+1}. *{exp}*")
+            
+        # HyDE options
+        st.markdown("### Hypothetical Document Embeddings (HyDE)")
+        
+        use_hyde = st.checkbox(
+            "Enable HyDE",
+            value=st.session_state.config.get("use_hyde", False),
+            help="Use HyDE to improve semantic search"
+        )
+        st.session_state.config["use_hyde"] = use_hyde
+        
+        if use_hyde:
+            hyde_method = st.selectbox(
+                "HyDE Method",
+                ["basic", "enhanced", "multi_document"],
+                index=0,
+                help="Method for generating hypothetical documents"
+            )
+            st.session_state.config["hyde_method"] = hyde_method
+            
+            if hyde_method == "multi_document":
+                hyde_num_docs = st.slider(
+                    "Number of Hypothetical Documents",
+                    min_value=2,
+                    max_value=5,
+                    value=3,
+                    step=1
+                )
+                st.session_state.config["hyde_num_docs"] = hyde_num_docs
+                
+            # HyDE explanation
+            with st.expander("How HyDE Works"):
+                st.markdown("""
+                **Hypothetical Document Embeddings (HyDE)** works by:
+                
+                1. Generating a hypothetical document that might answer the query
+                2. Embedding this document instead of the query itself
+                3. Using the document embedding for retrieval
+                
+                This improves semantic search by bridging the gap between questions and answers.
+                """)
     
     # Tab: Reranking
     with tabs[5]:
@@ -1000,10 +1255,10 @@ def configuration_page():
         if use_reranking:
             reranking_method = st.selectbox(
                 "Reranking Method",
-                ["cross_encoder", "contextual", "diversity"],
-                index=["cross_encoder", "contextual", "diversity"].index(
+                ["cross_encoder", "contextual", "diversity", "multi_stage"],
+                index=["cross_encoder", "contextual", "diversity", "multi_stage"].index(
                     st.session_state.config["reranking_method"]
-                ) if st.session_state.config["reranking_method"] in ["cross_encoder", "contextual", "diversity"] else 0,
+                ) if st.session_state.config["reranking_method"] in ["cross_encoder", "contextual", "diversity", "multi_stage"] else 0,
                 help="Method used for reranking"
             )
             st.session_state.config["reranking_method"] = reranking_method
@@ -1022,6 +1277,83 @@ def configuration_page():
                 )
                 st.session_state.config["reranking_model"] = reranking_model
                 
+            # Multi-stage reranking
+            if reranking_method == "multi_stage":
+                st.markdown("### Multi-Stage Reranking Pipeline")
+                
+                stage_options = ["semantic", "cross_encoder", "keyword", "diversity"]
+                default_stages = ["semantic", "cross_encoder", "diversity"]
+                
+                # Get current stages or use default
+                current_stages = st.session_state.config.get("reranking_stages", default_stages)
+                
+                # Convert to multiselect
+                selected_stages = st.multiselect(
+                    "Reranking Stages",
+                    options=stage_options,
+                    default=current_stages,
+                    help="Stages to include in the reranking pipeline"
+                )
+                
+                # Ensure at least one stage is selected
+                if not selected_stages:
+                    st.warning("Please select at least one reranking stage.")
+                    selected_stages = default_stages
+                    
+                st.session_state.config["reranking_stages"] = selected_stages
+                
+                # Visualize the pipeline
+                st.markdown("### Pipeline Visualization")
+                pipeline_cols = st.columns(len(selected_stages))
+                
+                for i, stage in enumerate(selected_stages):
+                    with pipeline_cols[i]:
+                        st.markdown(f"**Stage {i+1}**")
+                        st.markdown(f"*{stage.replace('_', ' ').title()}*")
+                        
+                        # Add stage description
+                        if stage == "semantic":
+                            st.caption("Vector similarity scoring")
+                        elif stage == "cross_encoder":
+                            st.caption("Cross-encoder relevance scoring")
+                        elif stage == "keyword":
+                            st.caption("Keyword matching")
+                        elif stage == "diversity":
+                            st.caption("Maximize result diversity")
+                
+            # Diversity reranking options
+            if reranking_method == "diversity" or "diversity" in st.session_state.config.get("reranking_stages", []):
+                st.markdown("### Diversity Parameters")
+                
+                diversity_alpha = st.slider(
+                    "Diversity-Relevance Balance (Alpha)",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=st.session_state.config.get("diversity_alpha", 0.7),
+                    step=0.1,
+                    help="Higher values prioritize relevance, lower values prioritize diversity"
+                )
+                st.session_state.config["diversity_alpha"] = diversity_alpha
+                
+                # Visualization of the trade-off
+                fig, ax = plt.subplots(figsize=(6, 1))
+                ax.barh(["Balance"], [diversity_alpha], color='blue', alpha=0.6, label='Relevance')
+                ax.barh(["Balance"], [1-diversity_alpha], left=[diversity_alpha], color='green', alpha=0.6, label='Diversity')
+                
+                # Add labels
+                ax.text(diversity_alpha/2, 0, f"Relevance: {diversity_alpha:.1f}", 
+                        ha='center', va='center', color='white' if diversity_alpha > 0.3 else 'black')
+                ax.text(diversity_alpha + (1-diversity_alpha)/2, 0, f"Diversity: {1-diversity_alpha:.1f}", 
+                        ha='center', va='center', color='white' if (1-diversity_alpha) > 0.3 else 'black')
+                
+                ax.set_xlim(0, 1)
+                ax.set_yticks([])
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['left'].set_visible(False)
+                plt.tight_layout()
+                st.pyplot(fig)
+                
         # Explanation of reranking methods
         with st.expander("About Reranking Methods"):
             st.markdown("""
@@ -1030,51 +1362,222 @@ def configuration_page():
             - **Cross-Encoder**: Uses a cross-encoder model to score query-document pairs (more accurate but slower)
             - **Contextual**: Considers conversation history when reranking
             - **Diversity**: Balances relevance with diversity to avoid redundant information
+            - **Multi-Stage**: Combines multiple reranking approaches in a pipeline
             """)
     
     # Tab: Generation
-    with tabs[6]:
-        st.markdown('<p class="sub-header">Generation Configuration</p>', unsafe_allow_html=True)
-        
-        # Prompt template
-        prompt_template = st.text_area(
-            "Prompt Template",
-            value=st.session_state.config["prompt_template"],
+    st.markdown('<p class="sub-header">Generation Configuration</p>', unsafe_allow_html=True)
+
+    # --- Response style selection ---
+    st.markdown("### Response Style")
+
+    response_style = st.selectbox(
+        "Response Style",
+        ["Concise", "Balanced", "Detailed", "Custom"],
+        index=1,  # Default to balanced
+        help="Select a preset style or define a custom prompt template."
+    )
+    # Store the selected style itself if needed elsewhere
+    # st.session_state.config["response_style"] = response_style # Optional: Store the style name
+
+    # Preset prompt templates based on style
+    prompt_templates = {
+        "Concise": "Answer the question briefly based on this context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
+        "Balanced": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
+        "Detailed": "Provide a detailed answer to the question using only the information from the context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer with a comprehensive explanation:"
+    }
+
+    # --- Prompt Template Handling ---
+    st.markdown("### Prompt Template")
+    # Set prompt template based on style or allow custom input
+    if response_style != "Custom":
+        # Use preset template
+        prompt_template = prompt_templates[response_style]
+        st.session_state.config["prompt_template"] = prompt_template # Update config
+
+        # Show the selected preset template (read-only)
+        st.markdown("**Selected Preset Template:**")
+        st.code(prompt_template, language='text') # Use st.code for better display
+    else:
+        # Custom prompt template input
+        st.markdown("**Define Custom Template:**")
+        custom_prompt_template = st.text_area(
+            "Custom Prompt Template",
+            value=st.session_state.config.get("prompt_template", prompt_templates["Balanced"]), # Default to balanced if no custom exists
             height=150,
-            help="Template for generation prompt (use {query} and {context} placeholders)"
+            key="custom_prompt_input", # Add key for stability
+            help="Template for generation prompt. Use {query} and {context} placeholders."
         )
-        st.session_state.config["prompt_template"] = prompt_template
-        
-        # Explanation of prompt templates
-        with st.expander("About Prompt Templates"):
-            st.markdown("""
-            **Prompt Templates** guide the generation process. Use these placeholders:
-            
-            - **{query}**: Will be replaced with the user's question
-            - **{context}**: Will be replaced with retrieved documents
-            
-            Examples:
-            - Simple: "Answer based on this context: {context}\\n\\nQuestion: {query}"
-            - With instruction: "You are a helpful assistant. Use ONLY the provided context to answer. Context: {context}\\n\\nQuestion: {query}"
-            - Citation request: "Answer with citations: {context}\\n\\nQuestion: {query}"
-            """)
-    
+        st.session_state.config["prompt_template"] = custom_prompt_template # Update config
+
+    # --- Model parameters ---
+    st.markdown("### Language Model Parameters")
+
+    # Temperature control
+    # Ensure default value is retrieved safely
+    default_temp = st.session_state.config.get("temperature", 0.5) # Use config value or default
+    temperature = st.slider(
+        "Temperature",
+        min_value=0.0,
+        max_value=1.5, # Allow slightly higher temp if desired
+        value=float(default_temp), # Ensure it's a float
+        step=0.05,
+        key="temperature_slider_config", # Add key
+        help="Controls randomness (0=deterministic, >1=more creative). Affects LLM-Enhanced mode."
+    )
+    # Update session state AND config simultaneously
+    st.session_state.temperature = temperature # For immediate use in Chat sidebar potentially
+    st.session_state.config["temperature"] = temperature # For saving the config
+
+    # --- Temperature visualization ---
+    st.markdown("###### Temperature Scale:")
+    temp_cols = st.columns([1, 3, 1]) # Use columns to center the small plot
+    with temp_cols[1]:
+        try:
+            # Create a temperature visualization
+            fig, ax = plt.subplots(figsize=(6, 1)) # Make it shorter
+
+            # Create a gradient bar
+            x = np.linspace(0, 1.5, 150) # Range for the visual bar (0 to 1.5)
+
+            # --- CORRECTED Colormap Definition ---
+            # Define transition points normalized to the [0, 1] range
+            normalized_gradient_points = [
+                (0.0, 'blue'),          # Start point (0.0 maps to 0.0)
+                (0.7 / 1.5, 'purple'), # Intermediate point (0.7 maps proportionally)
+                (1.0, 'red')           # End point (1.5 maps to 1.0)
+            ]
+            cmap = mpl.colors.LinearSegmentedColormap.from_list(
+                'temperature', normalized_gradient_points
+            )
+            # --- End Correction ---
+
+            # Plot gradient bar using the actual range (0 to 1.5)
+            # and apply the colormap by normalizing the x values back to [0, 1]
+            for i in range(len(x)-1):
+                # Normalize x[i] to the [0, 1] range for the colormap lookup
+                normalized_x = x[i] / 1.5
+                ax.axvspan(x[i], x[i+1], color=cmap(normalized_x), alpha=0.8)
+
+            # Add current temperature marker (uses the actual temperature value)
+            ax.axvline(x=temperature, color='black', linewidth=3, linestyle='--', label=f'Current: {temperature:.2f}')
+
+            # Customize the plot appearance (ensure xlim matches slider range)
+            ax.set_xlim(0, 1.5)
+            ax.set_yticks([]) # Remove y-axis ticks
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['left'].set_visible(False)
+            ax.spines['bottom'].set_linewidth(1.5)
+            ax.tick_params(axis='x', labelsize=8)
+            ax.set_xlabel("Temperature", fontsize=9)
+
+            plt.tight_layout(pad=0.5) # Adjust padding
+
+            # Display the plot
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig) # Close the plot to free memory
+
+        except Exception as e:
+            st.error(f"Failed to create temperature plot: {e}")
+
+
+    # --- Apply Button Logic (Placed AFTER all tabs) ---
+    st.markdown("---") # Separator before the button
+
+    # Initialize previous_config if it doesn't exist, before the button logic
+    if "previous_config" not in st.session_state:
+        st.session_state.previous_config = st.session_state.config.copy()
+
+    # --- Define parameter lists BEFORE the button block ---
+    critical_params = [
+        "chunking_strategy", "chunk_size", "chunk_overlap",
+        "embedding_model"
+    ]
+    # Define these here too for clarity, though not the cause of this specific error
+    retrieval_related_params = ["retrieval_method", "retrieval_alpha"]
+    reranking_related_params = ["use_reranking", "reranking_method", "reranking_model"]
+
+    # --- Initialize flags BEFORE the button block ---
+    config_changed = False
+    force_rebuild_needed = False
+
     # Button to apply configuration changes
-    if st.button("Apply Configuration Changes", use_container_width=True):
-        # Clear any existing RAG app
-        st.session_state.rag_app = None
-        
-        # Initialize new RAG app with the updated config
-        initialize_rag_app()
-        
-        if st.session_state.corpus_uploaded:
-            # Prepare the knowledge base with new configuration
-            with st.spinner("Rebuilding knowledge base with new configuration..."):
-                st.session_state.rag_app.prepare_knowledge_base(force_rebuild=True)
-                
-            st.success("Configuration applied successfully!")
+    if st.button("✅ Apply Configuration Changes", use_container_width=True, key="apply_config_main_btn"):
+
+        # --- Reset flags INSIDE the button block ---
+        # This ensures the button logic starts fresh each time it's clicked
+        config_changed = False
+        force_rebuild_needed = False
+        # --- End Reset ---
+
+        # Check critical params first
+        for param in critical_params:
+            if st.session_state.config.get(param) != st.session_state.previous_config.get(param):
+                st.info(f"Detected change in critical parameter: {param}. Knowledge base rebuild required.")
+                force_rebuild_needed = True
+                config_changed = True # Mark that config changed
+                break # No need to check further critical params
+
+        # Check other params only if no critical change detected yet
+        # 'force_rebuild_needed' now has a clearly defined scope from BEFORE the 'if st.button'
+        if not force_rebuild_needed:
+            # Check if retrieval/reranking changes require rebuild (customize this check)
+            if st.session_state.config.get("retrieval_method") != st.session_state.previous_config.get("retrieval_method"):
+                # Add more specific logic here if only certain transitions require rebuild
+                st.info(f"Detected change in retrieval method. Rebuild might be needed (depending on implementation). Forcing rebuild.")
+                # Assignment within nested block is now safe
+                force_rebuild_needed = True
+
+        # Always mark config_changed if ANY parameter differs (even non-critical like top_k or prompt)
+        if not config_changed:
+            if st.session_state.config != st.session_state.previous_config:
+                config_changed = True
+                st.info("Detected changes in non-critical parameters (e.g., top_k, temperature, prompt). Applying without rebuild.")
+
+        # --- Apply changes logic (uses the flags) ---
+        if config_changed:
+            # Store current config as the new 'previous' config for the *next* comparison
+            st.session_state.previous_config = st.session_state.config.copy()
+
+            # Clear any existing RAG app instance to force re-initialization with new config
+            st.session_state.rag_app = None
+
+            # Use a spinner during re-initialization and potential rebuild
+            spinner_message = "Applying configuration..."
+            if force_rebuild_needed and st.session_state.corpus_uploaded:
+                spinner_message = "Applying configuration and rebuilding knowledge base..."
+
+            with st.spinner(spinner_message):
+                try:
+                    # Initialize new RAG app - it will pick up the latest config from session_state
+                    initialize_rag_app() # Ensure this function uses st.session_state.config
+
+                    # Prepare the knowledge base only if corpus is present
+                    if st.session_state.corpus_uploaded:
+                        # Call prepare_knowledge_base, forcing rebuild only if needed
+                        st.session_state.rag_app.prepare_knowledge_base(force_rebuild=force_rebuild_needed)
+
+                        if force_rebuild_needed:
+                            st.success("Configuration applied and knowledge base rebuilt successfully!")
+                        else:
+                            st.success("Configuration applied successfully!")
+                    else:
+                        st.warning("Configuration saved. Load a knowledge base on the Chat page to build the index.")
+
+                    # Short delay before potential rerun can make success message more visible
+                    time.sleep(1.5)
+                    # Consider if a rerun is necessary - often it is to reflect changes elsewhere
+                    # st.rerun()
+
+                except Exception as e:
+                    st.error(f"Failed to apply configuration: {e}")
+                    traceback.print_exc() # Show full error for debugging
         else:
-            st.warning("Configuration saved, but no knowledge base loaded.")
+            # This else block now correctly corresponds to the outer 'if config_changed:'
+            st.info("No changes detected in the configuration.")
+
+
 
 # Page: Metrics
 def metrics_page():

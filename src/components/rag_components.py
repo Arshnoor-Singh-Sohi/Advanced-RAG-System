@@ -18,6 +18,15 @@ import os
 # import torch # Moved to respective method
 from dotenv import load_dotenv
 
+# Import from refactored modules for backward compatibility
+from src.components.data_processing import DocumentChunker
+from src.components.vectorstore_handler import EmbeddingProvider, RetrievalMethods, save_vectorstore, load_vectorstore, get_vectorstore
+from src.components.llm_integrations import LLMProvider, get_conversation_chain, generate_response
+
+# Keep Query Processor in this file until it's refactored separately
+from typing import List, Dict, Any, Tuple, Optional, Callable
+import nltk
+
 
 class DocumentChunker:
     """Class for chunking documents with different strategies"""
@@ -427,6 +436,98 @@ class RetrievalMethods:
         
         return combined_results[:top_k]
 
+
+
+    """Implements query processing techniques like expansion, reformulation, etc."""
+    
+    @staticmethod
+    def expand_query(query: str, method: str = "simple") -> List[str]:
+        """
+        Expand a query to improve retrieval recall
+        
+        Args:
+            query: Original query
+            method: Method for expansion ('simple', 'wordnet', etc.)
+        
+        Returns:
+            List of expanded queries
+        """
+        if method == "simple":
+            # Simple query expansion with related forms
+            import nltk
+            from nltk.corpus import wordnet
+            
+            try:
+                nltk.data.find('corpora/wordnet')
+            except LookupError:
+                nltk.download('wordnet')
+                
+            # Tokenize query
+            tokens = nltk.word_tokenize(query.lower())
+            
+            expanded_queries = [query]  # Start with original query
+            
+            # Generate query variations with synonyms
+            for i, token in enumerate(tokens):
+                # Skip short tokens and stopwords
+                if len(token) <= 3:
+                    continue
+                    
+                # Get WordNet synsets
+                synsets = wordnet.synsets(token)
+                if not synsets:
+                    continue
+                    
+                # Get synonyms from first synset
+                synonyms = [lemma.name() for lemma in synsets[0].lemmas()]
+                
+                # Create new queries with synonyms
+                for synonym in synonyms[:2]:  # Limit to 2 synonyms
+                    if synonym != token and "_" not in synonym:
+                        new_tokens = tokens.copy()
+                        new_tokens[i] = synonym
+                        expanded_queries.append(" ".join(new_tokens))
+                        
+            return expanded_queries
+        
+        elif method == "llm":
+            # This would use an LLM to generate query variations
+            # For demo purposes, just return a few manually created variations
+            variations = [
+                query,
+                f"information about {query}",
+                f"explain {query}"
+            ]
+            return variations
+        
+        else:
+            # Default to original query
+            return [query]
+    
+    @staticmethod
+    def hyde_expansion(query: str, llm_function) -> Tuple[str, str]:
+        """
+        Implement HyDE (Hypothetical Document Embeddings) approach
+        
+        Args:
+            query: Original query
+            llm_function: Function to call an LLM
+        
+        Returns:
+            Tuple of (original_query, hypothetical_document)
+        """
+        # Create a prompt for generating a hypothetical document
+        hyde_prompt = f"""
+        Write a short but detailed passage that would contain the answer to the question: '{query}'
+        Make the passage factual, objective, and comprehensive.
+        The passage should be 3-5 sentences long.
+        """
+        
+        # Generate hypothetical document using provided LLM function
+        hypothetical_doc = llm_function(hyde_prompt)
+        
+        return query, hypothetical_doc
+    
 
 class QueryProcessor:
     """Implements query processing techniques like expansion, reformulation, etc."""
