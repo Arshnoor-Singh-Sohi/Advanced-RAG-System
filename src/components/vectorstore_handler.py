@@ -265,97 +265,130 @@ class RetrievalMethods:
         
         return combined_results[:top_k]
 
-def save_vectorstore(vectorstore, path: str) -> None:
-    """
-    Save a vector store to disk
-    
-    Args:
-        vectorstore: The vector store to save
-        path: Path to save the vector store
-    """
-    try:
-        # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+    def save_vectorstore(vectorstore, path: str) -> None:
+        """
+        Save a vector store to disk
         
-        # Different vector stores have different save methods
-        if hasattr(vectorstore, "save_local"):
-            # For FAISS vector stores
-            vectorstore.save_local(path)
-        else:
-            # Generic pickling as fallback
-            with open(path, 'wb') as f:
-                pickle.dump(vectorstore, f)
-                
-        print(f"Vector store saved to {path}")
-    except Exception as e:
-        raise RuntimeError(f"Error saving vector store: {str(e)}")
-
-def load_vectorstore(path: str, embeddings=None):
-    """
-    Load a vector store from disk
-    
-    Args:
-        path: Path to the vector store
-        embeddings: Optional embeddings for some vector store types
-        
-    Returns:
-        Loaded vector store
-    """
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Vector store not found at {path}")
-        
-    try:
-        # Try to load as FAISS first
+        Args:
+            vectorstore: The vector store to save
+            path: Path to save the vector store
+        """
         try:
-            import faiss
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            
+            # Different vector stores have different save methods
+            if hasattr(vectorstore, "save_local"):
+                # For FAISS vector stores
+                vectorstore.save_local(path)
+            else:
+                # Generic pickling as fallback
+                with open(path, 'wb') as f:
+                    pickle.dump(vectorstore, f)
+                    
+            print(f"Vector store saved to {path}")
+        except Exception as e:
+            raise RuntimeError(f"Error saving vector store: {str(e)}")
+
+    def load_vectorstore(path: str, embeddings=None):
+        """
+        Load a vector store from disk
+        
+        Args:
+            path: Path to the vector store
+            embeddings: Optional embeddings for some vector store types
+            
+        Returns:
+            Loaded vector store
+        """
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Vector store not found at {path}")
+            
+        try:
+            # Try to load as FAISS first
+            try:
+                import faiss
+                from langchain.vectorstores import FAISS
+                
+                if embeddings:
+                    return FAISS.load_local(path, embeddings)
+            except (ImportError, Exception):
+                pass
+                
+            # Fall back to generic pickle loading
+            with open(path, 'rb') as f:
+                return pickle.load(f)
+        except Exception as e:
+            raise RuntimeError(f"Error loading vector store: {str(e)}")
+
+    def get_vectorstore(texts: List[str], embeddings, ids: List[str] = None):
+        """
+        Create a vector store from texts and embeddings
+        
+        Args:
+            texts: List of text strings
+            embeddings: Embeddings instance or embedded vectors
+            ids: Optional list of document IDs
+            
+        Returns:
+            Vector store
+        """
+        try:
             from langchain.vectorstores import FAISS
             
-            if embeddings:
-                return FAISS.load_local(path, embeddings)
-        except (ImportError, Exception):
-            pass
-            
-        # Fall back to generic pickle loading
-        with open(path, 'rb') as f:
-            return pickle.load(f)
-    except Exception as e:
-        raise RuntimeError(f"Error loading vector store: {str(e)}")
-
-def get_vectorstore(texts: List[str], embeddings, ids: List[str] = None):
-    """
-    Create a vector store from texts and embeddings
+            # Check if embeddings is already a numpy array of vectors
+            if isinstance(embeddings, np.ndarray):
+                # We need to create a FAISS index manually
+                import faiss
+                
+                # Normalize vectors for cosine similarity
+                normalized_vectors = embeddings / np.linalg.norm(embeddings, axis=1)[:, np.newaxis]
+                
+                # Create FAISS index
+                dimension = embeddings.shape[1]
+                index = faiss.IndexFlatIP(dimension)  # IP = Inner Product for cosine similarity
+                index.add(normalized_vectors)
+                
+                # Create a custom FAISS vectorstore
+                vectorstore = FAISS(embeddings=embeddings, index=index, docstore=texts, ids=ids or [str(i) for i in range(len(texts))])
+                return vectorstore
+            else:
+                # Assume embeddings is a LangChain embeddings object
+                return FAISS.from_texts(texts, embeddings, metadatas=[{"source": i} for i in range(len(texts))])
+        except ImportError:
+            raise ImportError("langchain and/or faiss-cpu packages not installed. Install with 'pip install langchain faiss-cpu'")
+        except Exception as e:
+            raise RuntimeError(f"Error creating vector store: {str(e)}")
     
-    Args:
-        texts: List of text strings
-        embeddings: Embeddings instance or embedded vectors
-        ids: Optional list of document IDs
+    @staticmethod
+    def get_retriever(vectorstore, use_mmr=False, k=4, fetch_k=20, lambda_mult=0.5):
+        """
+        Create a retriever from a vector store with the configured settings.
         
-    Returns:
-        Vector store
-    """
-    try:
-        from langchain.vectorstores import FAISS
-        
-        # Check if embeddings is already a numpy array of vectors
-        if isinstance(embeddings, np.ndarray):
-            # We need to create a FAISS index manually
-            import faiss
+        Args:
+            vectorstore: FAISS vector store
+            use_mmr: Whether to use Maximal Marginal Relevance
+            k: Number of documents to retrieve
+            fetch_k: Number of documents to initially fetch for MMR (only used if use_mmr=True)
+            lambda_mult: Balance between relevance and diversity for MMR (only used if use_mmr=True)
             
-            # Normalize vectors for cosine similarity
-            normalized_vectors = embeddings / np.linalg.norm(embeddings, axis=1)[:, np.newaxis]
-            
-            # Create FAISS index
-            dimension = embeddings.shape[1]
-            index = faiss.IndexFlatIP(dimension)  # IP = Inner Product for cosine similarity
-            index.add(normalized_vectors)
-            
-            # Create a custom FAISS vectorstore
-            vectorstore = FAISS(embeddings=embeddings, index=index, docstore=texts, ids=ids or [str(i) for i in range(len(texts))])
-            return vectorstore
+        Returns:
+            A configured retriever
+        """
+        if use_mmr:
+            # Create retriever with MMR
+            retriever = vectorstore.as_retriever(
+                search_type="mmr",
+                search_kwargs={
+                    "k": k,
+                    "fetch_k": fetch_k,
+                    "lambda_mult": lambda_mult
+                }
+            )
         else:
-            # Assume embeddings is a LangChain embeddings object
-            return FAISS.from_texts(texts, embeddings, metadatas=[{"source": i} for i in range(len(texts))])
-    except ImportError:
-        raise ImportError("langchain and/or faiss-cpu packages not installed. Install with 'pip install langchain faiss-cpu'")
-    except Exception as e:
-        raise RuntimeError(f"Error creating vector store: {str(e)}")
+            # Create standard similarity retriever
+            retriever = vectorstore.as_retriever(
+                search_kwargs={"k": k}
+            )
+        
+        return retriever

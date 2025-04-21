@@ -215,3 +215,60 @@ def extract_answer_from_context(query: str, contexts: List[str]) -> str:
                 answer += " " + top_sentences[1]
                 
     return answer
+
+def get_embedding_model(model_name):
+    """
+    Returns the appropriate LangChain embedding model based on name.
+    
+    Args:
+        model_name (str): Name of the embedding model to use
+        
+    Returns:
+        A LangChain embedding object
+    """
+    if model_name == "MiniLM":
+        # This is the default model, using SentenceTransformers
+        from langchain.embeddings import HuggingFaceEmbeddings
+        
+        model_kwargs = {'device': 'cpu'}
+        encoding_kwargs = {'normalize_embeddings': True}
+        
+        return HuggingFaceEmbeddings(
+            model_name="all-MiniLM-L6-v2",
+            model_kwargs=model_kwargs,
+            encode_kwargs=encoding_kwargs
+        )
+        
+    elif model_name == "OpenAI-Ada":
+        # OpenAI's embedding model - requires API key
+        from langchain.embeddings import OpenAIEmbeddings
+        import os
+        
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key and "openai_api_key" in st.session_state:
+            openai_api_key = st.session_state.openai_api_key
+            
+        if not openai_api_key:
+            st.error("OpenAI API key is required for this embedding model but was not found. Please add it in the embedding configuration tab.")
+            # Fall back to MiniLM as a safe default
+            return get_embedding_model("MiniLM")
+            
+        return OpenAIEmbeddings(model="text-embedding-ada-002")
+        
+    elif model_name == "BGE-Large":
+        # BGE model optimized for retrieval
+        from langchain.embeddings import HuggingFaceEmbeddings
+        
+        model_kwargs = {'device': 'cpu'}
+        encoding_kwargs = {'normalize_embeddings': True}
+        
+        return HuggingFaceEmbeddings(
+            model_name="BAAI/bge-large-en-v1.5",
+            model_kwargs=model_kwargs,
+            encode_kwargs=encoding_kwargs
+        )
+    
+    else:
+        # Default to MiniLM if an unknown model is specified
+        print(f"Unknown embedding model: {model_name}. Defaulting to MiniLM.")
+        return get_embedding_model("MiniLM")

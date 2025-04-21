@@ -569,193 +569,212 @@ def sidebar():
 
 # Page: Chat Interface
 def chat_page():
-    """Chat interface page"""
-    st.markdown('<p class="main-header">💬 Advanced RAG Chat Interface</p>', unsafe_allow_html=True)
-    
+    """Chat interface page with input fixed at the bottom."""
+    st.markdown(
+        """
+        <p style="
+            font-size: 3rem;         /* Increase font size (adjust '3rem' as needed) */
+            font-weight: 600;        /* Make it bolder */
+            text-align: center;      /* Center the text */
+            margin-bottom: 1rem;     /* Add some space below */
+            padding-bottom: 0.5rem;  /* Keep padding if desired */
+            /* Optional: Keep border if you liked it from 'main-header' */
+            /* border-bottom: 1px solid rgba(250, 250, 250, 0.2); */
+        ">
+            💬 Advanced RAG Chat Interface
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # --- Initial Checks ---
     # Check if corpus is loaded
-    if not st.session_state.corpus_uploaded:
+    if not st.session_state.get("corpus_uploaded", False):
         st.markdown('<div class="warning-box">', unsafe_allow_html=True)
         st.warning("⚠️ No knowledge base loaded. Please upload documents or load the example dataset from the sidebar.")
         st.markdown('</div>', unsafe_allow_html=True)
-        return
-        
-    # Initialize RAG app if needed
-    if st.session_state.rag_app is None:
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
-        st.info("Initializing RAG application...")
-        st.markdown('</div>', unsafe_allow_html=True)
-        initialize_rag_app()
-        st.rerun() 
-    
-    # Chat input at the top for better UX
-    st.markdown("### Ask a question")
-    
-    query = st.text_input("Enter your question:", key="query_input", placeholder="Type your question here...")
-    
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        if st.button("Send", key="send_button", use_container_width=True):
-            if query and st.session_state.rag_app:
-                start_time = time.time()
-                with st.spinner("Processing query..."):
-                    try:
-                        # Use the comparison flag from session state
-                        if st.session_state.enable_comparison:
-                            # --- Comparison Path ---
-                            # Get Extractive Response
-                            st.session_state.rag_app.response_mode = "extractive"
-                            extractive_answer, contexts = st.session_state.rag_app.process_query(query)
-
-                            # Get LLM Response
-                            st.session_state.rag_app.response_mode = "llm"
-                            llm_answer, _ = st.session_state.rag_app.process_query(query)
-
-                            # Store both answers in history
-                            st.session_state.conversation_history.append({
-                                "query": query,
-                                "extractive_answer": extractive_answer,
-                                "llm_answer": llm_answer,
-                                "contexts": contexts,
-                                "time": time.time() - start_time
-                            })
-                            # --- End Comparison Path ---
-
-                        else:
-                            # --- Single Response Path ---
-                            # Set RAG app mode based on sidebar radio button
-                            if st.session_state.response_mode == "Extractive (Basic Retrieval)":
-                                st.session_state.rag_app.response_mode = "extractive"
-                            else:
-                                st.session_state.rag_app.response_mode = "llm"
-
-                            # Process query once
-                            answer, contexts = st.session_state.rag_app.process_query(query)
-
-                            # Store single answer in history
-                            st.session_state.conversation_history.append({
-                                "query": query,
-                                "answer": answer,
-                                "contexts": contexts,
-                                "time": time.time() - start_time
-                            })
-                            # --- End Single Response Path ---
-
-                    except Exception as e:
-                        st.error(f"An error occurred: {e}")
-
-                # Rerun Streamlit to update the display with the new history entry
-                st.rerun()
-
-            elif not query:
-                st.warning("Please enter a question.")
-            elif not st.session_state.rag_app:
-                st.error("RAG application not initialized.")
-    
-    with col2:
-        if st.button("Clear Chat History", key="clear_button"):
-            st.session_state.conversation_history = []
-            st.rerun()
-                
-    # Chat history display
-    if st.session_state.conversation_history:
-        st.markdown("### Conversation History")
-        
-        for i, exchange in enumerate(st.session_state.conversation_history):
-            # User query
-            st.markdown('<div class="user-message">', unsafe_allow_html=True)
-            st.markdown('<span class="message-header">🧑 User</span>', unsafe_allow_html=True)
-            st.markdown(f"{exchange['query']}")
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Assistant response
-            if "extractive_answer" in exchange and "llm_answer" in exchange:
-                # Comparison view with two columns
-                st.markdown("### 🤖 Assistant")
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    st.markdown("#### Extractive Response")
-                    st.markdown('<div class="assistant-message">', unsafe_allow_html=True)
-                    st.markdown(f"{exchange['extractive_answer']}")
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                with col2:
-                    st.markdown("#### LLM-Enhanced Response")
-                    st.markdown('<div class="assistant-message">', unsafe_allow_html=True)
-                    st.markdown(f"{exchange['llm_answer']}")
-                    st.markdown('</div>', unsafe_allow_html=True)
-                
-                # Add a metrics section below the comparison columns
-                st.markdown("#### Response Metrics")
-                metric_col1, metric_col2, metric_col3 = st.columns(3)
-
-                # Calculate lengths safely
-                extractive_ans_text = exchange.get('extractive_answer', '')
-                llm_ans_text = exchange.get('llm_answer', '')
-                extractive_len = len(extractive_ans_text.split())
-                llm_len = len(llm_ans_text.split())
-
-                with metric_col1:
-                    st.metric("Extractive Word Count", extractive_len)
-
-                with metric_col2:
-                    st.metric("LLM Word Count", llm_len)
-
-                with metric_col3:
-                    # Word count difference as percentage
-                    if extractive_len > 0:
-                        difference = ((llm_len - extractive_len) / extractive_len) * 100
-                        st.metric("Length Difference", f"{difference:.1f}%",
-                                delta=f"{difference:.1f}%",
-                                help="Percentage difference relative to extractive length. Positive means LLM is longer.")
-                    else:
-                        st.metric("Length Difference", "N/A", help="Extractive answer is empty.")
-                
-                # Lexical Diversity Calculation
-                lexical_diversity = calculate_lexical_diversity(llm_ans_text)
-                st.metric("Lexical Diversity (LLM)", f"{lexical_diversity:.3f}", 
-                        help="Ratio of unique words to total words in LLM response. Higher is more varied.")
-                
-            elif "answer" in exchange:
-                # Regular single response view
-                st.markdown('<div class="assistant-message">', unsafe_allow_html=True)
-                st.markdown('<span class="message-header">🤖 Assistant</span>', unsafe_allow_html=True)
-                st.markdown(f"{exchange['answer']}")
-                st.markdown('</div>', unsafe_allow_html=True)
-            else:
-                # Handle potential malformed history entry
-                st.markdown('<div class="error-box">', unsafe_allow_html=True)
-                st.warning("Could not display assistant response for this entry.")
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Sources
-            if exchange.get("contexts"):
-                st.markdown("**Sources:**")
-                for j, doc in enumerate(exchange["contexts"][:3]):
-                    st.markdown('<div class="source-box">', unsafe_allow_html=True)
-                    source = doc.get("title", doc.get("chunk_id", f"Source {j+1}"))
-                    text_preview = doc.get('text','N/A')
-                    st.markdown(f"**{source}**")
-                    st.markdown(f"{text_preview[:200]}..." if len(text_preview) > 200 else text_preview)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                
-                # Metrics
-                if "time" in exchange:
-                    st.markdown(f"*Processed in {exchange['time']:.2f} seconds*")
-
-            # Separator between conversations
-            if i < len(st.session_state.conversation_history) - 1:
-                st.markdown('<div class="separator"></div>', unsafe_allow_html=True)
-                
-    else:
-        # Show welcome message when no conversation exists
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("""
-        👋 **Welcome to the RAG Chat Interface!**
-        
-        Ask questions about your knowledge base to see how the system retrieves and generates answers.
+        ### Welcome!
+        To get started:
+        1.  Use the sidebar to **Upload Documents** or **Load Example Dataset**.
+        2.  Once processed, you can ask questions below!
         """)
-        st.markdown('</div>', unsafe_allow_html=True)
+        return # Stop rendering the rest of the chat page
+
+    # Initialize RAG app if needed
+    if "rag_app" not in st.session_state or st.session_state.rag_app is None:
+        st.markdown('<div class="info-box">Initializing RAG application...</div>', unsafe_allow_html=True)
+        try:
+            initialize_rag_app() # Assuming this function initializes and stores in st.session_state.rag_app
+            if st.session_state.rag_app is None: # Check if initialization actually failed
+                 st.error("Failed to initialize RAG Application.")
+                 return
+            # We need to rerun *after* initialization for the page to proceed correctly
+            st.rerun()
+        except Exception as e:
+            st.error(f"Fatal error during RAG initialization: {e}")
+            st.exception(e)
+            return
+
+
+    # --- Display existing chat messages FIRST ---
+    # Loop through the history stored in session state
+    for i, message in enumerate(st.session_state.get("conversation_history", [])):
+        role = message.get("role")
+
+        # Infer role for backward compatibility if 'role' key is missing
+        if not role:
+            if "query" in message and ("answer" in message or "extractive_answer" in message):
+                 # If it has query AND answer fields, display user query then assistant response separately
+                 with st.chat_message("user"):
+                      st.markdown(message.get("query", "*Query missing*"))
+                 role = "assistant" # Now process the assistant part
+            elif "query" in message:
+                 role = "user"
+            elif "answer" in message or "extractive_answer" in message:
+                 role = "assistant"
+            else:
+                 role = "system" # Or skip if format is unknown
+
+        # Display message based on inferred or stored role
+        if role == "user":
+             with st.chat_message("user"):
+                  st.markdown(message.get("query", "*Query missing*"))
+        elif role == "assistant":
+            with st.chat_message("assistant"):
+                is_error = message.get("is_error", False)
+                if is_error:
+                    st.error(f"{message.get('answer', 'An unspecified error occurred.')}")
+
+                # --- Comparison View ---
+                elif "extractive_answer" in message and "llm_answer" in message:
+                    st.markdown("**Responses:**")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("###### Extractive")
+                        st.markdown(message.get('extractive_answer', 'N/A'))
+                    with col2:
+                        st.markdown("###### LLM-Enhanced")
+                        st.markdown(message.get('llm_answer', 'N/A'))
+
+                    # --- Metrics for Comparison ---
+                    st.markdown("---")
+                    st.markdown("###### Response Metrics")
+                    metric_col1, metric_col2, metric_col3 = st.columns(3)
+                    extractive_ans_text = message.get('extractive_answer', '')
+                    llm_ans_text = message.get('llm_answer', '')
+                    extractive_len = len(extractive_ans_text.split())
+                    llm_len = len(llm_ans_text.split())
+                    lex_div = calculate_lexical_diversity(llm_ans_text)
+                    try: diff = ((llm_len - extractive_len) / extractive_len) * 100 if extractive_len > 0 else 0; delta_val = f"{diff:.1f}%"
+                    except ZeroDivisionError: delta_val = None
+
+                    metric_col1.metric("Extractive Words", extractive_len)
+                    metric_col2.metric("LLM Words", llm_len, delta=delta_val if delta_val else None, help="Change vs Extractive")
+                    metric_col3.metric("LLM Diversity", f"{lex_div:.3f}", help="Unique/Total words (LLM)")
+                    # --- End Metrics ---
+
+                # --- Single Answer View ---
+                elif "answer" in message:
+                    st.markdown(message["answer"])
+                else:
+                    st.warning("Could not display assistant response (unknown format).")
+
+                # --- Sources Display ---
+                if not is_error and message.get("contexts"):
+                    with st.expander(f"Show {len(message['contexts'])} Sources", expanded=False):
+                        for j, doc in enumerate(message["contexts"]):
+                            source_title = doc.get("title", f"Source {j+1}")
+                            text_preview = doc.get('text', 'N/A')
+                            score = doc.get('score') # If score is available
+                            st.markdown('<div class="source-box">', unsafe_allow_html=True)
+                            st.markdown(f"**{source_title}**" + (f" (Score: {score:.3f})" if score else ""))
+                            st.caption(f"{text_preview[:250]}..." if len(text_preview) > 250 else text_preview)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                elif not is_error:
+                    st.caption("_No sources were retrieved._")
+
+                # --- Timestamp and Time ---
+                time_taken = message.get("time", 0)
+                timestamp = message.get("timestamp")
+                if timestamp: st.caption(f"_Processed in {time_taken:.2f}s on {pd.to_datetime(timestamp, unit='s').strftime('%Y-%m-%d %H:%M:%S')}_")
+                elif time_taken > 0: st.caption(f"_Processed in {time_taken:.2f}s_")
+
+        elif role == "system": # Handle system messages or unknown formats if needed
+             with st.chat_message("system"):
+                  st.warning("Unknown message format in history.")
+
+
+    # --- Chat Input Widget (Stays at the bottom) ---
+    if prompt := st.chat_input("Ask your question here...", key="chat_main_input"):
+
+        # 1. Add user message to history and display it immediately
+        st.session_state.conversation_history.append({"role": "user", "query": prompt})
+        # Rerun isn't strictly needed here just to show the user message,
+        # but the whole block will rerun after processing anyway.
+
+        # 2. Process the query (using a spinner for feedback)
+        with st.spinner("Thinking..."):
+            if st.session_state.rag_app:
+                start_time = time.time()
+                try:
+                    # Determine response modes needed
+                    modes_to_run = []
+                    if st.session_state.get("enable_comparison", False):
+                        modes_to_run = ["extractive", "llm"]
+                    elif st.session_state.get("response_mode") == "Extractive (Basic Retrieval)":
+                        modes_to_run = ["extractive"]
+                    else: # Default to LLM-Enhanced
+                        modes_to_run = ["llm"]
+
+                    results = {}
+                    contexts = None
+                    # llm_temp = st.session_state.get("temperature", 0.5) # Get current temp
+
+                    for mode in modes_to_run:
+                        st.session_state.rag_app.response_mode = mode
+                        llm_kwargs = {}
+                        # if mode == "llm": llm_kwargs['temperature'] = llm_temp
+
+                        # --- THE CORE RAG CALL ---
+                        answer, current_contexts = st.session_state.rag_app.process_query(prompt)
+                        # --- END CORE RAG CALL ---
+
+                        if mode == "extractive": results["extractive_answer"] = answer
+                        else: results["llm_answer"] = answer
+                        if contexts is None: contexts = current_contexts
+
+                    total_time = time.time() - start_time
+
+                    # 3. Construct assistant response for history
+                    assistant_entry = {
+                        "role": "assistant", "contexts": contexts or [],
+                        "time": total_time, "timestamp": time.time()
+                    }
+                    if st.session_state.get("enable_comparison", False):
+                        assistant_entry["extractive_answer"] = results.get("extractive_answer", "*Error*")
+                        assistant_entry["llm_answer"] = results.get("llm_answer", "*Error*")
+                    elif "extractive_answer" in results: assistant_entry["answer"] = results["extractive_answer"]
+                    elif "llm_answer" in results: assistant_entry["answer"] = results["llm_answer"]
+                    else: assistant_entry["answer"] = "*Error: No response generated.*"; assistant_entry["is_error"] = True
+
+                    st.session_state.conversation_history.append(assistant_entry)
+
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+                    st.session_state.conversation_history.append({
+                        "role": "assistant", "answer": f"Error: {e}",
+                        "is_error": True, "time": time.time() - start_time, "timestamp": time.time()
+                    })
+                    traceback.print_exc()
+            else:
+                st.error("RAG system not ready.")
+                st.session_state.conversation_history.append({
+                    "role": "assistant", "answer": "Error: RAG system not ready.", "is_error": True
+                })
+
+        # 4. Rerun to display the new user message and the processed assistant response
+        st.rerun()
 
 # Page: Configuration
 def configuration_page():
@@ -824,216 +843,265 @@ def configuration_page():
     # Tab: Chunking - ENHANCED
     with tabs[1]:
         st.markdown('<p class="sub-header">Chunking Configuration</p>', unsafe_allow_html=True)
-        
-        # Chunking strategy with info button
+
+        # --- Unified Strategy Selection ---
+        all_strategies = [
+            "fixed",          # From paste.txt
+            "recursive",      # From request
+            "token",          # From request
+            "sentence",       # From request
+            "paragraph",      # From paste.txt
+            "semantic"        # From paste.txt
+        ]
+        # Get current strategy from config, default safely
+        current_strategy = st.session_state.config.get("chunking_strategy", all_strategies[0])
+        try:
+            current_index = all_strategies.index(current_strategy)
+        except ValueError:
+            st.warning(f"Configured strategy '{current_strategy}' not in list. Defaulting.")
+            current_index = 0
+            current_strategy = all_strategies[0] # Reset to default
+
+        # Combined selectbox for all strategies
         col1, col2 = st.columns([3, 1])
         with col1:
-            chunking_strategy = st.selectbox(
+            selected_strategy = st.selectbox(
                 "Chunking Strategy",
-                ["fixed", "paragraph", "semantic"],
-                index=["fixed", "paragraph", "semantic"].index(st.session_state.config["chunking_strategy"]),
-                help="Method used to split documents into chunks"
+                all_strategies,
+                index=current_index,
+                key="chunking_strategy_select", # Added key
+                help="Method used to split documents into chunks. Affects how size/overlap are used."
             )
+            # Update config immediately
+            st.session_state.config["chunking_strategy"] = selected_strategy
+
+        # --- Unified Help Expander ---
         with col2:
             st.markdown('<div style="padding-top: 25px">', unsafe_allow_html=True)
-            chunking_help = st.expander("About Strategies")
-            with chunking_help:
+            with st.expander("About Strategies"):
                 st.markdown("""
-                - **Fixed**: Splits documents into chunks of a fixed token size with optional overlap
-                - **Paragraph**: Splits documents at paragraph boundaries
-                - **Semantic**: Attempts to split documents while preserving semantic units and coherence
+                - **Fixed**: Splits by token count with optional overlap. Simple but can break sentences.
+                - **Recursive**: Splits recursively by characters (e.g., `\\n\\n`, `\\n`, `.`, ` `), trying to keep paragraphs/sentences intact first. Often a good default.
+                - **Token**: Splits based on token count using a specific tokenizer (e.g., for an LLM). Consistent chunk sizes for model context.
+                - **Sentence**: Splits by sentence boundaries (`.`, `!`, `?`). Preserves sentence meaning.
+                - **Paragraph**: Splits by paragraph boundaries (often `\\n\\n`). Preserves document structure.
+                - **Semantic**: Uses AI models (e.g., embeddings) to split based on meaning/topic shifts. Potentially better coherence but slower.
                 """)
             st.markdown('</div>', unsafe_allow_html=True)
-            
-        st.session_state.config["chunking_strategy"] = chunking_strategy
-        
-        # Chunk size and overlap (only for fixed strategy)
-        if chunking_strategy == "fixed":
+
+        # --- Conditional Size/Overlap Sliders ---
+        # Show for strategies where size/overlap are primary parameters
+        if selected_strategy in ["fixed", "recursive", "token"]:
+            st.markdown("### Chunk Size & Overlap")
             col1, col2 = st.columns(2)
-            
+
             with col1:
+                # Use wider range from the second request
                 chunk_size = st.slider(
                     "Chunk Size",
-                    min_value=32,
-                    max_value=512,
-                    value=st.session_state.config["chunk_size"],
-                    step=32,
-                    help="Number of tokens per chunk"
+                    min_value=100,   # From request
+                    max_value=2000,  # From request
+                    # Read from config, use request's default if not set
+                    value=st.session_state.config.get("chunk_size", 1000),
+                    step=100,        # From request
+                    key="chunk_size_slider", # Added key
+                    help="Target maximum size for each text chunk (often in tokens)."
                 )
-                st.session_state.config["chunk_size"] = chunk_size
-                
+                st.session_state.config["chunk_size"] = chunk_size # Update config
+
             with col2:
+                # Ensure overlap max value depends on current chunk_size
+                max_overlap_value = chunk_size // 2 # Sensible limit
+                # Read from config, use request's default if not set, ensure within bounds
+                default_overlap = min(st.session_state.config.get("chunk_overlap", 200), max_overlap_value)
+
                 chunk_overlap = st.slider(
                     "Chunk Overlap",
                     min_value=0,
-                    max_value=chunk_size // 2,
-                    value=min(st.session_state.config["chunk_overlap"], chunk_size // 2),
-                    step=8,
-                    help="Number of overlapping tokens between chunks"
+                    max_value=max_overlap_value, # Dynamic max based on chunk size
+                    value=default_overlap,
+                    step=50,         # From request
+                    key="chunk_overlap_slider", # Added key
+                    help="Number of overlapping units (e.g., tokens) between consecutive chunks."
                 )
-                st.session_state.config["chunk_overlap"] = chunk_overlap
-                
-            # Add visualization of chunk size and overlap
+                st.session_state.config["chunk_overlap"] = chunk_overlap # Update config
+
+            # --- Visualization (Conditional) ---
             st.markdown("### Chunk Size and Overlap Visualization")
-            
-            # Simple visualization of chunks
-            visualization_cols = st.columns([1, 6, 1])
-            with visualization_cols[1]:
-                fig, ax = plt.subplots(figsize=(10, 2))
-                
-                # Calculate number of chunks to show
-                doc_length = 1000  # Just for visualization
-                step = chunk_size - chunk_overlap
-                num_chunks = (doc_length - chunk_overlap) // step
-                
-                # Draw chunks
-                for i in range(num_chunks):
-                    start = i * step
-                    end = start + chunk_size
-                    rect = plt.Rectangle((start, 0), chunk_size, 1, fill=True, alpha=0.5, 
-                                        color='blue', linewidth=1, edgecolor='black')
-                    ax.add_patch(rect)
-                    
-                ax.set_xlim(0, doc_length)
-                ax.set_ylim(0, 1.5)
-                ax.set_yticks([])
-                ax.set_xlabel("Document position (tokens)")
-                ax.set_title("Chunking Visualization")
-                
-                # Add labels for size and overlap
-                plt.annotate(f"Chunk Size: {chunk_size}", (doc_length/2, 1.3), 
-                            ha='center', va='center', fontsize=10)
-                
-                if chunk_overlap > 0:
-                    plt.annotate(f"Overlap: {chunk_overlap}", (step + chunk_overlap/2, 1.1), 
-                                ha='center', va='center', fontsize=9, 
-                                arrowprops=dict(arrowstyle='->'))
-                    
-                plt.tight_layout()
-                st.pyplot(fig)
-        
-        # Show additional explanation for each strategy
-        if chunking_strategy == "paragraph":
-            st.info("Paragraph chunking divides text at natural paragraph breaks, preserving document structure. Good for well-formatted documents with clear section breaks.")
-            
-        elif chunking_strategy == "semantic":
-            st.info("Semantic chunking preserves meaning by keeping related content together. It analyzes sentence relationships to determine logical boundaries.")
-            
-            # Add advanced semantic chunking options
-            st.markdown("### Advanced Semantic Chunking Options")
-            advanced_semantic = st.checkbox("Enable advanced semantic chunking options", value=False)
-            
+            try:
+                visualization_cols = st.columns([1, 6, 1])
+                with visualization_cols[1]:
+                    fig, ax = plt.subplots(figsize=(10, 2))
+                    doc_length = max(2000, chunk_size * 2.5) # Adjust viz length based on chunk size
+                    step = chunk_size - chunk_overlap if chunk_size > chunk_overlap else chunk_size # Prevent division by zero/negative step
+                    if step <= 0: step = 1 # Ensure step is positive
+                    num_chunks = int((doc_length - chunk_overlap) // step) + 1
+                    num_chunks = min(num_chunks, 10) # Limit chunks shown for clarity
+
+                    for i in range(num_chunks):
+                        start = i * step
+                        end = start + chunk_size
+                        rect = plt.Rectangle((start, 0), chunk_size, 1, fill=True, alpha=0.5,
+                                            color='blue', linewidth=1, edgecolor='black')
+                        ax.add_patch(rect)
+
+                    ax.set_xlim(0, start + chunk_size if num_chunks > 0 else chunk_size) # Adjust xlim based on drawn chunks
+                    ax.set_ylim(0, 1.5)
+                    ax.set_yticks([])
+                    ax.set_xlabel("Document position (units)")
+                    ax.set_title("Chunking Visualization")
+
+                    # Add labels only if chunks are drawn
+                    if num_chunks > 0:
+                        plt.annotate(f"Size: {chunk_size}", (ax.get_xlim()[1]*0.5, 1.3), ha='center', va='center', fontsize=10)
+                        if chunk_overlap > 0 and num_chunks > 1: # Only show overlap if >1 chunk and overlap > 0
+                            overlap_pos_x = step + chunk_overlap / 2
+                            # Adjust annotation pos if it goes off chart
+                            if overlap_pos_x > ax.get_xlim()[1]: overlap_pos_x = ax.get_xlim()[1] * 0.9
+                            plt.annotate(f"Overlap: {chunk_overlap}", (overlap_pos_x, 1.1), ha='center', va='center', fontsize=9, arrowprops=dict(arrowstyle='->'))
+
+                    plt.tight_layout()
+                    st.pyplot(fig, use_container_width=True)
+                    plt.close(fig) # Close plot
+            except Exception as e:
+                st.warning(f"Could not generate chunking visualization: {e}")
+
+        # --- Conditional Strategy Information ---
+        st.markdown("### Strategy Details")
+        if selected_strategy == "fixed":
+            st.info("Splits text based strictly on the 'Chunk Size' (e.g., token count). Simple but can cut sentences mid-way.")
+        elif selected_strategy == "recursive":
+            st.info("Recursively splits text using a list of separators (e.g., paragraph, sentence, word). Aims to keep meaningful blocks together. Often a good starting point.")
+        elif selected_strategy == "token":
+            st.info("Splits text based on token count according to a specific model's tokenizer. Ensures chunks fit model context windows well.")
+        elif selected_strategy == "sentence":
+            st.info("Splits text at sentence boundaries (e.g., '.', '!', '?'). Preserves sentence integrity but chunk sizes can vary greatly.")
+        elif selected_strategy == "paragraph":
+            st.info("Splits text at paragraph breaks (usually '\\n\\n'). Preserves document structure well if formatting is consistent.")
+        elif selected_strategy == "semantic":
+            st.info("Uses AI (e.g., embedding similarities) to find semantic boundaries. Aims for coherent chunks but is computationally more expensive and experimental.")
+
+            # Keep Advanced Semantic Chunking Options
+            st.markdown("#### Advanced Semantic Options")
+            advanced_semantic = st.checkbox("Enable advanced semantic options", value=st.session_state.config.get("advanced_semantic", False), key="advanced_semantic_chk")
+            st.session_state.config["advanced_semantic"] = advanced_semantic
+
             if advanced_semantic:
+                semantic_methods = ["basic_similarity", "semantic_segmentation", "topic_modeling"] # Example methods
+                default_sem_method = st.session_state.config.get("semantic_method", semantic_methods[0])
+                try: sem_idx = semantic_methods.index(default_sem_method)
+                except ValueError: sem_idx = 0
+
                 semantic_method = st.selectbox(
                     "Semantic Chunking Method",
-                    ["basic", "semantic_segmentation", "topic_modeling"],
-                    index=0,
-                    help="Method used for semantic chunking"
+                    semantic_methods,
+                    index=sem_idx,
+                    key="semantic_method_select",
+                    help="Specific algorithm for semantic chunking."
                 )
                 st.session_state.config["semantic_method"] = semantic_method
-                
+
                 if semantic_method in ["semantic_segmentation", "topic_modeling"]:
-                    st.warning("These advanced methods require additional computational resources and may slow down processing.")
-    
+                    st.warning("These advanced methods may significantly slow down processing.")
+
     # Tab: Embedding - ENHANCED
     with tabs[2]:
         st.markdown('<p class="sub-header">Embedding Configuration</p>', unsafe_allow_html=True)
-        
-        # Embedding model with categorized options
+
+        # --- Embedding Model Selection (Retained Categorized Approach) ---
         st.markdown("### Embedding Model Selection")
-        
-        # Group embedding models by type
+
+        # Group embedding models by type (Keep your existing categories)
         embedding_categories = {
             "Lightweight (Fast)": ["all-MiniLM-L6-v2", "BAAI/bge-small-en-v1.5"],
             "Balanced": ["all-mpnet-base-v2"],
             "Specialized": ["multi-qa-mpnet-base-dot-v1"],
             "Commercial API": ["text-embedding-ada-002"]
+            # Add other models your RAGApplication supports here
         }
-        
-        # Create a two-step selection process
+
+        # Category selection using st.radio (Keep)
         embedding_category = st.radio(
             "Model Category",
             list(embedding_categories.keys()),
-            horizontal=True
+            horizontal=True,
+            key="embedding_category_radio" # Added key
         )
-        
-        # Get current model
-        current_model = st.session_state.config["embedding_model"]
-        
-        # Find default selection index
+
+        # Get current model from config
+        current_model = st.session_state.config.get("embedding_model", embedding_categories[embedding_category][0]) # Safer default
+
+        # Find default selection index within the selected category's list
         default_index = 0
-        for i, model in enumerate(embedding_categories[embedding_category]):
-            if model == current_model:
-                default_index = i
-                break
-        
-        embedding_model = st.selectbox(
-            "Embedding Model",
+        try:
+            # Find the index of the current_model within the list for the selected category
+            default_index = embedding_categories[embedding_category].index(current_model)
+        except ValueError:
+            # If current_model is not in the selected category (e.g., category just changed),
+            # default to the first model in the new category.
+            default_index = 0
+            # Optionally, you could update the config here, but it will update below anyway.
+            # st.session_state.config["embedding_model"] = embedding_categories[embedding_category][0]
+
+        # Model selection using st.selectbox (Keep, ensure correct options/index)
+        selected_model = st.selectbox(
+            "Select Embedding Model:", # Changed label slightly
             embedding_categories[embedding_category],
-            index=min(default_index, len(embedding_categories[embedding_category])-1),
-            help="Model used to generate vector embeddings"
+            index=default_index, # Use the correctly calculated index
+            key="embedding_model_select", # Added key
+            help="Model used to generate vector embeddings. Changing this requires rebuilding the KB."
         )
-        st.session_state.config["embedding_model"] = embedding_model
-        
-        # Display model information
+
+        # --- Update Configuration ---
+        # Update the main config dictionary. The "Apply" button handles the rest.
+        st.session_state.config["embedding_model"] = selected_model
+
+        # --- Display Model Information (Retained Detailed Approach) ---
         model_info = {
-            "all-MiniLM-L6-v2": {
-                "dimensions": 384,
-                "speed": "Fast",
-                "quality": "Good",
-                "description": "Lightweight general-purpose embedding model with good balance of speed and quality."
-            },
-            "all-mpnet-base-v2": {
-                "dimensions": 768,
-                "speed": "Medium",
-                "quality": "Excellent",
-                "description": "Higher quality general-purpose embedding model with strong semantic understanding."
-            },
-            "multi-qa-mpnet-base-dot-v1": {
-                "dimensions": 768,
-                "speed": "Medium",
-                "quality": "Excellent for QA",
-                "description": "Optimized specifically for question-answering tasks."
-            },
-            "BAAI/bge-small-en-v1.5": {
-                "dimensions": 384,
-                "speed": "Fast",
-                "quality": "Very Good",
-                "description": "Efficient embedding model with high performance on retrieval tasks."
-            },
-            "text-embedding-ada-002": {
-                "dimensions": 1536,
-                "speed": "Varies (API)",
-                "quality": "Very Good",
-                "description": "OpenAI's embedding model, requires API key."
-            }
+            "all-MiniLM-L6-v2": { "dimensions": 384, "speed": "Fast", "quality": "Good", "description": "Lightweight general-purpose model..." },
+            "all-mpnet-base-v2": { "dimensions": 768, "speed": "Medium", "quality": "Excellent", "description": "Higher quality general-purpose model..." },
+            "multi-qa-mpnet-base-dot-v1": { "dimensions": 768, "speed": "Medium", "quality": "Excellent for QA", "description": "Optimized for question-answering..." },
+            "BAAI/bge-small-en-v1.5": { "dimensions": 384, "speed": "Fast", "quality": "Very Good", "description": "Efficient model for retrieval tasks..." },
+            "text-embedding-ada-002": { "dimensions": 1536, "speed": "Varies (API)", "quality": "Very Good", "description": "OpenAI model, requires API key & costs." }
+            # Add info for any other models in embedding_categories
         }
-        
-        # Show model information
-        if embedding_model in model_info:
-            info = model_info[embedding_model]
+
+        st.markdown("### Model Information") # Add sub-header
+        if selected_model in model_info:
+            info = model_info[selected_model]
             st.markdown('<div class="content-box">', unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Dimensions", info["dimensions"])
-            with col2:
-                st.metric("Speed", info["speed"])
-            with col3:
-                st.metric("Quality", info["quality"])
+            with col1: st.metric("Dimensions", info["dimensions"])
+            with col2: st.metric("Speed", info["speed"])
+            with col3: st.metric("Quality", info["quality"])
             st.markdown(f"**Description:** {info['description']}")
             st.markdown('</div>', unsafe_allow_html=True)
-            
-        # Warning for OpenAI model
-        if embedding_model == "text-embedding-ada-002":
-            st.warning("OpenAI API key required. Set OPENAI_API_KEY environment variable.")
-            
-            # API key input
+        else:
+            st.markdown("*(Select a model to see its information)*")
+
+        # --- Handle OpenAI API Key Input (Merged Logic) ---
+        if selected_model == "text-embedding-ada-002":
+            st.markdown("#### OpenAI API Key")
+            # Added warning about environment variables
+            st.warning("Recommended: Set the `OPENAI_API_KEY` environment variable instead of entering the key here.", icon="⚠️")
+
+            # Use config dictionary for value and storage, matching the second request's pattern
             openai_api_key = st.text_input(
-                "OpenAI API Key (optional, recommended to set via environment variable)",
-                type="password"
+                "OpenAI API Key (Optional)",
+                type="password",
+                # Read from config dict, provide empty string if not found
+                value=st.session_state.config.get("openai_api_key", ""),
+                key="openai_api_key_input", # Added key
+                help="Required if env var not set. Stored temporarily in session config."
             )
+
+            # Update the config dict if a value is provided in the UI
             if openai_api_key:
-                st.session_state.openai_api_key = openai_api_key
+                st.session_state.config["openai_api_key"] = openai_api_key
+            elif "openai_api_key" in st.session_state.config and not openai_api_key:
+                # If the field is cleared, remove the key from the config dict
+                # This prevents accidentally using an old key if the user clears the input
+                del st.session_state.config["openai_api_key"]
     
     # Tab: Retrieval - ENHANCED
     with tabs[3]:
@@ -1366,120 +1434,121 @@ def configuration_page():
             """)
     
     # Tab: Generation
-    st.markdown('<p class="sub-header">Generation Configuration</p>', unsafe_allow_html=True)
+    with tabs[6]:
+        st.markdown('<p class="sub-header">Generation Configuration</p>', unsafe_allow_html=True)
 
-    # --- Response style selection ---
-    st.markdown("### Response Style")
+        # --- Response style selection ---
+        st.markdown("### Response Style")
 
-    response_style = st.selectbox(
-        "Response Style",
-        ["Concise", "Balanced", "Detailed", "Custom"],
-        index=1,  # Default to balanced
-        help="Select a preset style or define a custom prompt template."
-    )
-    # Store the selected style itself if needed elsewhere
-    # st.session_state.config["response_style"] = response_style # Optional: Store the style name
-
-    # Preset prompt templates based on style
-    prompt_templates = {
-        "Concise": "Answer the question briefly based on this context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
-        "Balanced": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
-        "Detailed": "Provide a detailed answer to the question using only the information from the context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer with a comprehensive explanation:"
-    }
-
-    # --- Prompt Template Handling ---
-    st.markdown("### Prompt Template")
-    # Set prompt template based on style or allow custom input
-    if response_style != "Custom":
-        # Use preset template
-        prompt_template = prompt_templates[response_style]
-        st.session_state.config["prompt_template"] = prompt_template # Update config
-
-        # Show the selected preset template (read-only)
-        st.markdown("**Selected Preset Template:**")
-        st.code(prompt_template, language='text') # Use st.code for better display
-    else:
-        # Custom prompt template input
-        st.markdown("**Define Custom Template:**")
-        custom_prompt_template = st.text_area(
-            "Custom Prompt Template",
-            value=st.session_state.config.get("prompt_template", prompt_templates["Balanced"]), # Default to balanced if no custom exists
-            height=150,
-            key="custom_prompt_input", # Add key for stability
-            help="Template for generation prompt. Use {query} and {context} placeholders."
+        response_style = st.selectbox(
+            "Response Style",
+            ["Concise", "Balanced", "Detailed", "Custom"],
+            index=1,  # Default to balanced
+            help="Select a preset style or define a custom prompt template."
         )
-        st.session_state.config["prompt_template"] = custom_prompt_template # Update config
+        # Store the selected style itself if needed elsewhere
+        # st.session_state.config["response_style"] = response_style # Optional: Store the style name
 
-    # --- Model parameters ---
-    st.markdown("### Language Model Parameters")
+        # Preset prompt templates based on style
+        prompt_templates = {
+            "Concise": "Answer the question briefly based on this context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
+            "Balanced": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
+            "Detailed": "Provide a detailed answer to the question using only the information from the context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer with a comprehensive explanation:"
+        }
 
-    # Temperature control
-    # Ensure default value is retrieved safely
-    default_temp = st.session_state.config.get("temperature", 0.5) # Use config value or default
-    temperature = st.slider(
-        "Temperature",
-        min_value=0.0,
-        max_value=1.5, # Allow slightly higher temp if desired
-        value=float(default_temp), # Ensure it's a float
-        step=0.05,
-        key="temperature_slider_config", # Add key
-        help="Controls randomness (0=deterministic, >1=more creative). Affects LLM-Enhanced mode."
-    )
-    # Update session state AND config simultaneously
-    st.session_state.temperature = temperature # For immediate use in Chat sidebar potentially
-    st.session_state.config["temperature"] = temperature # For saving the config
+        # --- Prompt Template Handling ---
+        st.markdown("### Prompt Template")
+        # Set prompt template based on style or allow custom input
+        if response_style != "Custom":
+            # Use preset template
+            prompt_template = prompt_templates[response_style]
+            st.session_state.config["prompt_template"] = prompt_template # Update config
 
-    # --- Temperature visualization ---
-    st.markdown("###### Temperature Scale:")
-    temp_cols = st.columns([1, 3, 1]) # Use columns to center the small plot
-    with temp_cols[1]:
-        try:
-            # Create a temperature visualization
-            fig, ax = plt.subplots(figsize=(6, 1)) # Make it shorter
-
-            # Create a gradient bar
-            x = np.linspace(0, 1.5, 150) # Range for the visual bar (0 to 1.5)
-
-            # --- CORRECTED Colormap Definition ---
-            # Define transition points normalized to the [0, 1] range
-            normalized_gradient_points = [
-                (0.0, 'blue'),          # Start point (0.0 maps to 0.0)
-                (0.7 / 1.5, 'purple'), # Intermediate point (0.7 maps proportionally)
-                (1.0, 'red')           # End point (1.5 maps to 1.0)
-            ]
-            cmap = mpl.colors.LinearSegmentedColormap.from_list(
-                'temperature', normalized_gradient_points
+            # Show the selected preset template (read-only)
+            st.markdown("**Selected Preset Template:**")
+            st.code(prompt_template, language='text') # Use st.code for better display
+        else:
+            # Custom prompt template input
+            st.markdown("**Define Custom Template:**")
+            custom_prompt_template = st.text_area(
+                "Custom Prompt Template",
+                value=st.session_state.config.get("prompt_template", prompt_templates["Balanced"]), # Default to balanced if no custom exists
+                height=150,
+                key="custom_prompt_input", # Add key for stability
+                help="Template for generation prompt. Use {query} and {context} placeholders."
             )
-            # --- End Correction ---
+            st.session_state.config["prompt_template"] = custom_prompt_template # Update config
 
-            # Plot gradient bar using the actual range (0 to 1.5)
-            # and apply the colormap by normalizing the x values back to [0, 1]
-            for i in range(len(x)-1):
-                # Normalize x[i] to the [0, 1] range for the colormap lookup
-                normalized_x = x[i] / 1.5
-                ax.axvspan(x[i], x[i+1], color=cmap(normalized_x), alpha=0.8)
+        # --- Model parameters ---
+        st.markdown("### Language Model Parameters")
 
-            # Add current temperature marker (uses the actual temperature value)
-            ax.axvline(x=temperature, color='black', linewidth=3, linestyle='--', label=f'Current: {temperature:.2f}')
+        # Temperature control
+        # Ensure default value is retrieved safely
+        default_temp = st.session_state.config.get("temperature", 0.5) # Use config value or default
+        temperature = st.slider(
+            "Temperature",
+            min_value=0.0,
+            max_value=1.5, # Allow slightly higher temp if desired
+            value=float(default_temp), # Ensure it's a float
+            step=0.05,
+            key="temperature_slider_config", # Add key
+            help="Controls randomness (0=deterministic, >1=more creative). Affects LLM-Enhanced mode."
+        )
+        # Update session state AND config simultaneously
+        st.session_state.temperature = temperature # For immediate use in Chat sidebar potentially
+        st.session_state.config["temperature"] = temperature # For saving the config
 
-            # Customize the plot appearance (ensure xlim matches slider range)
-            ax.set_xlim(0, 1.5)
-            ax.set_yticks([]) # Remove y-axis ticks
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.spines['left'].set_visible(False)
-            ax.spines['bottom'].set_linewidth(1.5)
-            ax.tick_params(axis='x', labelsize=8)
-            ax.set_xlabel("Temperature", fontsize=9)
+        # --- Temperature visualization ---
+        st.markdown("###### Temperature Scale:")
+        temp_cols = st.columns([1, 3, 1]) # Use columns to center the small plot
+        with temp_cols[1]:
+            try:
+                # Create a temperature visualization
+                fig, ax = plt.subplots(figsize=(6, 1)) # Make it shorter
 
-            plt.tight_layout(pad=0.5) # Adjust padding
+                # Create a gradient bar
+                x = np.linspace(0, 1.5, 150) # Range for the visual bar (0 to 1.5)
 
-            # Display the plot
-            st.pyplot(fig, use_container_width=True)
-            plt.close(fig) # Close the plot to free memory
+                # --- CORRECTED Colormap Definition ---
+                # Define transition points normalized to the [0, 1] range
+                normalized_gradient_points = [
+                    (0.0, 'blue'),          # Start point (0.0 maps to 0.0)
+                    (0.7 / 1.5, 'purple'), # Intermediate point (0.7 maps proportionally)
+                    (1.0, 'red')           # End point (1.5 maps to 1.0)
+                ]
+                cmap = mpl.colors.LinearSegmentedColormap.from_list(
+                    'temperature', normalized_gradient_points
+                )
+                # --- End Correction ---
 
-        except Exception as e:
-            st.error(f"Failed to create temperature plot: {e}")
+                # Plot gradient bar using the actual range (0 to 1.5)
+                # and apply the colormap by normalizing the x values back to [0, 1]
+                for i in range(len(x)-1):
+                    # Normalize x[i] to the [0, 1] range for the colormap lookup
+                    normalized_x = x[i] / 1.5
+                    ax.axvspan(x[i], x[i+1], color=cmap(normalized_x), alpha=0.8)
+
+                # Add current temperature marker (uses the actual temperature value)
+                ax.axvline(x=temperature, color='black', linewidth=3, linestyle='--', label=f'Current: {temperature:.2f}')
+
+                # Customize the plot appearance (ensure xlim matches slider range)
+                ax.set_xlim(0, 1.5)
+                ax.set_yticks([]) # Remove y-axis ticks
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['left'].set_visible(False)
+                ax.spines['bottom'].set_linewidth(1.5)
+                ax.tick_params(axis='x', labelsize=8)
+                ax.set_xlabel("Temperature", fontsize=9)
+
+                plt.tight_layout(pad=0.5) # Adjust padding
+
+                # Display the plot
+                st.pyplot(fig, use_container_width=True)
+                plt.close(fig) # Close the plot to free memory
+
+            except Exception as e:
+                st.error(f"Failed to create temperature plot: {e}")
 
 
     # --- Apply Button Logic (Placed AFTER all tabs) ---
@@ -1590,7 +1659,22 @@ def metrics_page():
         st.warning("No conversation data available. Use the Chat interface to generate metrics.")
         st.markdown('</div>', unsafe_allow_html=True)
         return
-        
+    
+    # --- Filter history to include only assistant messages (which have processing time) ---
+    assistant_exchanges = [
+        exchange for exchange in st.session_state.conversation_history
+        if exchange.get("role") == "assistant" and "time" in exchange
+    ]
+
+    # Check if there are any assistant responses to calculate metrics from
+    if not assistant_exchanges:
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.info("No assistant responses recorded yet to calculate metrics.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        # Optionally display total queries even if no assistant responses
+        st.metric("Total Conversation Turns (User+Assistant)", len(st.session_state.conversation_history))
+        return
+    # --- End Filtering and Check ---
     # Performance metrics
     st.markdown('<p class="sub-header">Performance Metrics</p>', unsafe_allow_html=True)
     
@@ -1599,76 +1683,104 @@ def metrics_page():
     
     with col1:
         st.markdown('<div class="content-box">', unsafe_allow_html=True)
-        avg_time = sum(exchange["time"] for exchange in st.session_state.conversation_history) / len(st.session_state.conversation_history)
-        st.metric("Average Response Time", f"{avg_time:.2f} sec")
+        # --- Calculate avg_time using the FILTERED list ---
+        avg_time = sum(exchange["time"] for exchange in assistant_exchanges) / len(assistant_exchanges)
+        st.metric("Average Assistant Response Time", f"{avg_time:.2f} sec")
         st.markdown('</div>', unsafe_allow_html=True)
-        
+
     with col2:
         st.markdown('<div class="content-box">', unsafe_allow_html=True)
-        total_queries = len(st.session_state.conversation_history)
-        st.metric("Total Queries", total_queries)
+        total_queries = len(st.session_state.conversation_history) # Can show total turns
+        user_queries = sum(1 for ex in st.session_state.conversation_history if ex.get("role") == "user")
+        st.metric("User Queries", user_queries)
+        # Optionally show total turns: st.metric("Total Turns", total_queries)
         st.markdown('</div>', unsafe_allow_html=True)
-        
+
     with col3:
         st.markdown('<div class="content-box">', unsafe_allow_html=True)
-        avg_context_len = sum(len(exchange["contexts"]) for exchange in st.session_state.conversation_history) / len(st.session_state.conversation_history)
-        st.metric("Avg. Retrieved Documents", f"{avg_context_len:.1f}")
+        # --- Calculate avg_context_len using the FILTERED list ---
+        # Check contexts exist before calculating average
+        contexts_present = [len(exchange.get("contexts", [])) for exchange in assistant_exchanges if exchange.get("contexts") is not None]
+        avg_context_len = sum(contexts_present) / len(contexts_present) if contexts_present else 0
+        st.metric("Avg. Retrieved Documents (per Assistant Response)", f"{avg_context_len:.1f}")
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Query history visualization
-    st.markdown("### Query History")
-    
-    # Create DataFrame from conversation history
+    # --- Query history visualization (Adjust data preparation) ---
+    st.markdown("### Query History & Performance")
+
+    # Create DataFrame from conversation history - focusing on assistant responses for time/docs
     history_data = []
+    query_map = {} # Store user query text mapped to assistant response index
+
+    # First pass: get user queries
     for i, exchange in enumerate(st.session_state.conversation_history):
-        history_data.append({
-            "Query ID": i + 1,
-            "Query": exchange["query"],
-            "Response Time (sec)": exchange["time"],
-            "Retrieved Documents": len(exchange["contexts"])
-        })
-        
+        if exchange.get("role") == "user":
+            # Map the index of the *next* assistant message to this query text
+            query_map[i + 1] = exchange.get("query", "N/A")
+
+    # Second pass: get assistant data and match with query
+    for i, exchange in enumerate(st.session_state.conversation_history):
+        if exchange.get("role") == "assistant" and "time" in exchange:
+            query_text = query_map.get(i, "N/A (Query missing?)") # Get query text using index
+            history_data.append({
+                # "Turn ID": i + 1, # Or use a different ID system
+                "User Query": query_text,
+                "Response Time (sec)": exchange["time"],
+                "Retrieved Documents": len(exchange.get("contexts", []))
+            })
+
     history_df = pd.DataFrame(history_data)
-    
+    history_df.index += 1 # Start index from 1 for display
+    history_df.index.name = "Assistant Response #"
+
     # Display as a table
     st.dataframe(history_df, use_container_width=True)
-    
-    # Response time visualization
+
+    # --- Visualizations (Plot using the prepared history_df) ---
     st.markdown("### Response Time Analysis")
-    
-    fig, ax = plt.subplots(figsize=(10, 4))
-    sns.lineplot(x="Query ID", y="Response Time (sec)", data=history_df, marker='o', ax=ax)
-    ax.set_title("Response Time per Query")
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    # Convert plot to image for Streamlit
-    buf = BytesIO()
-    fig.savefig(buf, format="png", bbox_inches='tight')
-    buf.seek(0)
-    st.image(buf)
-    
-    # Document retrieval visualization
+    if not history_df.empty:
+        try:
+            fig_time, ax_time = plt.subplots(figsize=(10, 4))
+            # Use the index for the x-axis if it represents sequence
+            sns.lineplot(x=history_df.index, y="Response Time (sec)", data=history_df, marker='o', ax=ax_time)
+            ax_time.set_title("Response Time per Assistant Response")
+            ax_time.set_xlabel("Assistant Response Sequence")
+            ax_time.grid(True, linestyle='--', alpha=0.7)
+            st.pyplot(fig_time, use_container_width=True)
+            plt.close(fig_time) # Close plot
+        except Exception as e:
+            st.error(f"Failed to plot response time: {e}")
+    else:
+        st.info("No data available for response time plot.")
+
+
     st.markdown("### Document Retrieval Analysis")
-    
-    fig, ax = plt.subplots(figsize=(10, 4))
-    sns.barplot(x="Query ID", y="Retrieved Documents", data=history_df, ax=ax)
-    ax.set_title("Number of Retrieved Documents per Query")
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    # Convert plot to image for Streamlit
-    buf = BytesIO()
-    fig.savefig(buf, format="png", bbox_inches='tight')
-    buf.seek(0)
-    st.image(buf)
-    
-    # Export metrics
+    if not history_df.empty and "Retrieved Documents" in history_df.columns:
+        try:
+            fig_docs, ax_docs = plt.subplots(figsize=(10, 4))
+            sns.barplot(x=history_df.index, y="Retrieved Documents", data=history_df, ax=ax_docs, palette="viridis")
+            ax_docs.set_title("Number of Retrieved Documents per Assistant Response")
+            ax_docs.set_xlabel("Assistant Response Sequence")
+            ax_docs.grid(axis='y', linestyle='--', alpha=0.7)
+            st.pyplot(fig_docs, use_container_width=True)
+            plt.close(fig_docs) # Close plot
+        except Exception as e:
+            st.error(f"Failed to plot retrieved documents: {e}")
+    else:
+        st.info("No data available for retrieved documents plot.")
+
+
+    # --- Export metrics (Uses the prepared history_df) ---
     st.markdown("### Export Metrics")
-    
-    if st.button("Export Metrics to CSV"):
-        csv = history_df.to_csv(index=False)
-        b64 = base64.b64encode(csv.encode()).decode()
-        href = f'<a href="data:file/csv;base64,{b64}" download="rag_metrics.csv">Download CSV File</a>'
-        st.markdown(href, unsafe_allow_html=True)
+    if not history_df.empty:
+        if st.button("Export Metrics to CSV", key="export_metrics_btn"): # Add key
+            try:
+                csv = history_df.to_csv(index_label="Assistant Response #").encode('utf-8')
+                b64 = base64.b64encode(csv).decode()
+                href = f'<a href="data:file/csv;base64,{b64}" download="rag_metrics.csv">Download CSV File</a>'
+                st.markdown(href, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Failed to generate CSV for download: {e}")
 
 # Page: Experiment Lab
 def experiment_lab_page():

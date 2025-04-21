@@ -60,3 +60,23 @@ def calculate_lexical_diversity(text: str) -> float:
     if not words:
         return 0.0
     return len(set(words)) / len(words)
+
+def get_vectorstore(texts, embedding_model_name="MiniLM"):
+    """
+    Create a vector store from text chunks using the specified embedding model.
+    
+    Args:
+        texts: List of text chunks
+        embedding_model_name: Name of the embedding model to use
+        
+    Returns:
+        FAISS vector store with the provided texts
+    """
+    from llm_integrations import get_embedding_model
+    
+    # Get the appropriate embedding model
+    embeddings = get_embedding_model(embedding_model_name)
+    
+    # Create the vector store
+    vectorstore = FAISS.from_texts(texts=texts, embedding=embeddings)
+    return vectorstore
