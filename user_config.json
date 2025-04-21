@@ -10,11 +10,11 @@
     "top_k": 7,
     "query_expansion": false,
     "expansion_method": "simple",
-    "use_hyde": false,
+    "use_hyde": true,
     "hyde_method": "basic",
     "hyde_num_docs": 3,
     "use_reranking": true,
-    "reranking_method": "cross_encoder",
+    "reranking_method": "multi_stage",
     "reranking_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
     "reranking_stages": [
         "semantic",
@@ -28,5 +28,7 @@
     "mmr_fetch_k": 20,
     "mmr_lambda": 0.5,
     "bm25_k1": 1.5,
-    "bm25_b": 0.75
+    "bm25_b": 0.75,
+    "query_transformation": "none",
+    "multiquery_num_variations": 3
 }

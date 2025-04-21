@@ -347,8 +347,8 @@ class RAGApplication:
 
         Returns:
             Tuple[str, List[Dict[str, any]]]: A tuple containing the generated answer
-                                               and a list of context document dictionaries
-                                               (e.g., {"text": ..., "metadata": ...}).
+                                            and a list of context document dictionaries
+                                            (e.g., {"text": ..., "metadata": ...}).
         """
         print(f"\n--- Processing Query: '{query}' ---")
         final_contexts_dicts = [] # Store results as list of dicts for compatibility
@@ -358,13 +358,13 @@ class RAGApplication:
             # 1. Ensure Retriever and potentially other components are ready
             #    (prepare_knowledge_base should ideally be called *before* process_query)
             if self.retriever is None: # Check if retriever (vector search part) is ready
-                 st.warning("Retriever not initialized. Attempting lazy initialization...")
-                 print("Retriever not initialized. Attempting lazy initialization...")
-                 # This might call prepare_knowledge_base which loads/builds index + creates retriever
-                 self.prepare_knowledge_base(force_rebuild=False)
-                 if self.retriever is None:
-                      st.error("Retriever initialization failed. Cannot process query.")
-                      return "Error: Knowledge base retriever is not ready.", []
+                st.warning("Retriever not initialized. Attempting lazy initialization...")
+                print("Retriever not initialized. Attempting lazy initialization...")
+                # This might call prepare_knowledge_base which loads/builds index + creates retriever
+                self.prepare_knowledge_base(force_rebuild=False)
+                if self.retriever is None:
+                    st.error("Retriever initialization failed. Cannot process query.")
+                    return "Error: Knowledge base retriever is not ready.", []
             # Add similar check for BM25 index if needed for bm25/hybrid modes
             # if self.bm25_index is None and self.config.get("retrieval_method") in ["bm25", "hybrid"]:
             #     st.error("BM25 index not ready...") etc.
@@ -373,104 +373,314 @@ class RAGApplication:
             # self.conversation_history.append(query)
 
             # 2. Apply query expansion if enabled
+            expanded_queries = [query]  # Default to just the original query
             if self.config.get("query_expansion", False):
                 expansion_method = self.config.get("expansion_method", "simple")
                 try:
-                     # Assuming QueryProcessor.expand_query is compatible
-                     expanded_queries = QueryProcessor.expand_query(query, method=expansion_method)
-                     print(f"Expanded query to {len(expanded_queries)} variations using '{expansion_method}'.")
+                    # Assuming QueryProcessor.expand_query is compatible
+                    expanded_queries = QueryProcessor.expand_query(query, method=expansion_method)
+                    print(f"Expanded query to {len(expanded_queries)} variations using '{expansion_method}'.")
                 except Exception as qe_error:
-                     print(f"Warning: Query expansion failed: {qe_error}. Using original query only.")
-                     expanded_queries = [query]
-            else:
-                expanded_queries = [query]
+                    print(f"Warning: Query expansion failed: {qe_error}. Using original query only.")
+                    expanded_queries = [query]
 
-            # 3. Retrieve relevant documents (Major Change: Using self.retriever + BM25)
+            # 3. NEW: Apply Query Transformation (Phase 3 feature)
+            query_transformation_method = self.config.get("query_transformation", "none")
+            hyde_embedding = None
+            hyde_docs = []
+            
+            if query_transformation_method != "none":
+                try:
+                    # Import dynamically to avoid dependency unless needed
+                    from src.components.query_transformations import QueryTransformationRouter
+                    
+                    # Initialize router
+                    router = QueryTransformationRouter()
+                    
+                    # Set up LLM function for transformations if needed
+                    llm_function = None
+                    if query_transformation_method in ["multi_query", "hyde"]:
+                        # Use existing LLM integration if available
+                        llm_function = lambda prompt: self._llm_answer(prompt, [], temperature=0.7)
+                    
+                    # Transform the query
+                    transformation_result = router.transform_query(
+                        query=query,
+                        method=query_transformation_method,
+                        llm_function=llm_function,
+                        num_variations=self.config.get("multiquery_num_variations", 3),
+                        model_name=self.config.get("embedding_model", "all-MiniLM-L6-v2"),
+                        multi_document=self.config.get("hyde_multi_document", False),
+                        num_variants=self.config.get("hyde_num_variants", 3)
+                    )
+                    
+                    # Extract transformed queries
+                    if query_transformation_method == "hyde":
+                        # For HyDE, we'll use the embeddings directly in retrieval
+                        hyde_embedding = transformation_result.get("doc_embedding")
+                        hyde_docs = transformation_result.get("hypothetical_docs", [])
+                        print(f"Using HyDE with {len(hyde_docs)} hypothetical documents")
+                    elif query_transformation_method == "multi_query":
+                        # For MultiQuery, replace the expanded queries with the transformed ones
+                        expanded_queries = transformation_result.get("transformed_queries", [query])
+                        print(f"Using MultiQuery with {len(expanded_queries)} query variations")
+                
+                except Exception as query_transform_error:
+                    print(f"Query transformation error: {query_transform_error}. Using original query.")
+                    expanded_queries = [query]
+
+            # 4. Retrieve relevant documents
             retrieval_method = self.config.get("retrieval_method", "hybrid")
             top_k = self.config.get("top_k", 5)
             print(f"Retrieving top-{top_k} documents using '{retrieval_method}' method...")
 
-            # --- Combined results from all expanded queries before deduplication/ranking ---
+            # Combined results from all expanded queries before deduplication/ranking
             combined_retrieved_docs = [] # List to hold Langchain Document objects initially
 
-            for i, exp_query in enumerate(expanded_queries):
-                print(f"  Processing expanded query {i+1}/{len(expanded_queries)}: '{exp_query}'")
-                vector_docs = []
-                bm25_docs_info = [] # Store bm25 results if needed (e.g., list of {"doc": Document, "score": score})
+            # Special handling for HyDE embeddings if available
+            if query_transformation_method == "hyde" and hyde_embedding is not None:
+                try:
+                    # Use the HyDE embedding directly for vector retrieval
+                    if retrieval_method in ["vector", "hybrid"]:
+                        # Get documents using the document embedding instead of query
+                        if hasattr(self.vector_store, "similarity_search_by_vector"):
+                            # Use similarity_search_by_vector if available
+                            vector_docs = self.vector_store.similarity_search_by_vector(
+                                hyde_embedding,
+                                k=top_k
+                            )
+                            combined_retrieved_docs.extend(vector_docs)
+                            print(f"HyDE vector search returned {len(vector_docs)} docs.")
+                        else:
+                            # Fallback to standard retrieval
+                            vector_docs = self.retriever.get_relevant_documents(query)
+                            combined_retrieved_docs.extend(vector_docs)
+                            print(f"Fallback vector search returned {len(vector_docs)} docs (HyDE embedding not used).")
+                    
+                    # For hybrid or bm25, still use original query for text matching
+                    if retrieval_method in ["bm25", "hybrid"]:
+                        try:
+                            bm25_results = self._perform_bm25_search(query, k=top_k * 2)
+                            bm25_docs = [doc for doc, _ in bm25_results]
+                            combined_retrieved_docs.extend(bm25_docs)
+                            print(f"BM25 search returned {len(bm25_docs)} docs.")
+                        except Exception as bm25_error:
+                            print(f"BM25 search error: {bm25_error}")
+                
+                except Exception as hyde_retrieval_error:
+                    print(f"Error during HyDE retrieval: {hyde_retrieval_error}. Falling back to standard retrieval.")
+                    # Process standard queries as fallback
+                    for i, exp_query in enumerate(expanded_queries):
+                        # Standard processing (as in the original function)
+                        # This code is similar to the else branch below
+                        if retrieval_method in ["vector", "hybrid"]:
+                            try:
+                                vector_docs = self.retriever.get_relevant_documents(exp_query)
+                                combined_retrieved_docs.extend(vector_docs)
+                                print(f"Vector search returned {len(vector_docs)} docs for query {i+1}.")
+                            except Exception as vs_error:
+                                print(f"Error during vector search for '{exp_query}': {vs_error}")
+                                st.warning(f"Vector search failed for sub-query.")
+                        
+                        if retrieval_method in ["bm25", "hybrid"]:
+                            try:
+                                bm25_results = self._perform_bm25_search(exp_query, k=top_k * 2)
+                                bm25_docs_info = [{"doc": doc, "score": score} for doc, score in bm25_results]
+                                
+                                if retrieval_method == "bm25":
+                                    combined_retrieved_docs.extend([info["doc"] for info in bm25_docs_info])
+                                elif retrieval_method == "hybrid":
+                                    # Basic hybrid fusion (same as original)
+                                    temp_combined = {}
+                                    for doc in vector_docs: 
+                                        temp_combined[doc.page_content] = doc
+                                    for info in bm25_docs_info: 
+                                        temp_combined[info["doc"].page_content] = info["doc"]
+                                    combined_retrieved_docs.extend(list(temp_combined.values()))
+                                    
+                                print(f"BM25 search returned {len(bm25_docs_info)} docs for query {i+1}.")
+                            except Exception as bm25_error:
+                                print(f"Error during BM25 search for '{exp_query}': {bm25_error}")
+                                st.warning(f"BM25 search failed for sub-query.")
+            else:
+                # Standard processing for each query variation (original behavior)
+                for i, exp_query in enumerate(expanded_queries):
+                    print(f"Processing query variation {i+1}/{len(expanded_queries)}: '{exp_query}'")
+                    vector_docs = []
+                    bm25_docs_info = [] # Store bm25 results if needed
 
-                # a) Vector Store Retrieval (if method is vector or hybrid)
-                if retrieval_method in ["vector", "hybrid"]:
-                    try:
-                        # self.retriever already configured with top_k, MMR settings
-                        # It returns Langchain Document objects
-                        vector_docs = self.retriever.get_relevant_documents(exp_query)
-                        print(f"    Vector search returned {len(vector_docs)} docs.")
-                    except Exception as vs_error:
-                         print(f"    Error during vector search for '{exp_query}': {vs_error}")
-                         st.warning(f"Vector search failed for sub-query.")
+                    # a) Vector Store Retrieval (if method is vector or hybrid)
+                    if retrieval_method in ["vector", "hybrid"]:
+                        try:
+                            # self.retriever already configured with top_k, MMR settings
+                            vector_docs = self.retriever.get_relevant_documents(exp_query)
+                            print(f"Vector search returned {len(vector_docs)} docs.")
+                        except Exception as vs_error:
+                            print(f"Error during vector search for '{exp_query}': {vs_error}")
+                            st.warning(f"Vector search failed for sub-query.")
 
-                # b) BM25 Retrieval (if method is bm25 or hybrid)
-                if retrieval_method in ["bm25", "hybrid"]:
-                    try:
-                         # Assumes _perform_bm25_search returns list of tuples (Document, score) or similar
-                         # You need to implement this method and BM25 indexing
-                         bm25_results = self._perform_bm25_search(exp_query, k=top_k * 2) # Fetch more for hybrid?
-                         # Store results with score for potential fusion
-                         bm25_docs_info = [{"doc": doc, "score": score} for doc, score in bm25_results]
-                         print(f"    BM25 search returned {len(bm25_docs_info)} docs.")
-                    except Exception as bm25_error:
-                         print(f"    Error during BM25 search for '{exp_query}': {bm25_error}")
-                         st.warning(f"BM25 search failed for sub-query.")
+                    # b) BM25 Retrieval (if method is bm25 or hybrid)
+                    if retrieval_method in ["bm25", "hybrid"]:
+                        try:
+                            bm25_results = self._perform_bm25_search(exp_query, k=top_k * 2)
+                            bm25_docs_info = [{"doc": doc, "score": score} for doc, score in bm25_results]
+                            print(f"BM25 search returned {len(bm25_docs_info)} docs.")
+                        except Exception as bm25_error:
+                            print(f"Error during BM25 search for '{exp_query}': {bm25_error}")
+                            st.warning(f"BM25 search failed for sub-query.")
 
-                # c) Combine/Select results for this expanded query
-                if retrieval_method == "vector":
-                     combined_retrieved_docs.extend(vector_docs)
-                elif retrieval_method == "bm25":
-                     # Add only the Document objects from BM25 results
-                     combined_retrieved_docs.extend([info["doc"] for info in bm25_docs_info])
-                elif retrieval_method == "hybrid":
-                     # --- Hybrid Fusion Logic ---
-                     # This needs proper implementation (e.g., Reciprocal Rank Fusion)
-                     # Simple Placeholder: Combine, deduplicate, take top K based on original scores? Very basic.
-                     print("    Applying basic hybrid fusion (combine, deduplicate). Needs refinement.")
-                     temp_combined = {} # Use dict for deduplication based on content or ID
-                     # Add vector docs (assuming retriever already handled MMR/similarity ranking)
-                     for doc in vector_docs: temp_combined[doc.page_content] = doc # Or use a unique ID if available
-                     # Add BM25 docs
-                     for info in bm25_docs_info: temp_combined[info["doc"].page_content] = info["doc"]
-                     # Add the unique documents from this sub-query
-                     combined_retrieved_docs.extend(list(temp_combined.values()))
-                     # --- End Hybrid Fusion Logic ---
+                    # c) Combine/Select results for this expanded query
+                    if retrieval_method == "vector":
+                        combined_retrieved_docs.extend(vector_docs)
+                    elif retrieval_method == "bm25":
+                        combined_retrieved_docs.extend([info["doc"] for info in bm25_docs_info])
+                    elif retrieval_method == "hybrid":
+                        # Simple hybrid fusion (same as original)
+                        print(f"Applying hybrid fusion for query {i+1}.")
+                        temp_combined = {}
+                        for doc in vector_docs: 
+                            temp_combined[doc.page_content] = doc
+                        for info in bm25_docs_info: 
+                            temp_combined[info["doc"].page_content] = info["doc"]
+                        combined_retrieved_docs.extend(list(temp_combined.values()))
 
-            # 4. Deduplicate results across all expanded queries
-            final_unique_docs = {} # Dict for deduplication
+            # 5. Deduplicate results across all expanded queries (kept the same)
+            final_unique_docs = {}
             for doc in combined_retrieved_docs:
-                 # Use page content as key for simplicity, or a unique ID from metadata if available
-                 doc_key = doc.page_content
-                 if doc_key not in final_unique_docs:
-                      final_unique_docs[doc_key] = doc
+                doc_key = doc.page_content
+                if doc_key not in final_unique_docs:
+                    final_unique_docs[doc_key] = doc
 
-            # Now we have unique Langchain Document objects
             documents_to_process = list(final_unique_docs.values())
             print(f"Retrieved {len(documents_to_process)} unique documents total before reranking/final top_k.")
 
-            # Ensure we don't exceed top_k if no reranking is done later
-            # Note: Reranking might change the final selection size
+            # Limit to top_k if no reranking
             if not self.config.get("use_reranking", False):
-                 documents_to_process = documents_to_process[:top_k]
+                documents_to_process = documents_to_process[:top_k]
 
-            # 5. Apply Reranking (if enabled)
+            # 6. Apply Reranking (enhanced with more options)
             if self.config.get("use_reranking", False) and documents_to_process:
                 reranking_method = self.config.get("reranking_method", "cross_encoder")
                 print(f"Reranking {len(documents_to_process)} documents using '{reranking_method}' method...")
+                
                 try:
-                    # Assuming RerankerModule needs config and can handle list of Langchain Documents
-                    reranker = RerankerModule(self.config)
-                    # Assuming reranker.rerank_documents returns list of Langchain Documents sorted
-                    documents_to_process = reranker.rerank_documents(query, documents_to_process)
-                    print(f"Reranking complete. Selecting top {top_k} docs.")
-                    # Select final top_k *after* reranking
+                    # Import and use RerankerModule
+                    from src.components.reranking import RerankerModule
+                    
+                    if reranking_method == "cross_encoder":
+                        # Use cross-encoder reranking
+                        doc_dicts = [{"text": doc.page_content} for doc in documents_to_process]
+                        reranked_pairs = RerankerModule.score_with_cross_encoder(
+                            query=query,
+                            documents=doc_dicts,
+                            model_name=self.config.get("reranking_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+                        )
+                        
+                        # Convert back to original document format (simplification - in real implementation we'd need to map properly)
+                        # This is a bit tricky since we need to maintain the original document objects
+                        if len(reranked_pairs) == len(documents_to_process):
+                            doc_map = {doc.page_content: doc for doc in documents_to_process}
+                            reranked_docs = []
+                            for doc_dict, _ in reranked_pairs:
+                                if doc_dict["text"] in doc_map:
+                                    reranked_docs.append(doc_map[doc_dict["text"]])
+                            
+                            if len(reranked_docs) > 0:
+                                documents_to_process = reranked_docs
+                        
+                    elif reranking_method == "contextual":
+                        # Use contextual reranking
+                        conversation_history = getattr(self, 'conversation_history', [])[-3:] if hasattr(self, 'conversation_history') else []
+                        doc_dicts = [{"text": doc.page_content} for doc in documents_to_process]
+                        
+                        reranked_pairs = RerankerModule.contextual_reranking(
+                            query=query,
+                            documents=doc_dicts,
+                            conversation_history=conversation_history
+                        )
+                        
+                        # Convert back to original document format (similar simplification)
+                        if len(reranked_pairs) == len(documents_to_process):
+                            doc_map = {doc.page_content: doc for doc in documents_to_process}
+                            reranked_docs = []
+                            for doc_dict, _ in reranked_pairs:
+                                if doc_dict["text"] in doc_map:
+                                    reranked_docs.append(doc_map[doc_dict["text"]])
+                            
+                            if len(reranked_docs) > 0:
+                                documents_to_process = reranked_docs
+                    
+                    elif reranking_method == "diversity":
+                        # Use diversity reranking
+                        doc_dicts = [{"text": doc.page_content} for doc in documents_to_process]
+                        alpha = self.config.get("diversity_alpha", 0.7)
+                        
+                        reranked_pairs = RerankerModule.diversity_reranking(
+                            query=query,
+                            documents=doc_dicts,
+                            alpha=alpha
+                        )
+                        
+                        # Convert back to original document format (similar simplification)
+                        if len(reranked_pairs) == len(documents_to_process):
+                            doc_map = {doc.page_content: doc for doc in documents_to_process}
+                            reranked_docs = []
+                            for doc_dict, _ in reranked_pairs:
+                                if doc_dict["text"] in doc_map:
+                                    reranked_docs.append(doc_map[doc_dict["text"]])
+                            
+                            if len(reranked_docs) > 0:
+                                documents_to_process = reranked_docs
+                    
+                    elif reranking_method == "multi_stage":
+                        # Use multi-stage reranking pipeline
+                        reranking_stages = self.config.get("reranking_stages", ["semantic", "cross_encoder", "diversity"])
+                        doc_dicts = [{"text": doc.page_content} for doc in documents_to_process]
+                        doc_map = {doc.page_content: doc for doc in documents_to_process}
+                        
+                        # Apply each stage in sequence
+                        current_docs = doc_dicts
+                        
+                        for stage in reranking_stages:
+                            if stage == "semantic":
+                                # Semantic stage is already done via vector retrieval
+                                pass
+                            elif stage == "cross_encoder":
+                                # Apply cross-encoder reranking
+                                reranked_pairs = RerankerModule.score_with_cross_encoder(
+                                    query=query,
+                                    documents=current_docs,
+                                    model_name=self.config.get("reranking_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+                                )
+                                current_docs = [doc for doc, _ in reranked_pairs]
+                            elif stage == "diversity":
+                                # Apply diversity reranking
+                                alpha = self.config.get("diversity_alpha", 0.7)
+                                reranked_pairs = RerankerModule.diversity_reranking(
+                                    query=query,
+                                    documents=current_docs,
+                                    alpha=alpha
+                                )
+                                current_docs = [doc for doc, _ in reranked_pairs]
+                        
+                        # Convert back to original document format
+                        reranked_docs = []
+                        for doc_dict in current_docs:
+                            if doc_dict["text"] in doc_map:
+                                reranked_docs.append(doc_map[doc_dict["text"]])
+                        
+                        if len(reranked_docs) > 0:
+                            documents_to_process = reranked_docs
+                    
+                    else:
+                        # Default to original reranker for backward compatibility
+                        reranker = RerankerModule(self.config)
+                        documents_to_process = reranker.rerank_documents(query, documents_to_process)
+                    
+                    # Limit to top_k after reranking
                     documents_to_process = documents_to_process[:top_k]
+                    print(f"Reranking complete. Selected top {len(documents_to_process)} docs.")
+                    
                 except Exception as rerank_error:
                     print(f"Error during reranking: {rerank_error}. Using documents before reranking.")
                     st.warning(f"Reranking failed: {rerank_error}")
@@ -479,49 +689,42 @@ class RAGApplication:
 
             print(f"Final {len(documents_to_process)} documents selected for context.")
 
-            # 6. Prepare Contexts for Generation and Return Value
-            # Convert final LangChain Document objects back to dicts for compatibility
+            # 7. Prepare Contexts for Generation and Return Value (kept the same)
             final_contexts_dicts = []
             context_texts = []
             for doc in documents_to_process:
-                 context_dict = {
-                      "text": doc.page_content,
-                      # Reconstruct metadata - adapt based on what metadata your Document objects have
-                      "metadata": doc.metadata,
-                      # Add title if available in metadata
-                      "title": doc.metadata.get("source", "Source Unknown")
-                      # Add original chunk ID if needed and available
-                      # "chunk_id": doc.metadata.get("chunk_index", -1)
-                 }
-                 final_contexts_dicts.append(context_dict)
-                 context_texts.append(doc.page_content)
+                context_dict = {
+                    "text": doc.page_content,
+                    "metadata": doc.metadata,
+                    "title": doc.metadata.get("source", "Source Unknown")
+                }
+                final_contexts_dicts.append(context_dict)
+                context_texts.append(doc.page_content)
 
             context_str = "\n\n".join(context_texts)
 
-            # 7. Generate Answer
+            # 8. Generate Answer (kept the same)
             prompt_template = self.config.get("prompt_template", "Context: {context}\nQuery: {query}\nAnswer:")
             prompt = prompt_template.format(context=context_str, query=query)
 
-            # Get response mode set by Streamlit UI (passed via initialize_rag_app or similar)
-            response_mode = getattr(self, "response_mode", "extractive") # Default if not set
-            temperature = self.config.get("temperature", 0.5) # Use temp from config
+            response_mode = getattr(self, "response_mode", "extractive")
+            temperature = self.config.get("temperature", 0.5)
 
             print(f"Generating answer using mode: '{response_mode}', Temp: {temperature}")
             if response_mode == "llm":
-                # Pass relevant config (like temperature) if _llm_answer needs it
                 answer = self._llm_answer(query, context_texts, temperature=temperature)
             else: # extractive
                 answer = self._extractive_answer(query, context_texts)
 
             print("Answer generation complete.")
-            return answer, final_contexts_dicts # Return dicts
+            return answer, final_contexts_dicts
 
         except Exception as e:
-             st.error(f"An unexpected error occurred in process_query: {e}")
-             print(f"FATAL ERROR in process_query: {e}")
-             traceback.print_exc()
-             return answer, final_contexts_dicts # Return default error answer and any contexts gathered
-
+            st.error(f"An unexpected error occurred in process_query: {e}")
+            print(f"FATAL ERROR in process_query: {e}")
+            traceback.print_exc()
+            return answer, final_contexts_dicts
+        
     # --- Placeholder for BM25 Search ---
     def _perform_bm25_search(self, query, k=5):
         # Requires self.bm25_index and a mapping back to original docs/chunks
@@ -707,6 +910,8 @@ class RAGApplication:
                 print(f"Error processing query: {e}")
                 import traceback
                 traceback.print_exc()
+
+    
 
 
 # Command line interface

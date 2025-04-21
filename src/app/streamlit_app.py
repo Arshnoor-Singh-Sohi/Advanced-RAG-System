@@ -428,6 +428,7 @@ def sidebar():
             "Configuration": "⚙️ Configuration",
             "Metrics": "📊 Metrics",
             "Experiment Lab": "🧪 Experiment Lab",
+            "Evaluation": "📝 Evaluation", 
             "About": "ℹ️ About"
         }
         
@@ -1380,133 +1381,240 @@ def configuration_page():
                 
                 This improves semantic search by bridging the gap between questions and answers.
                 """)
+        st.markdown("### Query Transformation")
+
+        query_transformation = st.selectbox(
+            "Query Transformation Method",
+            ["none", "multi_query", "hyde", "expansion"],
+            index=0,
+            help="Method used to transform queries before retrieval"
+        )
+        st.session_state.config["query_transformation"] = query_transformation
+
+        # MultiQuery options (only if multi_query is selected)
+        if query_transformation == "multi_query":
+            multiquery_num_variations = st.slider(
+                "Number of Query Variations",
+                min_value=2,
+                max_value=10,
+                value=3,
+                step=1,
+                help="Number of query variations to generate"
+            )
+            st.session_state.config["multiquery_num_variations"] = multiquery_num_variations
+            
+            st.info("""
+            MultiQuery generates multiple variations of the original query to improve retrieval recall.
+            Results from all variations are combined before reranking.
+            """)
+            
+            # Example of MultiQuery
+            example_query = st.text_input(
+                "Try an example query for MultiQuery",
+                value="How does document chunking affect RAG performance?"
+            )
+            
+            if example_query:
+                st.markdown("**Original Query:** " + example_query)
+                st.markdown("**Possible variations:**")
+                variations = [
+                    example_query,
+                    f"What impact does the document chunking strategy have on RAG system effectiveness?",
+                    f"How do different chunking methods influence the performance of retrieval augmented generation?",
+                    f"In what ways can document segmentation affect RAG results?"
+                ]
+                
+                for i, var in enumerate(variations[:min(multiquery_num_variations, len(variations))]):
+                    st.markdown(f"{i+1}. *{var}*")
+
+        # HyDE advanced options (only if hyde is selected)
+        elif query_transformation == "hyde":
+            # Note: Basic HyDE options are already in the existing UI
+            # We're adding advanced options here
+            hyde_multi_document = st.checkbox(
+                "Use Multiple Hypothetical Documents",
+                value=False,
+                help="Generate multiple hypothetical documents and combine their embeddings"
+            )
+            st.session_state.config["hyde_multi_document"] = hyde_multi_document
+            
+            if hyde_multi_document:
+                hyde_num_variants = st.slider(
+                    "Number of Hypothetical Documents",
+                    min_value=2,
+                    max_value=5,
+                    value=3,
+                    step=1,
+                    help="Number of hypothetical documents to generate"
+                )
+                st.session_state.config["hyde_num_variants"] = hyde_num_variants
+            
+            st.info("""
+            HyDE (Hypothetical Document Embeddings) generates a hypothetical document 
+            that might answer the query, then uses its embedding for retrieval instead of the query embedding.
+            This can improve semantic search for complex queries.
+            """)
+
+        # Query expansion options (only if expansion is selected)
+        elif query_transformation == "expansion":
+            expansion_method = st.selectbox(
+                "Expansion Method",
+                ["simple", "llm", "hybrid"],
+                index=0,
+                help="Method used for query expansion"
+            )
+            st.session_state.config["expansion_method"] = expansion_method
     
     # Tab: Reranking
+        # --- Tab: Reranking (MERGED VERSION - INCLUDING EXPANDER) ---
     with tabs[5]:
         st.markdown('<p class="sub-header">Reranking Configuration</p>', unsafe_allow_html=True)
-        
-        # Use reranking
+
+        # Use reranking - main toggle
         use_reranking = st.checkbox(
             "Enable Reranking",
-            value=st.session_state.config["use_reranking"],
-            help="Rerank initially retrieved documents for better precision"
+            value=st.session_state.config.get("use_reranking", DEFAULT_CONFIG.get("use_reranking", True)),
+            key="reranking_enable_checkbox", # Unique key
+            help="Rerank initially retrieved documents for better relevance and/or diversity."
         )
-        st.session_state.config["use_reranking"] = use_reranking
-        
-        # Reranking method (only if reranking is enabled)
+        st.session_state.config["use_reranking"] = use_reranking # Update config
+
+        # --- Only show options if reranking is enabled ---
         if use_reranking:
+            st.markdown("---") # Separator
+
+            # --- ADDED: Explanation Expander (from old code) ---
+            with st.expander("About Reranking Methods"):
+                st.markdown("""
+                **Reranking** improves retrieval precision by reordering initially retrieved documents. Methods include:
+
+                - **Cross-Encoder**: Uses a cross-encoder model to score query-document pairs (more accurate but slower)
+                - **Contextual**: Considers conversation history when reranking
+                - **Diversity**: Balances relevance with diversity to avoid redundant information
+                - **Multi-Stage**: Combines multiple reranking approaches in a pipeline
+                """)
+            # --- END ADDED EXPANDER ---
+
+            # --- Reranking Method Selection (from new code) ---
+            reranking_methods_list = ["cross_encoder", "contextual", "diversity", "multi_stage"]
+            current_method = st.session_state.config.get("reranking_method", DEFAULT_CONFIG.get("reranking_method", reranking_methods_list[0]))
+            try:
+                current_method_index = reranking_methods_list.index(current_method)
+            except ValueError:
+                st.warning(f"Configured reranking method '{current_method}' not valid. Defaulting.")
+                current_method_index = 0
+                current_method = reranking_methods_list[0]
+
             reranking_method = st.selectbox(
                 "Reranking Method",
-                ["cross_encoder", "contextual", "diversity", "multi_stage"],
-                index=["cross_encoder", "contextual", "diversity", "multi_stage"].index(
-                    st.session_state.config["reranking_method"]
-                ) if st.session_state.config["reranking_method"] in ["cross_encoder", "contextual", "diversity", "multi_stage"] else 0,
-                help="Method used for reranking"
+                reranking_methods_list,
+                index=current_method_index,
+                key="reranking_method_select", # Unique key
+                help="Select the algorithm or pipeline for reranking."
             )
-            st.session_state.config["reranking_method"] = reranking_method
-            
-            # Cross-encoder model (only for cross_encoder method)
+            st.session_state.config["reranking_method"] = reranking_method # Update config
+
+            # --- Conditional Options based on Method (from new code) ---
+
+            # 1. Cross-Encoder Specific Options
             if reranking_method == "cross_encoder":
+                st.markdown("#### Cross-Encoder Settings")
+                cross_encoder_models = [
+                    "cross-encoder/ms-marco-MiniLM-L-6-v2",
+                    "cross-encoder/ms-marco-TinyBERT-L-2",
+                    "cross-encoder/nli-deberta-v3-base"
+                ]
+                current_cross_model = st.session_state.config.get("reranking_model", DEFAULT_CONFIG.get("reranking_model", cross_encoder_models[0]))
+                try:
+                    current_cross_model_index = cross_encoder_models.index(current_cross_model)
+                except ValueError:
+                    st.warning(f"Configured model '{current_cross_model}' not in list. Defaulting.")
+                    current_cross_model_index = 0
+
                 reranking_model = st.selectbox(
                     "Cross-Encoder Model",
-                    [
-                        "cross-encoder/ms-marco-MiniLM-L-6-v2",
-                        "cross-encoder/ms-marco-TinyBERT-L-2",
-                        "cross-encoder/nli-deberta-v3-base"
-                    ],
-                    index=0,
-                    help="Model used for cross-encoder reranking"
+                    cross_encoder_models,
+                    index=current_cross_model_index,
+                    key="reranking_model_select", # Unique key
+                    help="Model for cross-encoder reranking. Accurate but slower."
                 )
-                st.session_state.config["reranking_model"] = reranking_model
-                
-            # Multi-stage reranking
-            if reranking_method == "multi_stage":
-                st.markdown("### Multi-Stage Reranking Pipeline")
-                
+                st.session_state.config["reranking_model"] = reranking_model # Update config
+                st.info("""**Cross-Encoders** process query and document together for high accuracy relevance.""")
+
+            # 2. Contextual Reranking Info
+            elif reranking_method == "contextual":
+                st.markdown("#### Contextual Reranking")
+                st.info("""**Contextual Reranking** uses conversation history. (Requires backend implementation).""")
+
+            # 3. Multi-Stage Reranking Options
+            elif reranking_method == "multi_stage":
+                st.markdown("#### Multi-Stage Reranking Pipeline")
                 stage_options = ["semantic", "cross_encoder", "keyword", "diversity"]
-                default_stages = ["semantic", "cross_encoder", "diversity"]
-                
-                # Get current stages or use default
+                default_stages = DEFAULT_CONFIG.get("reranking_stages", ["semantic", "cross_encoder", "diversity"])
                 current_stages = st.session_state.config.get("reranking_stages", default_stages)
-                
-                # Convert to multiselect
+
+                st.warning("Note: Backend logic determines the execution order of selected stages.")
                 selected_stages = st.multiselect(
-                    "Reranking Stages",
+                    "Select Reranking Stages to Include",
                     options=stage_options,
                     default=current_stages,
-                    help="Stages to include in the reranking pipeline"
+                    key="reranking_stages_multiselect", # Unique key
+                    help="Choose which algorithms to apply sequentially."
                 )
-                
-                # Ensure at least one stage is selected
+
                 if not selected_stages:
-                    st.warning("Please select at least one reranking stage.")
-                    selected_stages = default_stages
-                    
-                st.session_state.config["reranking_stages"] = selected_stages
-                
-                # Visualize the pipeline
-                st.markdown("### Pipeline Visualization")
-                pipeline_cols = st.columns(len(selected_stages))
-                
-                for i, stage in enumerate(selected_stages):
-                    with pipeline_cols[i]:
-                        st.markdown(f"**Stage {i+1}**")
-                        st.markdown(f"*{stage.replace('_', ' ').title()}*")
-                        
-                        # Add stage description
-                        if stage == "semantic":
-                            st.caption("Vector similarity scoring")
-                        elif stage == "cross_encoder":
-                            st.caption("Cross-encoder relevance scoring")
-                        elif stage == "keyword":
-                            st.caption("Keyword matching")
-                        elif stage == "diversity":
-                            st.caption("Maximize result diversity")
-                
-            # Diversity reranking options
-            if reranking_method == "diversity" or "diversity" in st.session_state.config.get("reranking_stages", []):
-                st.markdown("### Diversity Parameters")
-                
+                    st.error("Please select at least one reranking stage.")
+                else:
+                     st.session_state.config["reranking_stages"] = selected_stages # Update config
+
+                # Visualize conceptual pipeline
+                if selected_stages:
+                    st.markdown("##### Conceptual Pipeline Visualization")
+                    pipeline_str = " → ".join([f"`{stage.replace('_', ' ').title()}`" for stage in selected_stages])
+                    st.markdown(pipeline_str)
+                    with st.expander("About Stages"): # Kept expander from new code as well
+                         stage_descriptions = {
+                             "semantic": "**Semantic:** Vector similarity score.",
+                             "cross_encoder": "**Cross-Encoder:** Accurate relevance score.",
+                             "keyword": "**Keyword:** Keyword overlap score (BM25).",
+                             "diversity": "**Diversity:** Reduces redundancy (MMR)."
+                         }
+                         for stage in selected_stages:
+                              st.markdown(stage_descriptions.get(stage, f"**{stage.title()}:** No description."))
+
+            # 4. Diversity Parameter Section (Conditional)
+            show_diversity_params = False
+            current_selected_stages = st.session_state.config.get("reranking_stages", [])
+            if reranking_method == "diversity":
+                 show_diversity_params = True
+            elif reranking_method == "multi_stage" and "diversity" in current_selected_stages:
+                 show_diversity_params = True
+
+            if show_diversity_params:
+                is_multi_stage_diversity = (reranking_method == "multi_stage")
+
+                st.markdown("#### Diversity Parameters")
+                if is_multi_stage_diversity:
+                     st.caption("These parameters apply to the 'Diversity' stage within the pipeline.")
+
+                diversity_value = st.session_state.config.get("diversity_alpha", DEFAULT_CONFIG.get("diversity_alpha", 0.7))
+
                 diversity_alpha = st.slider(
-                    "Diversity-Relevance Balance (Alpha)",
-                    min_value=0.0,
-                    max_value=1.0,
-                    value=st.session_state.config.get("diversity_alpha", 0.7),
+                    "Diversity-Relevance Balance (Alpha / Lambda)", 0.0, 1.0,
+                    value=diversity_value,
                     step=0.1,
-                    help="Higher values prioritize relevance, lower values prioritize diversity"
+                    key="diversity_alpha_slider", # Unique key
+                    help="Controls trade-off. 0.0=Max Diversity, 1.0=Max Relevance (e.g., for MMR)."
                 )
-                st.session_state.config["diversity_alpha"] = diversity_alpha
-                
-                # Visualization of the trade-off
-                fig, ax = plt.subplots(figsize=(6, 1))
-                ax.barh(["Balance"], [diversity_alpha], color='blue', alpha=0.6, label='Relevance')
-                ax.barh(["Balance"], [1-diversity_alpha], left=[diversity_alpha], color='green', alpha=0.6, label='Diversity')
-                
-                # Add labels
-                ax.text(diversity_alpha/2, 0, f"Relevance: {diversity_alpha:.1f}", 
-                        ha='center', va='center', color='white' if diversity_alpha > 0.3 else 'black')
-                ax.text(diversity_alpha + (1-diversity_alpha)/2, 0, f"Diversity: {1-diversity_alpha:.1f}", 
-                        ha='center', va='center', color='white' if (1-diversity_alpha) > 0.3 else 'black')
-                
-                ax.set_xlim(0, 1)
-                ax.set_yticks([])
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                ax.spines['left'].set_visible(False)
-                plt.tight_layout()
-                st.pyplot(fig)
-                
-        # Explanation of reranking methods
-        with st.expander("About Reranking Methods"):
-            st.markdown("""
-            **Reranking** improves retrieval precision by reordering initially retrieved documents. Methods include:
-            
-            - **Cross-Encoder**: Uses a cross-encoder model to score query-document pairs (more accurate but slower)
-            - **Contextual**: Considers conversation history when reranking
-            - **Diversity**: Balances relevance with diversity to avoid redundant information
-            - **Multi-Stage**: Combines multiple reranking approaches in a pipeline
-            """)
-    
+                st.session_state.config["diversity_alpha"] = diversity_alpha # Update config
+
+                # --- OMITTED: Matplotlib visualization from old code ---
+
+        else: # if use_reranking is False
+            st.markdown('<div class="info-box">Reranking is currently disabled.</div>', unsafe_allow_html=True)
+
+
+
     # Tab: Generation
     with tabs[6]:
         st.markdown('<p class="sub-header">Generation Configuration</p>', unsafe_allow_html=True)
@@ -2645,6 +2753,631 @@ def experiment_lab_page():
                 href = f'<a href="data:file/csv;base64,{b64}" download="combined_experiment.csv">Download CSV File</a>'
                 st.markdown(href, unsafe_allow_html=True)
 
+
+
+# Create the new evaluation_page function
+def evaluation_page():
+    """Evaluation page for systematic testing of RAG configurations"""
+    st.markdown('<p class="main-header">📝 RAG System Evaluation</p>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="info-box">', unsafe_allow_html=True)
+    st.markdown("""
+    Systematically evaluate your RAG system on a dataset of questions.
+    Compare different configurations and analyze results.
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Check if corpus is loaded
+    if not st.session_state.corpus_uploaded:
+        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
+        st.warning("⚠️ No knowledge base loaded. Please upload documents or load the example dataset from the Chat page.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+    
+    # Initialize RAG app if needed
+    if st.session_state.rag_app is None:
+        initialize_rag_app()
+    
+    # Create tabs for evaluation workflow
+    tabs = st.tabs([
+        "📋 Datasets", 
+        "⚙️ Evaluation Setup", 
+        "🧪 Run Evaluation", 
+        "📊 Results"
+    ])
+    
+    # Tab: Datasets
+    with tabs[0]:
+        st.markdown('<p class="sub-header">Evaluation Datasets</p>', unsafe_allow_html=True)
+        
+        # Check if evaluation module is available
+        try:
+            from src.components.evaluation_dataset import (
+                EvaluationDataset, 
+                create_example_dataset, 
+                list_available_datasets,
+                DEFAULT_DATASET_DIR
+            )
+            
+            # List available datasets
+            available_datasets = list_available_datasets()
+            
+            st.markdown("### Available Datasets")
+            
+            if not available_datasets:
+                st.info("No evaluation datasets found. Create or upload a dataset below.")
+            else:
+                # Show available datasets
+                dataset_names = [os.path.basename(ds) for ds in available_datasets]
+                
+                # Create a table of available datasets
+                dataset_df = pd.DataFrame({
+                    "Dataset": dataset_names,
+                    "Path": available_datasets
+                })
+                
+                st.dataframe(dataset_df)
+            
+            st.markdown("### Create or Upload Dataset")
+            
+            dataset_option = st.radio(
+                "Dataset Source",
+                ["Create Example Dataset", "Upload CSV", "Create Manually"],
+                key="dataset_source_radio",
+                horizontal=True
+            )
+            
+            if dataset_option == "Create Example Dataset":
+                if st.button("Create Example Dataset", key="create_example_button"):
+                    with st.spinner("Creating example dataset..."):
+                        example_dataset = create_example_dataset()
+                        st.success(f"Created example dataset with {len(example_dataset.questions)} questions.")
+                        st.rerun()  # Refresh to show the new dataset
+            
+            elif dataset_option == "Upload CSV":
+                st.info("Upload a CSV file with questions and expected answers. The CSV should have columns: 'question', 'expected_answer'.")
+                
+                uploaded_file = st.file_uploader(
+                    "Upload CSV file",
+                    type=["csv"],
+                    key="eval_csv_uploader"
+                )
+                
+                if uploaded_file is not None:
+                    # Save uploaded file
+                    save_path = os.path.join("data", "evaluation", uploaded_file.name)
+                    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                    
+                    with open(save_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    
+                    # Create dataset name (without extension)
+                    dataset_name = os.path.splitext(uploaded_file.name)[0]
+                    
+                    if st.button("Process CSV Dataset", key="process_csv_button"):
+                        with st.spinner("Processing CSV dataset..."):
+                            try:
+                                # Create dataset from CSV
+                                dataset = EvaluationDataset.from_csv(save_path, name=dataset_name)
+                                
+                                # Save as JSON
+                                dataset.save()
+                                
+                                st.success(f"Created dataset '{dataset_name}' with {len(dataset.questions)} questions.")
+                                st.rerun()  # Refresh to show the new dataset
+                            except Exception as e:
+                                st.error(f"Error processing CSV file: {str(e)}")
+            
+            elif dataset_option == "Create Manually":
+                st.info("Create a dataset by manually adding questions and expected answers.")
+                
+                # Dataset name
+                dataset_name = st.text_input("Dataset Name", value="manual_dataset")
+                
+                # Create form for adding questions
+                with st.form("add_question_form"):
+                    st.markdown("### Add Question")
+                    
+                    question = st.text_area("Question", height=100)
+                    expected_answer = st.text_area("Expected Answer", height=150)
+                    category = st.text_input("Category (optional)", value="general")
+                    
+                    difficulty = st.select_slider(
+                        "Difficulty",
+                        options=["easy", "medium", "hard"],
+                        value="medium"
+                    )
+                    
+                    # Submit button
+                    submitted = st.form_submit_button("Add Question")
+                
+                if submitted:
+                    if not question or not expected_answer:
+                        st.warning("Question and expected answer are required.")
+                    else:
+                        # Check if dataset exists or create new
+                        dataset_path = os.path.join(DEFAULT_DATASET_DIR, f"{dataset_name}.json")
+                        
+                        if os.path.exists(dataset_path):
+                            # Load existing dataset
+                            dataset = EvaluationDataset.load(dataset_path)
+                        else:
+                            # Create new dataset
+                            dataset = EvaluationDataset(name=dataset_name)
+                        
+                        # Add question
+                        dataset.add_question(
+                            question=question,
+                            expected_answer=expected_answer,
+                            category=category,
+                            difficulty=difficulty
+                        )
+                        
+                        # Save dataset
+                        dataset.save(dataset_path)
+                        
+                        st.success(f"Added question to dataset '{dataset_name}'.")
+                        st.rerun()  # Refresh to show updated dataset
+        
+        except ImportError as e:
+            st.error(f"Failed to import evaluation dataset module: {str(e)}")
+    
+    # Tab: Evaluation Setup
+    with tabs[1]:
+        st.markdown('<p class="sub-header">Evaluation Configuration</p>', unsafe_allow_html=True)
+        
+        # Get available datasets
+        try:
+            from src.components.evaluation_dataset import list_available_datasets
+            available_datasets = list_available_datasets()
+            
+            if not available_datasets:
+                st.warning("No evaluation datasets available. Please create or upload a dataset in the Datasets tab.")
+            else:
+                # Select dataset
+                dataset_names = [os.path.basename(ds) for ds in available_datasets]
+                selected_dataset_idx = st.selectbox(
+                    "Select Dataset",
+                    range(len(dataset_names)),
+                    format_func=lambda i: dataset_names[i],
+                    key="selected_dataset_idx"
+                )
+                
+                selected_dataset_path = available_datasets[selected_dataset_idx]
+                
+                # Store selected dataset in session state
+                if "selected_eval_dataset" not in st.session_state:
+                    st.session_state.selected_eval_dataset = selected_dataset_path
+                else:
+                    st.session_state.selected_eval_dataset = selected_dataset_path
+                
+                st.info(f"Selected dataset: {dataset_names[selected_dataset_idx]}")
+                
+                # Display dataset info
+                st.markdown("### Dataset Preview")
+                
+                try:
+                    from src.components.evaluation_dataset import EvaluationDataset
+                    dataset = EvaluationDataset.load(selected_dataset_path)
+                    
+                    # Show dataset statistics
+                    question_count = len(dataset.questions)
+                    categories = set(q.get("category", "general") for q in dataset.questions)
+                    difficulties = set(q.get("difficulty", "medium") for q in dataset.questions)
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Questions", question_count)
+                    with col2:
+                        st.metric("Categories", len(categories))
+                    with col3:
+                        st.metric("Difficulty Levels", len(difficulties))
+                    
+                    # Show sample questions
+                    st.markdown("#### Sample Questions")
+                    
+                    sample_size = min(5, question_count)
+                    sample_questions = dataset.questions[:sample_size]
+                    
+                    for i, q in enumerate(sample_questions):
+                        with st.expander(f"Question {i+1}: {q['question'][:50]}...", expanded=i==0):
+                            st.markdown(f"**Question:** {q['question']}")
+                            st.markdown(f"**Expected Answer:** {q['expected_answer']}")
+                            st.markdown(f"**Category:** {q.get('category', 'general')}")
+                            st.markdown(f"**Difficulty:** {q.get('difficulty', 'medium')}")
+                
+                except Exception as e:
+                    st.error(f"Error loading dataset: {str(e)}")
+                
+                # Configuration settings
+                st.markdown("### Evaluation Settings")
+                
+                if "eval_config_name" not in st.session_state:
+                    st.session_state.eval_config_name = "default"
+                    
+                eval_config_name = st.text_input(
+                    "Configuration Name",
+                    value=st.session_state.eval_config_name,
+                    help="Name to identify this evaluation run"
+                )
+                st.session_state.eval_config_name = eval_config_name
+                
+                max_questions = st.slider(
+                    "Maximum Questions",
+                    min_value=1,
+                    max_value=question_count,
+                    value=min(10, question_count),
+                    step=1,
+                    help="Maximum number of questions to evaluate"
+                )
+                st.session_state.eval_max_questions = max_questions
+                
+                # Save the current configuration for comparison
+                if st.button("Save Current Configuration for Evaluation", key="save_eval_config_button"):
+                    if "eval_configurations" not in st.session_state:
+                        st.session_state.eval_configurations = []
+                        
+                    # Store current configuration
+                    current_config = {
+                        "name": eval_config_name,
+                        "config": st.session_state.config.copy()
+                    }
+                    
+                    # Check if configuration with this name already exists
+                    exists = False
+                    for i, config in enumerate(st.session_state.eval_configurations):
+                        if config["name"] == eval_config_name:
+                            # Update existing
+                            st.session_state.eval_configurations[i] = current_config
+                            exists = True
+                            break
+                            
+                    if not exists:
+                        # Add new
+                        st.session_state.eval_configurations.append(current_config)
+                        
+                    st.success(f"Saved configuration '{eval_config_name}' for evaluation.")
+        
+        except ImportError as e:
+            st.error(f"Failed to import evaluation dataset module: {str(e)}")
+    
+    # Tab: Run Evaluation
+    with tabs[2]:
+        st.markdown('<p class="sub-header">Run Evaluation</p>', unsafe_allow_html=True)
+        
+        # Check if configurations are available
+        if "eval_configurations" not in st.session_state or not st.session_state.eval_configurations:
+            st.warning("No configurations saved for evaluation. Please save at least one configuration in the Evaluation Setup tab.")
+        elif "selected_eval_dataset" not in st.session_state:
+            st.warning("No dataset selected. Please select a dataset in the Evaluation Setup tab.")
+        else:
+            # Show saved configurations
+            st.markdown("### Saved Configurations")
+            
+            config_names = [config["name"] for config in st.session_state.eval_configurations]
+            
+            # Create a table of configurations
+            config_df = pd.DataFrame({
+                "Configuration": config_names
+            })
+            
+            st.dataframe(config_df)
+            
+            # Select configurations to evaluate
+            selected_configs = st.multiselect(
+                "Select Configurations to Evaluate",
+                config_names,
+                default=config_names[0] if config_names else None,
+                key="configs_to_evaluate"
+            )
+            
+            if not selected_configs:
+                st.warning("Please select at least one configuration to evaluate.")
+            else:
+                # Run button
+                col1, col2 = st.columns([3, 1])
+                
+                with col1:
+                    # Progress placeholder
+                    progress_placeholder = st.empty()
+                    
+                with col2:
+                    run_button = st.button("Run Evaluation", key="run_eval_button", use_container_width=True)
+                
+                if run_button:
+                    if "eval_results" not in st.session_state:
+                        st.session_state.eval_results = []
+                        
+                    progress_bar = progress_placeholder.progress(0)
+                    
+                    # Import evaluation runner
+                    try:
+                        from src.components.evaluation_runner import RAGEvaluationRunner
+                        
+                        # Get dataset
+                        try:
+                            from src.components.evaluation_dataset import EvaluationDataset
+                            dataset = EvaluationDataset.load(st.session_state.selected_eval_dataset)
+                            
+                            # Get max questions
+                            max_questions = getattr(st.session_state, "eval_max_questions", 10)
+                            
+                            # Run evaluation for each selected configuration
+                            for i, config_name in enumerate(selected_configs):
+                                # Update progress
+                                progress = i / len(selected_configs)
+                                progress_bar.progress(progress)
+                                progress_placeholder.markdown(f"Evaluating configuration '{config_name}'...")
+                                
+                                # Find configuration
+                                config_dict = None
+                                for config in st.session_state.eval_configurations:
+                                    if config["name"] == config_name:
+                                        config_dict = config["config"]
+                                        break
+                                        
+                                if not config_dict:
+                                    continue
+                                    
+                                # Store current config
+                                original_config = st.session_state.config.copy()
+                                
+                                # Apply configuration
+                                st.session_state.config = config_dict
+                                
+                                # Reinitialize RAG app with new config
+                                initialize_rag_app()
+                                
+                                # Create evaluation runner
+                                runner = RAGEvaluationRunner(st.session_state.rag_app, dataset)
+                                
+                                # Run evaluation
+                                result = runner.run_evaluation(
+                                    config_name=config_name,
+                                    max_questions=max_questions,
+                                    show_progress=False  # We have our own progress display
+                                )
+                                
+                                # Store result
+                                st.session_state.eval_results.append(result)
+                                
+                                # Restore original config
+                                st.session_state.config = original_config
+                                initialize_rag_app()
+                            
+                            # Update progress
+                            progress_bar.progress(1.0)
+                            progress_placeholder.success("Evaluation completed!")
+                            
+                        except Exception as e:
+                            progress_placeholder.error(f"Error loading dataset: {str(e)}")
+                            traceback.print_exc()
+                            
+                    except ImportError as e:
+                        progress_placeholder.error(f"Failed to import evaluation runner: {str(e)}")
+                        traceback.print_exc()
+    
+    # Tab: Results
+    with tabs[3]:
+        st.markdown('<p class="sub-header">Evaluation Results</p>', unsafe_allow_html=True)
+        
+        # Check if results are available
+        if "eval_results" not in st.session_state or not st.session_state.eval_results:
+            st.info("No evaluation results available. Run an evaluation in the 'Run Evaluation' tab.")
+        else:
+            # Create comparison dataframe
+            results = []
+            
+            for result in st.session_state.eval_results:
+                config_name = result["config_name"]
+                metrics = result["aggregate_metrics"]
+                
+                row = {
+                    "Configuration": config_name,
+                    "Precision": metrics["avg_precision"],
+                    "Recall": metrics["avg_recall"],
+                    "MRR": metrics["avg_mrr"],
+                    "ROUGE-1": metrics["avg_rouge1"],
+                    "Faithfulness": metrics["avg_faithfulness"],
+                    "Retrieval Time (s)": metrics["avg_retrieval_time"],
+                    "Answer Time (s)": metrics["avg_answer_time"],
+                    "Questions": metrics["question_count"]
+                }
+                
+                results.append(row)
+                
+            # Create dataframe
+            results_df = pd.DataFrame(results)
+            
+            # Display summary
+            st.markdown("### Evaluation Summary")
+            st.dataframe(results_df, use_container_width=True)
+            
+            # Create visualizations
+            st.markdown("### Retrieval Metrics")
+            
+            # Retrieval metrics chart
+            fig, ax = plt.subplots(figsize=(10, 5))
+            
+            # Extract data for plotting
+            configs = results_df["Configuration"].tolist()
+            precision = results_df["Precision"].tolist()
+            recall = results_df["Recall"].tolist()
+            mrr = results_df["MRR"].tolist()
+            
+            # Set positions and width
+            pos = np.arange(len(configs))
+            width = 0.25
+            
+            # Create bars
+            ax.bar(pos - width, precision, width, label='Precision', color='blue', alpha=0.7)
+            ax.bar(pos, recall, width, label='Recall', color='green', alpha=0.7)
+            ax.bar(pos + width, mrr, width, label='MRR', color='red', alpha=0.7)
+            
+            # Add labels and legend
+            ax.set_xlabel('Configuration')
+            ax.set_ylabel('Score')
+            ax.set_title('Retrieval Metrics')
+            ax.set_xticks(pos)
+            ax.set_xticklabels(configs, rotation=45, ha='right')
+            ax.legend()
+            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            
+            # Set y-axis limits
+            ax.set_ylim(0, 1)
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            plt.close(fig)
+            
+            # Answer quality chart
+            st.markdown("### Answer Quality Metrics")
+            
+            fig, ax = plt.subplots(figsize=(10, 5))
+            
+            # Extract data
+            rouge = results_df["ROUGE-1"].tolist()
+            faithfulness = results_df["Faithfulness"].tolist()
+            
+            # Create bars
+            ax.bar(pos - width/2, rouge, width, label='ROUGE-1', color='purple', alpha=0.7)
+            ax.bar(pos + width/2, faithfulness, width, label='Faithfulness', color='orange', alpha=0.7)
+            
+            # Add labels and legend
+            ax.set_xlabel('Configuration')
+            ax.set_ylabel('Score')
+            ax.set_title('Answer Quality Metrics')
+            ax.set_xticks(pos)
+            ax.set_xticklabels(configs, rotation=45, ha='right')
+            ax.legend()
+            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            
+            # Set y-axis limits
+            ax.set_ylim(0, 1)
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            plt.close(fig)
+            
+            # Performance chart
+            st.markdown("### Performance Metrics")
+            
+            fig, ax = plt.subplots(figsize=(10, 5))
+            
+            # Extract data
+            retrieval_time = results_df["Retrieval Time (s)"].tolist()
+            answer_time = results_df["Answer Time (s)"].tolist()
+            
+            # Create bars
+            ax.bar(pos - width/2, retrieval_time, width, label='Retrieval Time', color='teal', alpha=0.7)
+            ax.bar(pos + width/2, answer_time, width, label='Answer Time', color='brown', alpha=0.7)
+            
+            # Add labels and legend
+            ax.set_xlabel('Configuration')
+            ax.set_ylabel('Time (seconds)')
+            ax.set_title('Performance Metrics')
+            ax.set_xticks(pos)
+            ax.set_xticklabels(configs, rotation=45, ha='right')
+            ax.legend()
+            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            plt.close(fig)
+            
+            # Detailed results
+            st.markdown("### Detailed Results")
+            
+            # Select a configuration to view detailed results
+            selected_config = st.selectbox(
+                "Select Configuration",
+                configs,
+                key="detailed_results_config"
+            )
+            
+            # Find the selected result
+            selected_result = None
+            for result in st.session_state.eval_results:
+                if result["config_name"] == selected_config:
+                    selected_result = result
+                    break
+                    
+            if selected_result:
+                # Extract question results
+                question_results = selected_result["question_results"]
+                
+                # Convert to dataframe
+                questions_df = pd.DataFrame(question_results)
+                
+                # Select columns for display
+                display_columns = [
+                    "question", "generated_answer", "precision", 
+                    "recall", "mrr", "rouge1", "faithfulness"
+                ]
+                
+                if all(col in questions_df.columns for col in display_columns):
+                    # Display table
+                    st.dataframe(questions_df[display_columns], use_container_width=True)
+                    
+                    # Question category analysis if available
+                    if "category" in questions_df.columns:
+                        st.markdown("### Category Analysis")
+                        
+                        # Group by category
+                        category_df = questions_df.groupby("category").agg({
+                            "precision": "mean",
+                            "recall": "mean",
+                            "mrr": "mean",
+                            "rouge1": "mean",
+                            "faithfulness": "mean"
+                        }).reset_index()
+                        
+                        # Create chart
+                        fig, ax = plt.subplots(figsize=(10, 5))
+                        
+                        categories = category_df["category"].tolist()
+                        precision = category_df["precision"].tolist()
+                        recall = category_df["recall"].tolist()
+                        mrr = category_df["mrr"].tolist()
+                        
+                        # Set positions
+                        pos = np.arange(len(categories))
+                        width = 0.25
+                        
+                        # Create bars
+                        ax.bar(pos - width, precision, width, label='Precision', color='blue', alpha=0.7)
+                        ax.bar(pos, recall, width, label='Recall', color='green', alpha=0.7)
+                        ax.bar(pos + width, mrr, width, label='MRR', color='red', alpha=0.7)
+                        
+                        # Add labels and legend
+                        ax.set_xlabel('Category')
+                        ax.set_ylabel('Score')
+                        ax.set_title(f'Metrics by Category for {selected_config}')
+                        ax.set_xticks(pos)
+                        ax.set_xticklabels(categories, rotation=45, ha='right')
+                        ax.legend()
+                        ax.grid(axis='y', linestyle='--', alpha=0.7)
+                        
+                        # Set y-axis limits
+                        ax.set_ylim(0, 1)
+                        
+                        plt.tight_layout()
+                        st.pyplot(fig)
+                        plt.close(fig)
+                
+                # Export option
+                st.markdown("### Export Results")
+                
+                if st.button("Export Results to CSV"):
+                    # Create CSV
+                    csv = results_df.to_csv(index=False).encode('utf-8')
+                    
+                    # Create download link
+                    b64 = base64.b64encode(csv).decode()
+                    href = f'<a href="data:file/csv;base64,{b64}" download="rag_evaluation_results.csv">Download CSV File</a>'
+                    st.markdown(href, unsafe_allow_html=True)
+
+
 # Page: About
 def about_page():
     """About page with information about the system"""
@@ -2763,6 +3496,8 @@ def main():
         metrics_page()
     elif st.session_state.current_page == "Experiment Lab":
         experiment_lab_page()
+    elif st.session_state.current_page == "Evaluation":
+        evaluation_page()
     elif st.session_state.current_page == "About":
         about_page()
 
