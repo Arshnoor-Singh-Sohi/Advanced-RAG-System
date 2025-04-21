@@ -14,116 +14,120 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-class LLMProvider:
-    """Provider for different LLM backends"""
-    
-    @staticmethod
-    def get_openai_llm(model_name: str = "gpt-3.5-turbo", temperature: float = 0.3):
-        """
-        Get an OpenAI language model
-        
-        Args:
-            model_name: Name of the OpenAI model
-            temperature: Sampling temperature
-            
-        Returns:
-            OpenAI LLM instance
-        """
+
+# src/components/llm_integrations.py
+import os
+import streamlit as st # For error messages potentially
+from langchain_community.embeddings import HuggingFaceEmbeddings
+try:
+    # Newer Langchain path
+    from langchain_openai import OpenAIEmbeddings
+except ImportError:
+    # Older Langchain path
+    from langchain.embeddings import OpenAIEmbeddings
+
+# Add torch import if you want GPU/MPS detection, otherwise default to CPU
+# import torch
+
+# <<< ADD THE FUNCTION HERE (Outside LLMProvider class) >>>
+@st.cache_resource(show_spinner="Loading Embedding Model...") # Cache the loaded model
+def get_embedding_model(model_identifier: str, config: dict = None):
+    """
+    Returns the appropriate LangChain embedding object based on identifier.
+    Caches the loaded model resource.
+
+    Args:
+        model_identifier (str): The identifier of the embedding model (e.g., 'all-MiniLM-L6-v2').
+        config (dict, optional): The configuration dictionary, potentially containing API keys.
+
+    Returns:
+        A LangChain embedding object (or None if invalid/error).
+    """
+    config = config or {}
+
+    # --- Define supported models and their types ---
+    # Ensure these identifiers match EXACTLY what's in your Streamlit selectbox
+    model_map = {
+        "all-MiniLM-L6-v2": "huggingface",
+        "BAAI/bge-small-en-v1.5": "huggingface",
+        "all-mpnet-base-v2": "huggingface",
+        "multi-qa-mpnet-base-dot-v1": "huggingface",
+        "text-embedding-ada-002": "openai",
+        # Add other models from your UI here if needed
+        "BAAI/bge-large-en-v1.5": "huggingface" # Added from your simple request example
+    }
+
+    model_type = model_map.get(model_identifier)
+
+    if model_type == "huggingface":
+        # device = 'cuda' if torch.cuda.is_available() else ('mps' if torch.backends.mps.is_available() else 'cpu')
+        model_kwargs = {'device': 'cpu'} # Default to CPU
+        encode_kwargs = {'normalize_embeddings': True}
         try:
-            from langchain.llms import OpenAI
-            from langchain.chat_models import ChatOpenAI
-            
-            # Check if API key is set
-            if not os.getenv("OPENAI_API_KEY"):
-                raise ValueError("OPENAI_API_KEY environment variable not set")
-                
-            # For chat models
-            if model_name.startswith("gpt-3.5") or model_name.startswith("gpt-4"):
-                return ChatOpenAI(model_name=model_name, temperature=temperature)
-            # For completion models
-            else:
-                return OpenAI(model_name=model_name, temperature=temperature)
-        except ImportError:
-            raise ImportError("langchain package not installed. Install with 'pip install langchain openai'")
-        except Exception as e:
-            raise RuntimeError(f"Error initializing OpenAI LLM: {str(e)}")
-    
-    @staticmethod
-    def get_huggingface_llm(model_name: str = "google/flan-t5-base", max_length: int = 512):
-        """
-        Get a Hugging Face language model
-        
-        Args:
-            model_name: Name of the Hugging Face model
-            max_length: Maximum length of generated text
-            
-        Returns:
-            Hugging Face LLM instance
-        """
-        try:
-            from langchain.llms import HuggingFacePipeline
-            import torch
-            from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
-            
-            # Load tokenizer
-            tokenizer = AutoTokenizer.from_pretrained(model_name)
-            
-            # Determine model type
-            if "t5" in model_name.lower():
-                model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-                pipe_type = "text2text-generation"
-            else:
-                model = AutoModelForCausalLM.from_pretrained(model_name)
-                pipe_type = "text-generation"
-                
-            # Create pipeline
-            pipe = pipeline(
-                pipe_type,
-                model=model,
-                tokenizer=tokenizer,
-                max_length=max_length
+            print(f"Loading HuggingFace Embedding Model: {model_identifier}")
+            # Directly use the identifier which is the HF model name
+            return HuggingFaceEmbeddings(
+                model_name=model_identifier,
+                model_kwargs=model_kwargs,
+                encode_kwargs=encode_kwargs
             )
-            
-            # Create LangChain wrapper
-            return HuggingFacePipeline(pipeline=pipe)
-        except ImportError:
-            raise ImportError("langchain and/or transformers packages not installed. Install with 'pip install langchain transformers torch'")
         except Exception as e:
-            raise RuntimeError(f"Error initializing Hugging Face LLM: {str(e)}")
+            st.error(f"Error loading HuggingFace model {model_identifier}: {e}")
+            return None
+
+    elif model_type == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY") or config.get("openai_api_key")
+        if not api_key:
+            # Use st.error for visibility in Streamlit if run from there
+            st.error("OpenAI API Key required for 'text-embedding-ada-002' but not found in environment variables or config.")
+            # Optionally, print for console visibility
+            print("ERROR: OpenAI API Key required for 'text-embedding-ada-002' but not found.")
+            return None
+        try:
+            print(f"Loading OpenAI Embedding Model: {model_identifier}")
+            # Model name is passed during OpenAIEmbeddings initialization
+            return OpenAIEmbeddings(openai_api_key=api_key, model=model_identifier)
+        except Exception as e:
+            st.error(f"Error loading OpenAI model {model_identifier}: {e}")
+            return None
+
+    else:
+        st.error(f"Unknown or unsupported embedding model identifier: {model_identifier}")
+        return None
 
 def get_conversation_chain(llm, vectorstore):
-    """
-    Create a conversation chain with retrieval
-    
-    Args:
-        llm: Language model
-        vectorstore: Vector store for retrieval
+        """
+        Create a conversation chain with retrieval
         
-    Returns:
-        Conversation chain
-    """
-    try:
-        from langchain.chains import ConversationalRetrievalChain
-        from langchain.memory import ConversationBufferMemory
-        
-        # Create memory
-        memory = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True
-        )
-        
-        # Create conversation chain
-        chain = ConversationalRetrievalChain.from_llm(
-            llm=llm,
-            retriever=vectorstore.as_retriever(),
-            memory=memory
-        )
-        
-        return chain
-    except ImportError:
-        raise ImportError("langchain package not installed. Install with 'pip install langchain'")
-    except Exception as e:
-        raise RuntimeError(f"Error creating conversation chain: {str(e)}")
+        Args:
+            llm: Language model
+            vectorstore: Vector store for retrieval
+            
+        Returns:
+            Conversation chain
+        """
+        try:
+            from langchain.chains import ConversationalRetrievalChain
+            from langchain.memory import ConversationBufferMemory
+            
+            # Create memory
+            memory = ConversationBufferMemory(
+                memory_key="chat_history",
+                return_messages=True
+            )
+            
+            # Create conversation chain
+            chain = ConversationalRetrievalChain.from_llm(
+                llm=llm,
+                retriever=vectorstore.as_retriever(),
+                memory=memory
+            )
+            
+            return chain
+        except ImportError:
+            raise ImportError("langchain package not installed. Install with 'pip install langchain'")
+        except Exception as e:
+            raise RuntimeError(f"Error creating conversation chain: {str(e)}")
 
 def generate_response(prompt: str, llm) -> str:
     """
@@ -216,59 +220,81 @@ def extract_answer_from_context(query: str, contexts: List[str]) -> str:
                 
     return answer
 
-def get_embedding_model(model_name):
-    """
-    Returns the appropriate LangChain embedding model based on name.
+class LLMProvider:
+    """Provider for different LLM backends"""
     
-    Args:
-        model_name (str): Name of the embedding model to use
+    @staticmethod
+    def get_openai_llm(model_name: str = "gpt-3.5-turbo", temperature: float = 0.3):
+        """
+        Get an OpenAI language model
         
-    Returns:
-        A LangChain embedding object
-    """
-    if model_name == "MiniLM":
-        # This is the default model, using SentenceTransformers
-        from langchain.embeddings import HuggingFaceEmbeddings
-        
-        model_kwargs = {'device': 'cpu'}
-        encoding_kwargs = {'normalize_embeddings': True}
-        
-        return HuggingFaceEmbeddings(
-            model_name="all-MiniLM-L6-v2",
-            model_kwargs=model_kwargs,
-            encode_kwargs=encoding_kwargs
-        )
-        
-    elif model_name == "OpenAI-Ada":
-        # OpenAI's embedding model - requires API key
-        from langchain.embeddings import OpenAIEmbeddings
-        import os
-        
-        openai_api_key = os.getenv("OPENAI_API_KEY")
-        if not openai_api_key and "openai_api_key" in st.session_state:
-            openai_api_key = st.session_state.openai_api_key
+        Args:
+            model_name: Name of the OpenAI model
+            temperature: Sampling temperature
             
-        if not openai_api_key:
-            st.error("OpenAI API key is required for this embedding model but was not found. Please add it in the embedding configuration tab.")
-            # Fall back to MiniLM as a safe default
-            return get_embedding_model("MiniLM")
+        Returns:
+            OpenAI LLM instance
+        """
+        try:
+            from langchain.llms import OpenAI
+            from langchain.chat_models import ChatOpenAI
             
-        return OpenAIEmbeddings(model="text-embedding-ada-002")
-        
-    elif model_name == "BGE-Large":
-        # BGE model optimized for retrieval
-        from langchain.embeddings import HuggingFaceEmbeddings
-        
-        model_kwargs = {'device': 'cpu'}
-        encoding_kwargs = {'normalize_embeddings': True}
-        
-        return HuggingFaceEmbeddings(
-            model_name="BAAI/bge-large-en-v1.5",
-            model_kwargs=model_kwargs,
-            encode_kwargs=encoding_kwargs
-        )
+            # Check if API key is set
+            if not os.getenv("OPENAI_API_KEY"):
+                raise ValueError("OPENAI_API_KEY environment variable not set")
+                
+            # For chat models
+            if model_name.startswith("gpt-3.5") or model_name.startswith("gpt-4"):
+                return ChatOpenAI(model_name=model_name, temperature=temperature)
+            # For completion models
+            else:
+                return OpenAI(model_name=model_name, temperature=temperature)
+        except ImportError:
+            raise ImportError("langchain package not installed. Install with 'pip install langchain openai'")
+        except Exception as e:
+            raise RuntimeError(f"Error initializing OpenAI LLM: {str(e)}")
     
-    else:
-        # Default to MiniLM if an unknown model is specified
-        print(f"Unknown embedding model: {model_name}. Defaulting to MiniLM.")
-        return get_embedding_model("MiniLM")
+    @staticmethod
+    def get_huggingface_llm(model_name: str = "google/flan-t5-base", max_length: int = 512):
+        """
+        Get a Hugging Face language model
+        
+        Args:
+            model_name: Name of the Hugging Face model
+            max_length: Maximum length of generated text
+            
+        Returns:
+            Hugging Face LLM instance
+        """
+        try:
+            from langchain.llms import HuggingFacePipeline
+            import torch
+            from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+            
+            # Load tokenizer
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            
+            # Determine model type
+            if "t5" in model_name.lower():
+                model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+                pipe_type = "text2text-generation"
+            else:
+                model = AutoModelForCausalLM.from_pretrained(model_name)
+                pipe_type = "text-generation"
+                
+            # Create pipeline
+            pipe = pipeline(
+                pipe_type,
+                model=model,
+                tokenizer=tokenizer,
+                max_length=max_length
+            )
+            
+            # Create LangChain wrapper
+            return HuggingFacePipeline(pipeline=pipe)
+        except ImportError:
+            raise ImportError("langchain and/or transformers packages not installed. Install with 'pip install langchain transformers torch'")
+        except Exception as e:
+            raise RuntimeError(f"Error initializing Hugging Face LLM: {str(e)}")
+
+    

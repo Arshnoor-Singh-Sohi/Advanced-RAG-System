@@ -39,6 +39,8 @@ except ImportError as e:
     st.error(f"Failed to import necessary RAG components: {e}. Please ensure src is in the Python path.")
     st.stop() # Stop execution if core components can't be imported
 
+
+
 # Set page config
 st.set_page_config(
     page_title="Advanced RAG Knowledge Management System",
@@ -160,46 +162,80 @@ if "corpus_uploaded" not in st.session_state:
 if "retrieval_metrics" not in st.session_state:
     st.session_state.retrieval_metrics = None
     
+LOADED_CONFIG = None
+CONFIG_SAVE_PATH = "user_config.json"
+# Add os import if not already at the top
+import os
+if os.path.exists(CONFIG_SAVE_PATH):
+    try:
+        # Add json import if not already at the top
+        import json
+        with open(CONFIG_SAVE_PATH, 'r') as f:
+            LOADED_CONFIG = json.load(f)
+        print(f"Loaded configuration from {CONFIG_SAVE_PATH}")
+    except Exception as e:
+        print(f"Error loading configuration from {CONFIG_SAVE_PATH}: {e}")
+        LOADED_CONFIG = None
+# --- End Load ---
+
+# Define Default Config Structure (with updated defaults from prompt)
+DEFAULT_CONFIG = {
+    "corpus_path": "data/corpus.pkl", "index_path": "data/faiss_index",
+    "chunking_strategy": "recursive", # Default changed
+    "chunk_size": 1000,               # Default changed
+    "chunk_overlap": 200,             # Default changed
+    "embedding_model": "all-MiniLM-L6-v2", # Default "MiniLM" equivalent
+    "retrieval_method": "hybrid", "retrieval_alpha": 0.7,
+    "top_k": 4,                       # Default changed (assuming retrieval_k=4)
+    "query_expansion": False, "expansion_method": "simple",
+    "use_hyde": False, "hyde_method": "basic", "hyde_num_docs": 3,
+    "use_reranking": True, "reranking_method": "cross_encoder",
+    "reranking_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "reranking_stages": ["semantic", "cross_encoder", "diversity"],
+    "diversity_alpha": 0.7,
+    # Ensure prompt template is correctly formatted
+    "prompt_template": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
+    "temperature": 0.5,
+    # --- MMR Defaults ---
+    "use_mmr": False,                 # Default changed
+    "mmr_fetch_k": 20,                # Default changed
+    "mmr_lambda": 0.5,                # Default changed (key is mmr_lambda)
+    # Add other keys like bm25_k1, bm25_b if used in UI
+    "bm25_k1": 1.5, # Example default
+    "bm25_b": 0.75   # Example default
+}
+
+# Initialize session state config (Merge loaded with defaults)
 if "config" not in st.session_state:
-    st.session_state.config = {
-        # Data and knowledge base configuration
-        "corpus_path": "data/corpus.pkl",
-        "index_path": "data/index.pkl",
-        
-        # Chunking configuration
-        "chunking_strategy": "fixed",
-        "chunk_size": 128,
-        "chunk_overlap": 32,
-        
-        # Embedding configuration
-        "embedding_model": "all-MiniLM-L6-v2",
-        
-        # Retrieval configuration
-        "retrieval_method": "hybrid",
-        "retrieval_alpha": 0.7,
-        "top_k": 5,
-        
-        # Query processing configuration
-        "query_expansion": False,
-        "expansion_method": "simple",
-        
-        # Reranking configuration
-        "use_reranking": True,
-        "reranking_method": "cross_encoder",
-        "reranking_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        
-        # Generation configuration
-        "prompt_template": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:"
-    }
+    temp_config = DEFAULT_CONFIG.copy() # Start with defaults
+    if LOADED_CONFIG:
+        # Update defaults with any values found in the loaded file
+        # This merges, keeping defaults for keys missing in the loaded file
+        temp_config.update(LOADED_CONFIG)
+        print("Applied loaded configuration over defaults.")
+    st.session_state.config = temp_config # Assign merged config
+
+# --- Ensure ALL keys from DEFAULT_CONFIG exist in session_state.config ---
+# This handles cases where a saved config is loaded but is missing newer default keys
+for key, default_value in DEFAULT_CONFIG.items():
+    if key not in st.session_state.config:
+        print(f"Adding missing key '{key}' to config with default value.")
+        st.session_state.config[key] = default_value
+
+# Initialize previous_config based on the final initial config
+if "previous_config" not in st.session_state:
+    st.session_state.previous_config = st.session_state.config.copy()
 
 if 'response_mode' not in st.session_state:
-    st.session_state.response_mode = "Extractive (Basic Retrieval)" # Default value
+    # Default value might depend on loaded config or standard default
+    st.session_state.response_mode = st.session_state.config.get("response_mode", "LLM-Enhanced (OpenAI)") # Use LLM as new default?
 
 if 'enable_comparison' not in st.session_state:
-    st.session_state.enable_comparison = False # Default to comparison being off
+    st.session_state.enable_comparison = st.session_state.config.get("enable_comparison", False)
 
 if 'temperature' not in st.session_state:
-    st.session_state.temperature = 0.3 # Default temperature value
+    # Sync sidebar temperature slider state with config
+    st.session_state.temperature = st.session_state.config.get("temperature", 0.5)
 
 # --- START OF ADDED HELPER FUNCTION ---
 def calculate_lexical_diversity(text):
@@ -1203,6 +1239,44 @@ def configuration_page():
             
             st.info("Higher k1 values increase the impact of term frequency. Higher b values increase normalization for document length.")
             
+        st.markdown("### Maximal Marginal Relevance (MMR)")
+        # Only relevant for methods using the vector store
+        if retrieval_method in ["vector", "hybrid"]:
+            use_mmr = st.checkbox(
+                "Use MMR for Vector Store Retrieval",
+                value=st.session_state.config.get("use_mmr", False), # Default False
+                key="config_use_mmr",
+                help="Re-ranks vector search results to maximize relevance and diversity."
+            )
+            st.session_state.config["use_mmr"] = use_mmr
+
+            if use_mmr:
+                mmr_col1, mmr_col2 = st.columns(2)
+                with mmr_col1:
+                    # Ensure fetch_k is at least top_k, ideally more
+                    min_fetch_k = max(top_k, 5) # Ensure fetch_k >= top_k
+                    default_fetch_k = max(st.session_state.config.get("mmr_fetch_k", 20), min_fetch_k) # Default 20, but ensure >= min
+                    mmr_fetch_k = st.slider(
+                        "MMR Fetch K", min_value=min_fetch_k, max_value=50, # Example max
+                        value=default_fetch_k,
+                        step=1, key="config_mmr_fetch_k",
+                        help=f"Fetch N docs initially before MMR (must be >= Top-K={top_k})."
+                    )
+                    st.session_state.config["mmr_fetch_k"] = mmr_fetch_k
+                with mmr_col2:
+                    # Renamed key from prompt to match code example `mmr_lambda_mult`
+                    mmr_lambda = st.slider(
+                        "MMR Lambda", 0.0, 1.0, # Renamed slider label
+                        value=st.session_state.config.get("mmr_lambda", 0.5), # Use 'mmr_lambda' key
+                        step=0.1, key="config_mmr_lambda", # Use 'mmr_lambda' key
+                        help="Balance diversity (0.0) vs relevance (1.0)."
+                    )
+                    st.session_state.config["mmr_lambda"] = mmr_lambda # Use 'mmr_lambda' key
+        else:
+            st.info("MMR option is only applicable for 'vector' or 'hybrid' retrieval.")
+            # Ensure MMR config is off if not applicable
+            if st.session_state.config.get("use_mmr"):
+                 st.session_state.config["use_mmr"] = False
         # Compare retrieval methods
         with st.expander("Retrieval Method Comparison"):
             st.markdown("""
@@ -1634,6 +1708,21 @@ def configuration_page():
                     else:
                         st.warning("Configuration saved. Load a knowledge base on the Chat page to build the index.")
 
+                    try:
+                        config_save_path = "user_config.json" # Or path from config
+                        # Define config_to_save: exclude temporary/sensitive keys if needed
+                        config_to_save = {k: v for k, v in st.session_state.config.items() if k != "openai_api_key"} # Example
+
+                        with open(config_save_path, 'w') as f:
+                            # Need to import json at the top of streamlit_app.py
+                            import json
+                            json.dump(config_to_save, f, indent=4)
+                        print(f"Configuration saved to {config_save_path}")
+                        st.caption("Configuration saved.") # User feedback in UI
+                    except Exception as e:
+                        print(f"Warning: Failed to save configuration: {e}")
+                        st.caption("Failed to save configuration.") # User feedback in UI
+
                     # Short delay before potential rerun can make success message more visible
                     time.sleep(1.5)
                     # Consider if a rerun is necessary - often it is to reflect changes elsewhere
@@ -2059,9 +2148,9 @@ def experiment_lab_page():
                 base_app.prepare_knowledge_base(force_rebuild=True)
                 
                 # Get embeddings once
-                query_embedding = EmbeddingProvider.get_sentence_transformer_embeddings(
-                    [test_query], model_name=base_app.config["embedding_model"]
-                )[0]
+                # query_embedding = EmbeddingProvider.get_sentence_transformer_embeddings(
+                #     [test_query], model_name=base_app.config["embedding_model"]
+                # )[0]
                 
                 # Test vector search
                 if test_vector:
@@ -2074,9 +2163,11 @@ def experiment_lab_page():
                     temp_app = RAGApplication()
                     temp_app.config = temp_config
                     temp_app.corpus = base_app.corpus
-                    temp_app.chunked_docs = base_app.chunked_docs
-                    temp_app.doc_embeddings = base_app.doc_embeddings
-                    temp_app.doc_ids = base_app.doc_ids
+                    # temp_app.chunked_docs = base_app.chunked_docs
+                    # temp_app.doc_embeddings = base_app.doc_embeddings
+                    # temp_app.doc_ids = base_app.doc_ids
+                    temp_app.vector_store = base_app.vector_store
+                    temp_app._create_retriever()
                     
                     # Process the query and time it
                     start_time = time.time()
@@ -2103,9 +2194,11 @@ def experiment_lab_page():
                     temp_app = RAGApplication()
                     temp_app.config = temp_config
                     temp_app.corpus = base_app.corpus
-                    temp_app.chunked_docs = base_app.chunked_docs
-                    temp_app.doc_embeddings = base_app.doc_embeddings
-                    temp_app.doc_ids = base_app.doc_ids
+                    # temp_app.chunked_docs = base_app.chunked_docs
+                    # temp_app.doc_embeddings = base_app.doc_embeddings
+                    # temp_app.doc_ids = base_app.doc_ids
+                    temp_app.vector_store = base_app.vector_store
+                    temp_app._create_retriever()
                     
                     # Process the query and time it
                     start_time = time.time()
@@ -2133,9 +2226,11 @@ def experiment_lab_page():
                     temp_app = RAGApplication()
                     temp_app.config = temp_config
                     temp_app.corpus = base_app.corpus
-                    temp_app.chunked_docs = base_app.chunked_docs
-                    temp_app.doc_embeddings = base_app.doc_embeddings
-                    temp_app.doc_ids = base_app.doc_ids
+                    # temp_app.chunked_docs = base_app.chunked_docs
+                    # temp_app.doc_embeddings = base_app.doc_embeddings
+                    # temp_app.doc_ids = base_app.doc_ids
+                    temp_app.vector_store = base_app.vector_store
+                    temp_app._create_retriever()
                     
                     # Process the query and time it
                     start_time = time.time()

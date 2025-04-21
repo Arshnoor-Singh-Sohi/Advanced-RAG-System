@@ -12,12 +12,14 @@ import json
 import numpy as np
 from typing import List, Dict, Any, Tuple, Optional, Callable
 import argparse
+import streamlit as st
+import traceback
+from langchain_community.vectorstores import FAISS
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Import RAG components
-from src.components.rag_components import DocumentChunker, EmbeddingProvider, RetrievalMethods, QueryProcessor
 from src.components.reranking import RerankerModule
 from src.components.evaluation import RAGEvaluator
 
@@ -28,71 +30,88 @@ from src.components.data_processing import DocumentChunker, get_text_from_file, 
 from src.components.vectorstore_handler import EmbeddingProvider, RetrievalMethods, save_vectorstore, load_vectorstore
 from src.components.llm_integrations import LLMProvider, get_conversation_chain, generate_response, extract_answer_from_context
 from src.components.rag_components import QueryProcessor
-from src.components.reranking import RerankerModule
-from src.components.evaluation import RAGEvaluator
 from src.utils.utils import ensure_directory, save_json, load_json
+from src.components.llm_integrations import get_embedding_model
+from src.components.rag_components import EmbeddingProvider, RetrievalMethods, QueryProcessor
+
 
 
 class RAGApplication:
     """
     RAG Application for question answering using a knowledge base
     """
+    def __init__(self):
+        """
+        Initialize the RAG application state variables.
+        Configuration will be set externally after initialization via the 'config' attribute,
+        typically from Streamlit session state.
+        """
+        # Configuration dictionary - will be populated externally
+        self.config = {}
+
+        # State variables for data and components
+        self.corpus = None                   # List of document dicts (e.g., {"title":..., "text":...})
+        self.chunked_docs = []               # List of chunked text strings or Langchain Document objects
+        self.embedding_model_instance = None # Loaded Langchain embedding model instance
+        self.vector_store = None             # Loaded/Built Langchain VectorStore instance (e.g., FAISS)
+        self.retriever = None                # Configured Langchain retriever instance
+        self.bm25_index = None               # Placeholder for BM25 index object if implementing separate BM25
+        self.conversation_history = []       # Internal history (optional, if not solely managed by Streamlit)
+
+        # Attributes related to the previous manual index format (likely obsolete with VectorStore)
+        # self.doc_embeddings = None         # Replaced by vector_store internal embeddings
+        # self.doc_ids = None                # Replaced by vector_store internal IDs/mapping
     
-    def __init__(self, config_path: str = None):
-        """
-        Initialize the RAG application
-        
-        Args:
-            config_path: Path to configuration file
-        """
-        # Set default configuration
-        self.config = {
-            # Data and knowledge base configuration
-            "corpus_path": "data/corpus.pkl",
-            "index_path": "data/index.pkl",
-            
-            # Chunking configuration
-            "chunking_strategy": "fixed",
-            "chunk_size": 128,
-            "chunk_overlap": 32,
-            
-            # Embedding configuration
-            "embedding_model": "all-MiniLM-L6-v2",
-            
-            # Retrieval configuration
-            "retrieval_method": "hybrid",
-            "retrieval_alpha": 0.7,  # Weight for vector search in hybrid retrieval
-            "top_k": 5,
-            
-            # Query processing configuration
-            "query_expansion": False,
-            "expansion_method": "simple",
-            
-            # Reranking configuration
-            "use_reranking": True,
-            "reranking_method": "cross_encoder",
-            "reranking_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
-            
-            # Generation configuration
-            "prompt_template": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:"
-        }
-        
-        # Override with provided configuration if available
-        if config_path and os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                user_config = json.load(f)
-                self.config.update(user_config)
-            print(f"Loaded configuration from {config_path}")
-        
-        # State variables
-        self.corpus = None
-        self.chunked_docs = None
-        self.doc_embeddings = None
-        self.doc_ids = None
-        self.conversation_history = []
-        
-        print("RAG application initialized")
-        
+    
+    def _load_embedding_model(self):
+        """Loads the embedding model based on the current configuration."""
+        model_identifier = self.config.get("embedding_model", "all-MiniLM-L6-v2") # Default
+        print(f"Attempting to load embedding model: {model_identifier}")
+        # Pass the config which might contain the API key
+        self.embedding_model_instance = get_embedding_model(model_identifier, self.config)
+        if self.embedding_model_instance is None:
+            # Handle error: Log, raise exception, or use a default fallback model
+            print(f"ERROR: Failed to load embedding model '{model_identifier}'. Check configuration and API keys.")
+            # Example fallback (optional):
+            # self.embedding_model_instance = get_embedding_model("all-MiniLM-L6-v2", self.config)
+            # Or raise an exception:
+            raise ValueError(f"Failed to initialize embedding model: {model_identifier}")
+
+    # src/app/rag_app.py (add this method inside RAGApplication class)
+    def _load_or_get_embedding_model(self):
+        """Loads or retrieves the cached embedding model based on config."""
+        # Check if model needs reloading (e.g., identifier changed)
+        current_config_model = self.config.get("embedding_model", "all-MiniLM-L6-v2")
+        model_needs_reload = False
+        if self.embedding_model_instance is None:
+            model_needs_reload = True
+        else:
+            # Crude check if model name seems to have changed. Langchain model objects
+            # don't always have an easy way to get the original identifier back.
+            # This check might need refinement based on the objects returned by get_embedding_model.
+            # For now, we reload if the config identifier changes significantly.
+            # A better approach might involve storing the identifier with the instance.
+            # This simple check reloads if the identifier in config changes.
+            # We rely on st.cache_resource in get_embedding_model to avoid redundant computation.
+            pass # For now, rely on cache and reload mainly if None
+
+        # For simplicity, let's use the cache_resource in get_embedding_model
+        # Call the cached function - it will return cached instance or load anew
+        try:
+            print(f"Requesting embedding model: {current_config_model}")
+            # Pass config for potential API key usage
+            loaded_model = get_embedding_model(current_config_model, self.config)
+            if loaded_model is None:
+                 raise ValueError(f"get_embedding_model returned None for {current_config_model}")
+            self.embedding_model_instance = loaded_model # Store the instance
+            print(f"Using embedding model instance: {type(self.embedding_model_instance)}")
+            return True # Indicate success
+        except Exception as e:
+             st.error(f"Fatal Error: Could not load embedding model '{current_config_model}'. Cannot proceed.")
+             traceback.print_exc()
+             self.embedding_model_instance = None # Ensure it's None on failure
+             return False # Indicate failure
+
     def load_corpus(self, corpus_path: str = None):
         """
         Load the document corpus
@@ -110,274 +129,436 @@ class RAGApplication:
             
         print(f"Loaded corpus with {len(self.corpus)} documents")
         
+    # src/app/rag_app.py (add this method inside RAGApplication class)
+    def _create_retriever(self):
+         """Creates the retriever based on config after vector store is ready."""
+         if self.vector_store is None:
+              print("Cannot create retriever: Vector store not available.")
+              self.retriever = None
+              return
+
+         top_k = self.config.get("top_k", 5)
+         use_mmr = self.config.get("use_mmr", False)
+         retrieval_method = self.config.get("retrieval_method", "hybrid")
+
+         search_type = "similarity"
+         search_kwargs = {'k': top_k}
+
+         if use_mmr and retrieval_method in ["vector", "hybrid"]:
+              search_type = "mmr"
+              fetch_k = self.config.get("mmr_fetch_k", max(20, top_k * 2))
+              if fetch_k < top_k: fetch_k = top_k # Ensure fetch_k >= k
+              # Use 'mmr_lambda' to match UI key
+              lambda_mult = self.config.get("mmr_lambda", 0.5)
+              search_kwargs['fetch_k'] = fetch_k
+              search_kwargs['lambda_mult'] = lambda_mult # Langchain uses lambda_mult
+              print(f"Creating retriever: type='mmr', kwargs={search_kwargs}")
+         else:
+              if use_mmr: print(f"Warning: MMR ignored for retrieval method '{retrieval_method}'.")
+              print(f"Creating retriever: type='similarity', kwargs={search_kwargs}")
+
+         try:
+              self.retriever = self.vector_store.as_retriever(
+                   search_type=search_type,
+                   search_kwargs=search_kwargs
+              )
+              print("Retriever created successfully.")
+         except Exception as e:
+              st.error(f"Failed to create retriever: {e}"); traceback.print_exc(); self.retriever = None
+
+
     def prepare_knowledge_base(self, force_rebuild: bool = False):
         """
-        Prepare the knowledge base by chunking documents and generating embeddings
-        
-        Args:
-            force_rebuild: Whether to force rebuilding the index
-        """
-        index_path = self.config["index_path"]
-        
-        # Try to load pre-built index if it exists and not forcing rebuild
-        if os.path.exists(index_path) and not force_rebuild:
-            try:
-                with open(index_path, 'rb') as f:
-                    index_data = pickle.load(f)
-                    
-                self.chunked_docs = index_data.get("chunked_docs")
-                self.doc_embeddings = index_data.get("doc_embeddings")
-                self.doc_ids = index_data.get("doc_ids")
-                
-                if (self.chunked_docs is not None and 
-                    self.doc_embeddings is not None and 
-                    self.doc_ids is not None):
-                    print(f"Loaded pre-built index from {index_path}")
-                    print(f"Index contains {len(self.chunked_docs)} chunks")
-                    return
-            except Exception as e:
-                print(f"Error loading index: {e}")
-                print("Rebuilding index...")
-        
-        # Load corpus if not already loaded
-        if self.corpus is None:
-            self.load_corpus()
-            
-        # Apply chunking strategy
-        chunking_strategy = self.config["chunking_strategy"]
-        
-        print(f"Chunking documents using '{chunking_strategy}' strategy...")
-        
-        if chunking_strategy == "fixed":
-            chunk_size = self.config["chunk_size"]
-            chunk_overlap = self.config["chunk_overlap"]
-            self.chunked_docs = DocumentChunker.chunk_by_fixed_size(
-                self.corpus, chunk_size=chunk_size, overlap=chunk_overlap
-            )
-        elif chunking_strategy == "paragraph":
-            self.chunked_docs = DocumentChunker.chunk_by_paragraph(self.corpus)
-        elif chunking_strategy == "semantic":
-            self.chunked_docs = DocumentChunker.chunk_by_semantic_units(self.corpus)
-        else:
-            raise ValueError(f"Unknown chunking strategy: {chunking_strategy}")
-            
-        print(f"Created {len(self.chunked_docs)} chunks")
-        
-        # Generate embeddings
-        embedding_model = self.config["embedding_model"]
-        
-        print(f"Generating embeddings using {embedding_model}...")
-        
-        chunk_texts = [doc["text"] for doc in self.chunked_docs]
-        self.doc_ids = [doc["chunk_id"] for doc in self.chunked_docs]
-        
-        self.doc_embeddings = EmbeddingProvider.get_sentence_transformer_embeddings(
-            chunk_texts, model_name=embedding_model
-        )
-        
-        print(f"Generated embeddings of shape {self.doc_embeddings.shape}")
-        
-        # Save index
-        os.makedirs(os.path.dirname(index_path), exist_ok=True)
-        
-        with open(index_path, 'wb') as f:
-            index_data = {
-                "chunked_docs": self.chunked_docs,
-                "doc_embeddings": self.doc_embeddings,
-                "doc_ids": self.doc_ids,
-                "config": {
-                    "chunking_strategy": chunking_strategy,
-                    "embedding_model": embedding_model,
-                    "chunk_size": self.config.get("chunk_size"),
-                    "chunk_overlap": self.config.get("chunk_overlap")
-                }
-            }
-            pickle.dump(index_data, f)
-            
-        print(f"Saved index to {index_path}")
-    
-    def process_query(self, query: str) -> Tuple[str, List[Dict[str, str]]]:
-        """
-        Process a query and return an answer with supporting contexts
-        
-        Args:
-            query: The query string
-            
-        Returns:
-            Tuple of (answer, context_documents)
-        """
-        # Ensure knowledge base is prepared
-        if self.chunked_docs is None or self.doc_embeddings is None:
-            self.prepare_knowledge_base()
-            
-        # Add query to conversation history
-        self.conversation_history.append(query)
-        
-        # Apply query expansion if enabled
-        if self.config["query_expansion"]:
-            expansion_method = self.config["expansion_method"]
-            expanded_queries = QueryProcessor.expand_query(query, method=expansion_method)
-            print(f"Expanded query to {len(expanded_queries)} variations")
-        else:
-            expanded_queries = [query]
-            
-        # Retrieve relevant documents
-        retrieval_method = self.config["retrieval_method"]
-        top_k = self.config["top_k"]
-        
-        print(f"Retrieving documents using '{retrieval_method}' method...")
-        
-        # Get embeddings for the query
-        query_embedding = EmbeddingProvider.get_sentence_transformer_embeddings(
-            [query], model_name=self.config["embedding_model"]
-        )[0]
-        
-        # Retrieve documents based on method
-        retrieved_docs = []
-        
-        if retrieval_method == "vector":
-            # For each expanded query, get results and combine
-            all_doc_ids = []
-            
-            for exp_query in expanded_queries:
-                exp_embedding = EmbeddingProvider.get_sentence_transformer_embeddings(
-                    [exp_query], model_name=self.config["embedding_model"]
-                )[0]
-                
-                results = RetrievalMethods.vector_search(
-                    exp_embedding, self.doc_embeddings, self.doc_ids, top_k=top_k
-                )
-                
-                all_doc_ids.extend([doc_id for doc_id, _ in results])
-                
-            # Remove duplicates while preserving order
-            unique_doc_ids = []
-            for doc_id in all_doc_ids:
-                if doc_id not in unique_doc_ids:
-                    unique_doc_ids.append(doc_id)
-                    
-            # Get the actual documents
-            retrieved_docs = []
-            for doc_id in unique_doc_ids[:top_k]:
-                idx = self.doc_ids.index(doc_id)
-                retrieved_docs.append(self.chunked_docs[idx])
-                
-        elif retrieval_method == "bm25":
-            # For each expanded query, get results and combine
-            all_doc_ids = []
-            
-            for exp_query in expanded_queries:
-                results = RetrievalMethods.bm25_search(
-                    exp_query, self.chunked_docs, top_k=top_k
-                )
-                
-                all_doc_ids.extend([doc_id for doc_id, _ in results])
-                
-            # Remove duplicates while preserving order
-            unique_doc_ids = []
-            for doc_id in all_doc_ids:
-                if doc_id not in unique_doc_ids:
-                    unique_doc_ids.append(doc_id)
-                    
-            # Get the actual documents
-            retrieved_docs = []
-            for doc_id in unique_doc_ids[:top_k]:
-                idx = self.doc_ids.index(doc_id)
-                retrieved_docs.append(self.chunked_docs[idx])
-                
-        elif retrieval_method == "hybrid":
-            # For each expanded query, get results and combine
-            all_doc_ids = []
-            
-            for exp_query in expanded_queries:
-                exp_embedding = EmbeddingProvider.get_sentence_transformer_embeddings(
-                    [exp_query], model_name=self.config["embedding_model"]
-                )[0]
-                
-                results = RetrievalMethods.hybrid_search(
-                    exp_query, exp_embedding, self.chunked_docs, self.doc_embeddings,
-                    alpha=self.config["retrieval_alpha"], top_k=top_k
-                )
-                
-                all_doc_ids.extend([doc_id for doc_id, _ in results])
-                
-            # Remove duplicates while preserving order
-            unique_doc_ids = []
-            for doc_id in all_doc_ids:
-                if doc_id not in unique_doc_ids:
-                    unique_doc_ids.append(doc_id)
-                    
-            # Get the actual documents
-            retrieved_docs = []
-            for doc_id in unique_doc_ids[:top_k]:
-                idx = self.doc_ids.index(doc_id)
-                retrieved_docs.append(self.chunked_docs[idx])
-        else:
-            raise ValueError(f"Unknown retrieval method: {retrieval_method}")
-            
-        print(f"Retrieved {len(retrieved_docs)} documents")
-        
-        # Apply reranking if enabled
-        if self.config["use_reranking"]:
-            reranking_method = self.config["reranking_method"]
-            
-            print(f"Reranking documents using '{reranking_method}' method...")
-            
-            if reranking_method == "cross_encoder":
-                reranking_model = self.config["reranking_model"]
-                
-                try:
-                    reranked_pairs = RerankerModule.score_with_cross_encoder(
-                        query, retrieved_docs, model_name=reranking_model
-                    )
-                    
-                    # Extract reranked documents
-                    retrieved_docs = [doc for doc, _ in reranked_pairs]
-                except Exception as e:
-                    print(f"Error in reranking: {e}")
-                    print("Using original retrieval order")
-            
-            elif reranking_method == "contextual":
-                # Use conversation history for reranking
-                reranked_pairs = RerankerModule.contextual_reranking(
-                    query, retrieved_docs, 
-                    conversation_history=self.conversation_history[:-1]  # Exclude current query
-                )
-                
-                # Extract reranked documents
-                retrieved_docs = [doc for doc, _ in reranked_pairs]
-                
-            elif reranking_method == "diversity":
-                # Rerank for diversity
-                reranked_pairs = RerankerModule.diversity_reranking(
-                    query, retrieved_docs, alpha=0.7
-                )
-                
-                # Extract reranked documents
-                retrieved_docs = [doc for doc, _ in reranked_pairs]
-                
-        # Generate answer
-        context_texts = [doc["text"] for doc in retrieved_docs[:top_k]]
-        context_str = "\n\n".join(context_texts)
-        
-        # Use the specified prompt template for generation
-        prompt_template = self.config["prompt_template"]
-        prompt = prompt_template.format(context=context_str, query=query)
-        
-        # Generate answer based on selected mode
-        response_mode = getattr(self, "response_mode", "extractive")
-        
-        if response_mode == "llm":
-            # Use LLM for answer generation
-            answer = self._llm_answer(query, context_texts)
-        else:
-            # Use extractive approach
-            answer = self._extractive_answer(query, context_texts)
-        
-        return answer, retrieved_docs
-    
+        Prepares the knowledge base: loads/builds vector store and retriever.
+        Uses LangChain components based on configuration.
 
-    def _llm_answer(self, query: str, contexts: List[str]) -> str:
+        Args:
+            force_rebuild (bool): If True, ignores existing index and rebuilds.
+        """
+        index_path = self.config.get("index_path", "data/index.pkl") # Get path from config
+        rebuild_is_needed = False # Default to not rebuilding
+
+        # 1. Determine if a rebuild is truly necessary
+        if force_rebuild:
+            st.warning("Forcing knowledge base rebuild...")
+            rebuild_is_needed = True
+        elif not os.path.exists(index_path):
+            st.info(f"No existing index found at {index_path}. Building knowledge base...")
+            rebuild_is_needed = True
+        else:
+            # Optional: Add more sophisticated checks here, e.g.,
+            # - Compare hash of corpus file to a stored hash
+            # - Compare critical config parameters (embedding model, chunking) stored in the index
+            #   with the current config.
+            # For now, we only rebuild if forced or index doesn't exist.
+             print(f"Existing index found at {index_path}. Loading unless config requires rebuild (check not implemented).")
+             # If you implement config checking, set rebuild_is_needed = True if critical config changed
+
+
+        # --- CORE LOGIC BRANCH ---
+        try:
+            if rebuild_is_needed:
+                # --- Rebuild Path ---
+                st.write("Starting knowledge base build process...")
+
+                # a) Check Corpus
+                if not self.corpus:
+                    # Attempt to load corpus if not already loaded (should be handled by initialize_rag_app ideally)
+                    self.load_corpus(self.config.get("corpus_path"))
+                    if not self.corpus:
+                         st.error("Cannot build knowledge base: Corpus is empty or failed to load.")
+                         return # Critical failure
+
+                # b) Load Embedding Model (Crucial First Step)
+                st.write("Loading embedding model...")
+                if not self._load_or_get_embedding_model(): # Uses cached function via helper
+                    # Error message already shown in helper
+                    return # Critical failure
+
+                # c) Perform Chunking (Using Refactored DocumentChunker)
+                chunking_strategy = self.config.get("chunking_strategy", "recursive")
+                st.write(f"Chunking documents using '{chunking_strategy}' strategy...")
+                try:
+                    # Prepare kwargs for chunker if needed (e.g., model name for token strategy)
+                    chunker_kwargs = {}
+                    if chunking_strategy == "token":
+                         chunker_kwargs["embedding_model_name"] = self.config.get("embedding_model")
+
+                    # Instantiate DocumentChunker - assumes its __init__ now uses Langchain splitters
+                    chunker = DocumentChunker(
+                        strategy=chunking_strategy,
+                        chunk_size=self.config.get("chunk_size", 1000),
+                        chunk_overlap=self.config.get("chunk_overlap", 200),
+                        **chunker_kwargs
+                    )
+                    # chunk_corpus should return list of strings or Langchain Documents
+                    # Assuming it returns list of strings based on paste-6.txt structure
+                    self.chunked_docs = chunker.chunk_corpus(self.corpus) # list[str]
+                    
+                except Exception as e:
+                    st.error(f"Error during chunking process: {e}")
+                    traceback.print_exc()
+                    return # Critical failure
+
+                if not self.chunked_docs:
+                    st.error("Chunking resulted in zero document chunks. Cannot build index.")
+                    return # Critical failure
+                st.write(f"Created {len(self.chunked_docs)} chunks.")
+
+                # d) Create and Save Vector Store (Using LangChain FAISS)
+                st.write(f"Creating vector store with '{self.config.get('embedding_model')}'...")
+                try:
+                    # Use from_texts if self.chunked_docs is list[str]
+                    vectorstore = FAISS.from_texts(
+                        texts=self.chunked_docs,
+                        embedding=self.embedding_model_instance # Use the loaded embedding object
+                    )
+                    # If self.chunked_docs was changed to return Langchain Document objects:
+                    # vectorstore = FAISS.from_documents(
+                    #    documents=self.chunked_docs,
+                    #    embedding=self.embedding_model_instance
+                    # )
+
+                    # Ensure directory exists before saving
+                    os.makedirs(os.path.dirname(index_path), exist_ok=True)
+                    vectorstore.save_local(index_path)
+                    st.write(f"Vector store saved successfully to {index_path}")
+                    self.vector_store = vectorstore # Store the newly created instance
+
+                except Exception as e:
+                    st.error(f"Error creating or saving vector store: {e}")
+                    traceback.print_exc()
+                    return # Critical failure
+
+            else:
+                # --- Load Existing Index Path ---
+                st.write(f"Loading existing knowledge base from {index_path}...")
+
+                # a) Load Embedding Model (Needed to load FAISS index)
+                st.write("Loading embedding model...")
+                if not self._load_or_get_embedding_model():
+                    return # Critical failure
+
+                # b) Load Vector Store from Disk
+                self._load_vector_store() # This helper uses self.embedding_model_instance
+                if self.vector_store is None:
+                     st.error("Failed to load vector store. Consider rebuilding.")
+                     # Optionally trigger a rebuild here? Or just fail.
+                     return # Critical failure
+
+            # --- 3. Create Retriever (Always run after vector store is ready) ---
+            st.write("Creating retriever...")
+            self._create_retriever() # Uses self.vector_store and config (MMR settings)
+            if self.retriever is None:
+                 st.error("Failed to create retriever.")
+                 # Decide if this is critical - depends if queries can run without it
+                 # return # Might be critical
+
+            # --- Final Status ---
+            st.success("Knowledge base is ready.")
+            print("Knowledge base preparation/loading complete.")
+
+        except Exception as e:
+             # Catch-all for unexpected errors during the process
+             st.error(f"An unexpected error occurred during knowledge base preparation: {e}")
+             traceback.print_exc()
+             # Reset states maybe?
+             self.vector_store = None
+             self.retriever = None
+
+    
+    def _load_vector_store(self):
+        """Loads the vector store from disk."""
+        index_path = self.config.get("index_path", "data/index.pkl")
+        # --- Ensure embedding model is loaded first ---
+        if not self.embedding_model_instance:
+            st.warning("Embedding model not loaded before trying to load vector store.")
+            # Optionally try loading it here, though prepare_kb should handle it
+            if not self._load_or_get_embedding_model():
+                st.error("Cannot load vector store: Embedding model failed.")
+                self.vector_store = None
+                return
+
+        if os.path.exists(index_path) and self.embedding_model_instance:
+            try:
+                print(f"Loading vector store from {index_path}")
+                self.vector_store = FAISS.load_local(
+                        index_path,
+                        self.embedding_model_instance, # <<< USE LOADED INSTANCE
+                        allow_dangerous_deserialization=True
+                )
+                print("Vector store loaded successfully.")
+            except Exception as e:
+                print(f"Error loading vector store: {e}")
+                st.error(f"Failed to load vector store: {e}")
+                self.vector_store = None
+        else:
+            print(f"Vector store not found at {index_path} or model not ready.")
+            self.vector_store = None
+
+    # src/app/rag_app.py (inside RAGApplication class)
+
+    def process_query(self, query: str) -> Tuple[str, List[Dict[str, any]]]:
+        """
+        Processes a query using the configured RAG pipeline, including LangChain components.
+
+        Args:
+            query (str): The user's query.
+
+        Returns:
+            Tuple[str, List[Dict[str, any]]]: A tuple containing the generated answer
+                                               and a list of context document dictionaries
+                                               (e.g., {"text": ..., "metadata": ...}).
+        """
+        print(f"\n--- Processing Query: '{query}' ---")
+        final_contexts_dicts = [] # Store results as list of dicts for compatibility
+        answer = "Error: Failed to generate answer." # Default error answer
+
+        try:
+            # 1. Ensure Retriever and potentially other components are ready
+            #    (prepare_knowledge_base should ideally be called *before* process_query)
+            if self.retriever is None: # Check if retriever (vector search part) is ready
+                 st.warning("Retriever not initialized. Attempting lazy initialization...")
+                 print("Retriever not initialized. Attempting lazy initialization...")
+                 # This might call prepare_knowledge_base which loads/builds index + creates retriever
+                 self.prepare_knowledge_base(force_rebuild=False)
+                 if self.retriever is None:
+                      st.error("Retriever initialization failed. Cannot process query.")
+                      return "Error: Knowledge base retriever is not ready.", []
+            # Add similar check for BM25 index if needed for bm25/hybrid modes
+            # if self.bm25_index is None and self.config.get("retrieval_method") in ["bm25", "hybrid"]:
+            #     st.error("BM25 index not ready...") etc.
+
+            # NOTE: Removed history append - should be handled by caller (streamlit_app.py)
+            # self.conversation_history.append(query)
+
+            # 2. Apply query expansion if enabled
+            if self.config.get("query_expansion", False):
+                expansion_method = self.config.get("expansion_method", "simple")
+                try:
+                     # Assuming QueryProcessor.expand_query is compatible
+                     expanded_queries = QueryProcessor.expand_query(query, method=expansion_method)
+                     print(f"Expanded query to {len(expanded_queries)} variations using '{expansion_method}'.")
+                except Exception as qe_error:
+                     print(f"Warning: Query expansion failed: {qe_error}. Using original query only.")
+                     expanded_queries = [query]
+            else:
+                expanded_queries = [query]
+
+            # 3. Retrieve relevant documents (Major Change: Using self.retriever + BM25)
+            retrieval_method = self.config.get("retrieval_method", "hybrid")
+            top_k = self.config.get("top_k", 5)
+            print(f"Retrieving top-{top_k} documents using '{retrieval_method}' method...")
+
+            # --- Combined results from all expanded queries before deduplication/ranking ---
+            combined_retrieved_docs = [] # List to hold Langchain Document objects initially
+
+            for i, exp_query in enumerate(expanded_queries):
+                print(f"  Processing expanded query {i+1}/{len(expanded_queries)}: '{exp_query}'")
+                vector_docs = []
+                bm25_docs_info = [] # Store bm25 results if needed (e.g., list of {"doc": Document, "score": score})
+
+                # a) Vector Store Retrieval (if method is vector or hybrid)
+                if retrieval_method in ["vector", "hybrid"]:
+                    try:
+                        # self.retriever already configured with top_k, MMR settings
+                        # It returns Langchain Document objects
+                        vector_docs = self.retriever.get_relevant_documents(exp_query)
+                        print(f"    Vector search returned {len(vector_docs)} docs.")
+                    except Exception as vs_error:
+                         print(f"    Error during vector search for '{exp_query}': {vs_error}")
+                         st.warning(f"Vector search failed for sub-query.")
+
+                # b) BM25 Retrieval (if method is bm25 or hybrid)
+                if retrieval_method in ["bm25", "hybrid"]:
+                    try:
+                         # Assumes _perform_bm25_search returns list of tuples (Document, score) or similar
+                         # You need to implement this method and BM25 indexing
+                         bm25_results = self._perform_bm25_search(exp_query, k=top_k * 2) # Fetch more for hybrid?
+                         # Store results with score for potential fusion
+                         bm25_docs_info = [{"doc": doc, "score": score} for doc, score in bm25_results]
+                         print(f"    BM25 search returned {len(bm25_docs_info)} docs.")
+                    except Exception as bm25_error:
+                         print(f"    Error during BM25 search for '{exp_query}': {bm25_error}")
+                         st.warning(f"BM25 search failed for sub-query.")
+
+                # c) Combine/Select results for this expanded query
+                if retrieval_method == "vector":
+                     combined_retrieved_docs.extend(vector_docs)
+                elif retrieval_method == "bm25":
+                     # Add only the Document objects from BM25 results
+                     combined_retrieved_docs.extend([info["doc"] for info in bm25_docs_info])
+                elif retrieval_method == "hybrid":
+                     # --- Hybrid Fusion Logic ---
+                     # This needs proper implementation (e.g., Reciprocal Rank Fusion)
+                     # Simple Placeholder: Combine, deduplicate, take top K based on original scores? Very basic.
+                     print("    Applying basic hybrid fusion (combine, deduplicate). Needs refinement.")
+                     temp_combined = {} # Use dict for deduplication based on content or ID
+                     # Add vector docs (assuming retriever already handled MMR/similarity ranking)
+                     for doc in vector_docs: temp_combined[doc.page_content] = doc # Or use a unique ID if available
+                     # Add BM25 docs
+                     for info in bm25_docs_info: temp_combined[info["doc"].page_content] = info["doc"]
+                     # Add the unique documents from this sub-query
+                     combined_retrieved_docs.extend(list(temp_combined.values()))
+                     # --- End Hybrid Fusion Logic ---
+
+            # 4. Deduplicate results across all expanded queries
+            final_unique_docs = {} # Dict for deduplication
+            for doc in combined_retrieved_docs:
+                 # Use page content as key for simplicity, or a unique ID from metadata if available
+                 doc_key = doc.page_content
+                 if doc_key not in final_unique_docs:
+                      final_unique_docs[doc_key] = doc
+
+            # Now we have unique Langchain Document objects
+            documents_to_process = list(final_unique_docs.values())
+            print(f"Retrieved {len(documents_to_process)} unique documents total before reranking/final top_k.")
+
+            # Ensure we don't exceed top_k if no reranking is done later
+            # Note: Reranking might change the final selection size
+            if not self.config.get("use_reranking", False):
+                 documents_to_process = documents_to_process[:top_k]
+
+            # 5. Apply Reranking (if enabled)
+            if self.config.get("use_reranking", False) and documents_to_process:
+                reranking_method = self.config.get("reranking_method", "cross_encoder")
+                print(f"Reranking {len(documents_to_process)} documents using '{reranking_method}' method...")
+                try:
+                    # Assuming RerankerModule needs config and can handle list of Langchain Documents
+                    reranker = RerankerModule(self.config)
+                    # Assuming reranker.rerank_documents returns list of Langchain Documents sorted
+                    documents_to_process = reranker.rerank_documents(query, documents_to_process)
+                    print(f"Reranking complete. Selecting top {top_k} docs.")
+                    # Select final top_k *after* reranking
+                    documents_to_process = documents_to_process[:top_k]
+                except Exception as rerank_error:
+                    print(f"Error during reranking: {rerank_error}. Using documents before reranking.")
+                    st.warning(f"Reranking failed: {rerank_error}")
+                    # Take top_k from the pre-reranking list if reranking failed
+                    documents_to_process = documents_to_process[:top_k]
+
+            print(f"Final {len(documents_to_process)} documents selected for context.")
+
+            # 6. Prepare Contexts for Generation and Return Value
+            # Convert final LangChain Document objects back to dicts for compatibility
+            final_contexts_dicts = []
+            context_texts = []
+            for doc in documents_to_process:
+                 context_dict = {
+                      "text": doc.page_content,
+                      # Reconstruct metadata - adapt based on what metadata your Document objects have
+                      "metadata": doc.metadata,
+                      # Add title if available in metadata
+                      "title": doc.metadata.get("source", "Source Unknown")
+                      # Add original chunk ID if needed and available
+                      # "chunk_id": doc.metadata.get("chunk_index", -1)
+                 }
+                 final_contexts_dicts.append(context_dict)
+                 context_texts.append(doc.page_content)
+
+            context_str = "\n\n".join(context_texts)
+
+            # 7. Generate Answer
+            prompt_template = self.config.get("prompt_template", "Context: {context}\nQuery: {query}\nAnswer:")
+            prompt = prompt_template.format(context=context_str, query=query)
+
+            # Get response mode set by Streamlit UI (passed via initialize_rag_app or similar)
+            response_mode = getattr(self, "response_mode", "extractive") # Default if not set
+            temperature = self.config.get("temperature", 0.5) # Use temp from config
+
+            print(f"Generating answer using mode: '{response_mode}', Temp: {temperature}")
+            if response_mode == "llm":
+                # Pass relevant config (like temperature) if _llm_answer needs it
+                answer = self._llm_answer(query, context_texts, temperature=temperature)
+            else: # extractive
+                answer = self._extractive_answer(query, context_texts)
+
+            print("Answer generation complete.")
+            return answer, final_contexts_dicts # Return dicts
+
+        except Exception as e:
+             st.error(f"An unexpected error occurred in process_query: {e}")
+             print(f"FATAL ERROR in process_query: {e}")
+             traceback.print_exc()
+             return answer, final_contexts_dicts # Return default error answer and any contexts gathered
+
+    # --- Placeholder for BM25 Search ---
+    def _perform_bm25_search(self, query, k=5):
+        # Requires self.bm25_index and a mapping back to original docs/chunks
+        print("BM25 search logic needs implementation.")
+        # Example structure:
+        # if hasattr(self, 'bm25_index') and self.bm25_index:
+        #     tokenized_query = query.lower().split(" ")
+        #     # Assuming bm25_index.get_top_n returns scores for documents based on corpus used for indexing
+        #     scores = self.bm25_index.get_scores(tokenized_query)
+        #     # Need to map these scores back to Langchain Document objects
+        #     # This requires storing/mapping original docs during BM25 index creation
+        #     # top_n_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:k]
+        #     # results = [(self.get_document_by_index(i), scores[i]) for i in top_n_indices] # Implement get_document_by_index
+        #     return [] # Placeholder for actual results
+        # else:
+        #     print("BM25 index not available.")
+        #     return []
+        return [] # Return empty list
+
+    # --- Placeholder for Answer Generation Methods ---
+    # def _llm_answer(self, query: str, context_texts: List[str], temperature: float = 0.5):
+    #     # Implement LLM call using self.config, query, context_texts, temperature
+    #     print(f"LLM generation needs implementation. Using placeholder. Temp={temperature}")
+    #     context_str = "\n\n".join(context_texts)
+    #     return f"Placeholder LLM Answer for '{query}' based on {len(context_texts)} contexts."
+
+    def _extractive_answer(self, query, context_texts):
+        # Implement simple extractive logic (e.g., return first context)
+        print("Extractive answer needs implementation. Using placeholder.")
+        if context_texts:
+             return f"Placeholder Extractive Answer: Best match might be '{context_texts[0][:150]}...'"
+        else:
+             return "Placeholder Extractive Answer: No context found."
+
+
+
+    def _llm_answer(self, query: str, contexts: List[str], temperature: float = 0.5) -> str:
         """Generate answer using OpenAI's language model"""
         try:
             from openai import OpenAI
@@ -401,7 +582,7 @@ class RAGApplication:
             
             Provide a comprehensive, well-structured answer. If the information is not in the context, say you don't have enough information.
             """
-            temperature = getattr(self, "temperature", 0.3)
+            # temperature = getattr(self, "temperature", 0.3)
 
             # Call the OpenAI API
             response = client.chat.completions.create(

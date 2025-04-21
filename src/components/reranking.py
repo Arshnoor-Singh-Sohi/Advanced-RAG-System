@@ -12,6 +12,13 @@ import numpy as np
 
 class RerankerModule:
     """Implementation of different reranking approaches"""
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.model_name = self.config.get("reranking_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+        # Add logic here to load the actual reranking model based on self.model_name
+        # self.reranker_model = CrossEncoder(self.model_name) # Example using sentence-transformers CrossEncoder
+        print(f"Reranker initialized with model: {self.model_name}")
+
     
     @staticmethod
     def score_with_cross_encoder(
@@ -66,6 +73,34 @@ class RerankerModule:
             # Fallback to simple word overlap scoring
             return RerankerModule.score_with_word_overlap(query, documents)
     
+    def rerank_documents(self, query: str, documents: List[Any]) -> List[Any]:
+        """Reranks documents based on query using the initialized model."""
+        if not documents:
+            return []
+        if not hasattr(self, 'reranker_model'):
+            print("ERROR: Reranker model not loaded in __init__. Cannot rerank.")
+            return documents # Return original list
+
+        print(f"Reranking {len(documents)} docs with model {self.model_name}...")
+        # --- Implementation depends on your chosen reranker library ---
+        # Example using sentence-transformers CrossEncoder (if self.reranker_model is loaded)
+        try:
+            # Assuming 'documents' are Langchain Docs or dicts with 'text'
+            texts_to_rank = [doc.page_content if hasattr(doc, 'page_content') else doc.get('text', '') for doc in documents]
+            sentence_pairs = [[query, text] for text in texts_to_rank]
+            scores = self.reranker_model.predict(sentence_pairs)
+
+            # Combine documents with scores and sort
+            scored_docs = list(zip(documents, scores))
+            scored_docs.sort(key=lambda x: x[1], reverse=True)
+
+            # Return only the sorted documents
+            reranked_docs = [doc for doc, score in scored_docs]
+            return reranked_docs
+        except Exception as e:
+            print(f"ERROR during reranking prediction: {e}")
+            return documents # Return original list on error
+
     @staticmethod
     def score_with_word_overlap(
         query: str,

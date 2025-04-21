@@ -26,10 +26,98 @@ from src.components.llm_integrations import LLMProvider, get_conversation_chain,
 # Keep Query Processor in this file until it's refactored separately
 from typing import List, Dict, Any, Tuple, Optional, Callable
 import nltk
-
+from langchain.text_splitter import (
+    RecursiveCharacterTextSplitter,
+    SentenceTransformersTokenTextSplitter,
+    CharacterTextSplitter,
+    NLTKTextSplitter
+)
+import streamlit as st
 
 class DocumentChunker:
     """Class for chunking documents with different strategies"""
+
+    def __init__(self, strategy: str, chunk_size: int, chunk_overlap: int, **kwargs):
+        self.strategy = strategy
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        self.splitter = None
+
+        print(f"Initializing DocumentChunker - Strategy: {self.strategy}, Size: {self.chunk_size}, Overlap: {self.chunk_overlap}")
+
+        # --- Select splitter based on strategy ---
+        if self.strategy == "recursive":
+            self.splitter = RecursiveCharacterTextSplitter(
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap,
+                length_function=len,
+                add_start_index=True
+            )
+        elif self.strategy == "token":
+            model_name = kwargs.get("embedding_model_name") # Expect model name via kwargs
+            if model_name:
+                try:
+                    self.splitter = SentenceTransformersTokenTextSplitter(
+                        chunk_overlap=self.chunk_overlap,
+                        model_name=model_name,
+                        tokens_per_chunk=self.chunk_size # Check arg name
+                    )
+                except Exception as e:
+                    st.warning(f"Failed to init SentenceTransformersTokenTextSplitter (model: {model_name}), fallback to Recursive. Error: {e}")
+                    self.strategy = "recursive" # Fallback strategy
+            else:
+                st.warning("Embedding model name needed for 'token' chunking. Falling back to Recursive.")
+                self.strategy = "recursive" # Fallback strategy
+            # Re-evaluate if fallen back
+            if self.strategy == "recursive" and self.splitter is None:
+                 self.splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+
+        elif self.strategy == "sentence":
+             try:
+                 import nltk
+                 # Ensure punkt is available (better done once globally if possible)
+                 try: nltk.data.find('tokenizers/punkt')
+                 except: nltk.download('punkt', quiet=True)
+                 # NLTK splitter might not respect size/overlap well, just splits sentences
+                 self.splitter = NLTKTextSplitter(separator=" ") # Basic NLTK sentence split
+                 print("Using NLTKTextSplitter for sentence strategy.")
+                 # Note: Size/Overlap args might behave differently here or be ignored.
+                 # If strict size/overlap needed with sentences, custom logic required.
+             except ImportError:
+                  st.warning("NLTK not found (`pip install nltk`), falling back to Recursive for 'sentence'.")
+                  self.strategy = "recursive" # Fallback
+             except Exception as e:
+                  st.warning(f"Error initializing NLTK, falling back to Recursive. Error: {e}")
+                  self.strategy = "recursive" # Fallback
+             # Re-evaluate if fallen back
+             if self.strategy == "recursive" and self.splitter is None:
+                  self.splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+
+        elif self.strategy == "fixed":
+             self.splitter = CharacterTextSplitter(
+                  separator = "\n", # Or " "
+                  chunk_size=self.chunk_size,
+                  chunk_overlap=self.chunk_overlap,
+                  length_function = len
+             )
+        elif self.strategy == "paragraph":
+             self.splitter = RecursiveCharacterTextSplitter(
+                  chunk_size=self.chunk_size,
+                  chunk_overlap=self.chunk_overlap,
+                  separators=["\n\n", "\n", ". ", " ", ""], # Prioritize paragraphs
+                  add_start_index=True
+             )
+        elif self.strategy == "semantic":
+             st.warning("'semantic' chunking is experimental/not fully implemented. Falling back to Recursive.")
+             self.strategy = "recursive" # Fallback
+             self.splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+        else: # Default fallback
+            st.warning(f"Unknown chunking strategy '{self.strategy}'. Falling back to Recursive.")
+            self.strategy = "recursive" # Fallback strategy name
+            self.splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+
+        if self.splitter is None:
+            st.error(f"Failed to initialize any text splitter for strategy '{self.strategy}'. Chunking will likely fail.")
     
     @staticmethod
     def chunk_by_fixed_size(documents: List[Dict[str, str]], 
