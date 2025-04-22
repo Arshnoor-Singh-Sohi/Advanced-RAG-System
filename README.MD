@@ -44,6 +44,9 @@ advanced_rag_system/
 ├── .env                        # Environment variables (API keys)
 ├── .gitignore                  # Git ignore file
 ├── run_experiments.py          # End-to-end experiment runner
+├── test_refactoring.py         # Test script for refactoring
+├── experiment_run.log          # Log file for experiment runs
+├── user_config.json            # User configuration file
 ├── paper_template.md           # IEEE paper template
 ├── src/
 │   ├── components/
@@ -52,9 +55,16 @@ advanced_rag_system/
 │   │   ├── enhanced_hyde.py    # Enhanced HyDE implementation
 │   │   ├── advanced_reranking.py # Multi-stage reranking
 │   │   ├── reranking.py        # Basic reranking implementations
-│   │   └── evaluation.py       # Evaluation metrics
+│   │   ├── evaluation.py       # Evaluation metrics
+|   |   ├── data_processing.py    # Data processing utilities
+|   |   ├── evaluation_dataset.py # Evaluation dataset
+|   |   ├── evaluation_runner.py  # Evaluation runner
+|   |   ├── llm_integration.py    # Integration with LLMs
+|   |   ├── query_transformations.py # Query transformations
+|   |   └── vectorstore_handler.py # Vectorstore handler
 │   ├── utils/
-│   │   └── experiment_tracker.py # Experiment tracking
+│   │   ├── experiment_tracker.py # Experiment tracking
+|   |   └── utils.py                # Utility functions
 │   └── app/
 │       ├── rag_app.py          # Demo application
 │       └── streamlit_app.py    # Web interface
@@ -71,6 +81,11 @@ advanced_rag_system/
 │   └── paper_figures.py        # Paper figure generation
 ├── data/                       # Directory for data files
 │   └── .gitkeep                # Empty file to keep directory in git
+|   ├── evaluation
+|   |   └── rag_example.json
+|   └── faiss_index
+|       ├── index.faiss
+|       └── index.pkl
 └── results/                    # Experiment results
     └── .gitkeep                # Empty file to keep directory in git
 ```
