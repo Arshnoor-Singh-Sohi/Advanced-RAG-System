@@ -1,0 +1,19 @@
+Chunking Strategy,Retrieval Method,Precision@3,Recall@3,MRR
+Advanced semantic segmentation,bm25,1.0000,0.0624,1.0000
+Advanced semantic segmentation,hybrid,1.0000,0.0624,1.0000
+Advanced semantic segmentation,vector,0.9333,0.0578,1.0000
+Sliding window with coherence,bm25,1.0000,0.0634,1.0000
+Sliding window with coherence,hybrid,1.0000,0.0634,1.0000
+Sliding window with coherence,vector,0.9333,0.0589,1.0000
+Topic-based chunking,bm25,1.0000,0.0634,1.0000
+Topic-based chunking,hybrid,1.0000,0.0634,1.0000
+Topic-based chunking,vector,0.9333,0.0589,1.0000
+fixed,bm25,0.9778,0.6295,1.0000
+fixed,hybrid,0.9778,0.6295,1.0000
+fixed,vector,0.9556,0.6226,1.0000
+paragraph,bm25,0.8667,0.0509,0.9000
+paragraph,hybrid,0.8000,0.0470,1.0000
+paragraph,vector,0.8000,0.0467,1.0000
+semantic,bm25,1.0000,0.0634,1.0000
+semantic,hybrid,1.0000,0.0634,1.0000
+semantic,vector,0.9333,0.0589,1.0000

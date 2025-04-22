@@ -1,0 +1,5 @@
+Model,Dimension,Precision@3,Recall@3,MRR,Embedding Time (s),Docs/Second
+BAAI/bge-small-en-v1.5,384.0000,1.0000,0.7500,1.0000,2.0939,4.6242
+all-MiniLM-L6-v2,384.0000,1.0000,0.7500,1.0000,35.9160,0.1411
+all-mpnet-base-v2,768.0000,1.0000,0.7500,1.0000,5.9636,2.0825
+multi-qa-mpnet-base-dot-v1,768.0000,1.0000,0.7500,1.0000,10.0931,2.1907

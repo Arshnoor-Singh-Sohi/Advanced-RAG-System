@@ -4,7 +4,7 @@ This repository contains a comprehensive Retrieval-Augmented Generation (RAG) sy
 
 ## Live Demo
 
-Try the live application: [Advanced RAG Knowledge Management System](https://your-streamlit-app-url.streamlit.app)
+Try the live application: [Advanced RAG Knowledge Management System](https://advanced-rag-system.streamlit.app/)
 
 
 ## Table of Contents

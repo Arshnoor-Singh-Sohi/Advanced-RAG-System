@@ -1,16 +1,7 @@
 \begin{table}[htbp]
 \caption{Performance Comparison of Different Embedding Models}
 \begin{center}
-\begin{tabular}{|l|c|c|c|c|c|}
+\begin{tabular}{|l|c|c@{$\pm$}c|c@{$\pm$}c|c@{$\pm$}c|c@{$\pm$}c|}
 \hline
-\textbf{Model} & \textbf{Dim} & \textbf{Precision@3} & \textbf{Recall@3} & \textbf{MRR} & \textbf{Docs/Sec} \\ 
+\textbf{Model} & \textbf{Dim} & \multicolumn{2}{c|}{\textbf{Precision@3}} & \multicolumn{2}{c|}{\textbf{Recall@3}} & \multicolumn{2}{c|}{\textbf{MRR}} & \multicolumn{2}{c|}{\textbf{Docs/Sec}} \\ 
 \hline
-BAAI/bge-small-en-v1.5 & 384 & 1.0000 & 0.7500 & 1.0000 & 4.62 \\ 
-all-MiniLM-L6-v2 & 384 & 1.0000 & 0.7500 & 1.0000 & 0.14 \\ 
-all-mpnet-base-v2 & 768 & 1.0000 & 0.7500 & 1.0000 & 2.08 \\ 
-multi-qa-mpnet-base-dot-v1 & 768 & 1.0000 & 0.7500 & 1.0000 & 2.19 \\ 
-\hline
-\end{tabular}
-\label{tab:embedding}
-\end{center}
-\end{table}

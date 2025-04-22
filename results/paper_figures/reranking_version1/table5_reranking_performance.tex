@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\caption{Performance Comparison of Different Reranking Methods}
+\begin{center}
+\begin{tabular}{|l|p{5cm}|c|c|c|}
+\hline
+\textbf{Method} & \textbf{Description} & \textbf{Precision@3} & \textbf{Recall@3} & \textbf{MRR} \\ 
+\hline
+cross_encoder & Cross-encoder reranking & 0.9333 & 0.2200 & 1.0000 \\ 
+cross_encoder_fusion & Fusion of vector and cross-encoder rankings & 0.8667 & 0.2033 & 1.0000 \\ 
+hybrid_fusion & Fusion of vector and BM25 rankings & 0.9333 & 0.2200 & 1.0000 \\ 
+keyword_fusion & Keyword and semantic fusion & 0.2667 & 0.0650 & 0.8000 \\ 
+llm_reranking & LLM-based reranking & 0.8667 & 0.1978 & 0.9667 \\ 
+multi_stage & Multi-stage reranking pipeline & 0.2667 & 0.0650 & 0.8000 \\ 
+no_reranking & Base retrieval without reranking & 0.8667 & 0.2033 & 1.0000 \\ 
+\hline
+\end{tabular}
+\label{tab:reranking}
+\end{center}
+\end{table}

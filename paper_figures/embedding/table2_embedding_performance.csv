@@ -1,5 +1,5 @@
-Model,Dimension,Precision@3,Recall@3,MRR,Embedding Time (s),Docs/Second
-BAAI/bge-small-en-v1.5,384.0000,1.0000,0.7500,1.0000,2.0939,4.6242
-all-MiniLM-L6-v2,384.0000,1.0000,0.7500,1.0000,35.9160,0.1411
-all-mpnet-base-v2,768.0000,1.0000,0.7500,1.0000,5.9636,2.0825
-multi-qa-mpnet-base-dot-v1,768.0000,1.0000,0.7500,1.0000,10.0931,2.1907
+embedding_model,embedding_dim,Precision@3,Precision_std,Recall@3,Recall_std,MRR,MRR_std,Embedding Time (s),Time_std,Docs/Second,Docs/Second_std
+BAAI/bge-small-en-v1.5,384.0000,1.0000,0.0000,0.7500,0.0000,1.0000,0.0000,2.0939,2.3818,4.6242,4.1891
+all-MiniLM-L6-v2,384.0000,1.0000,0.0000,0.7500,0.0000,1.0000,0.0000,35.9160,23.7120,0.1411,0.0674
+all-mpnet-base-v2,768.0000,1.0000,0.0000,0.7500,0.0000,1.0000,0.0000,5.9636,7.3234,2.0825,2.1412
+multi-qa-mpnet-base-dot-v1,768.0000,1.0000,0.0000,0.7500,0.0000,1.0000,0.0000,10.0931,14.7368,2.1907,2.3231

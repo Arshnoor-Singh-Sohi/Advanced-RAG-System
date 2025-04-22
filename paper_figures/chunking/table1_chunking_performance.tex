@@ -1,28 +1,29 @@
 \begin{table}[htbp]
 \caption{Performance Comparison of Different Chunking Strategies}
 \begin{center}
-\begin{tabular}{|l|l|c|c|c|}
+\begin{tabular}{|l|l|c@{$\pm$}c|c@{$\pm$}c|c@{$\pm$}c|}
 \hline
-\textbf{Chunking Strategy} & \textbf{Retrieval Method} & \textbf{Precision@3} & \textbf{Recall@3} & \textbf{MRR} \\ 
+\textbf{Chunking} & \textbf{Retrieval} & \multicolumn{2}{c|}{\textbf{Precision@3}} & \multicolumn{2}{c|}{\textbf{Recall@3}} & \multicolumn{2}{c|}{\textbf{MRR}} \\ 
+\textbf{Strategy} & \textbf{Method} & \multicolumn{2}{c|}{} & \multicolumn{2}{c|}{} & \multicolumn{2}{c|}{} \\ 
 \hline
-Advanced semantic segmentation & bm25 & 1.0000 & 0.0624 & 1.0000 \\ 
-Advanced semantic segmentation & hybrid & 1.0000 & 0.0624 & 1.0000 \\ 
-Advanced semantic segmentation & vector & 0.9333 & 0.0578 & 1.0000 \\ 
-Sliding window with coherence & bm25 & 1.0000 & 0.0634 & 1.0000 \\ 
-Sliding window with coherence & hybrid & 1.0000 & 0.0634 & 1.0000 \\ 
-Sliding window with coherence & vector & 0.9333 & 0.0589 & 1.0000 \\ 
-Topic-based chunking & bm25 & 1.0000 & 0.0634 & 1.0000 \\ 
-Topic-based chunking & hybrid & 1.0000 & 0.0634 & 1.0000 \\ 
-Topic-based chunking & vector & 0.9333 & 0.0589 & 1.0000 \\ 
-fixed & bm25 & 0.9778 & 0.6295 & 1.0000 \\ 
-fixed & hybrid & 0.9778 & 0.6295 & 1.0000 \\ 
-fixed & vector & 0.9556 & 0.6226 & 1.0000 \\ 
-paragraph & bm25 & 0.8667 & 0.0509 & 0.9000 \\ 
-paragraph & hybrid & 0.8000 & 0.0470 & 1.0000 \\ 
-paragraph & vector & 0.8000 & 0.0467 & 1.0000 \\ 
-semantic & bm25 & 1.0000 & 0.0634 & 1.0000 \\ 
-semantic & hybrid & 1.0000 & 0.0634 & 1.0000 \\ 
-semantic & vector & 0.9333 & 0.0589 & 1.0000 \\ 
+Advanced semantic segmentation & bm25 & \textbf{1.0000} & 0.0000 & 0.0624 & 0.0000 & \textbf{1.0000} & 0.0000 \\ 
+Advanced semantic segmentation & hybrid & 1.0000 & 0.0000 & 0.0624 & 0.0000 & 1.0000 & 0.0000 \\ 
+Advanced semantic segmentation & vector & 0.9333 & 0.0000 & 0.0578 & 0.0000 & 1.0000 & 0.0000 \\ 
+Sliding window with coherence & bm25 & 1.0000 & 0.0000 & 0.0634 & 0.0000 & 1.0000 & 0.0000 \\ 
+Sliding window with coherence & hybrid & 1.0000 & 0.0000 & 0.0634 & 0.0000 & 1.0000 & 0.0000 \\ 
+Sliding window with coherence & vector & 0.9333 & 0.0000 & 0.0589 & 0.0000 & 1.0000 & 0.0000 \\ 
+Topic-based chunking & bm25 & 1.0000 & 0.0000 & 0.0634 & 0.0000 & 1.0000 & 0.0000 \\ 
+Topic-based chunking & hybrid & 1.0000 & 0.0000 & 0.0634 & 0.0000 & 1.0000 & 0.0000 \\ 
+Topic-based chunking & vector & 0.9333 & 0.0000 & 0.0589 & 0.0000 & 1.0000 & 0.0000 \\ 
+fixed & bm25 & 0.9778 & 0.0323 & \textbf{0.6295} & 0.3313 & 1.0000 & 0.0000 \\ 
+fixed & hybrid & 0.9778 & 0.0323 & 0.6295 & 0.3313 & 1.0000 & 0.0000 \\ 
+fixed & vector & 0.9556 & 0.0511 & 0.6226 & 0.3401 & 1.0000 & 0.0000 \\ 
+paragraph & bm25 & 0.8667 & 0.0000 & 0.0509 & 0.0000 & 0.9000 & 0.0000 \\ 
+paragraph & hybrid & 0.8000 & 0.0000 & 0.0470 & 0.0000 & 1.0000 & 0.0000 \\ 
+paragraph & vector & 0.8000 & 0.0000 & 0.0467 & 0.0000 & 1.0000 & 0.0000 \\ 
+semantic & bm25 & 1.0000 & 0.0000 & 0.0634 & 0.0000 & 1.0000 & 0.0000 \\ 
+semantic & hybrid & 1.0000 & 0.0000 & 0.0634 & 0.0000 & 1.0000 & 0.0000 \\ 
+semantic & vector & 0.9333 & 0.0000 & 0.0589 & 0.0000 & 1.0000 & 0.0000 \\ 
 \hline
 \end{tabular}
 \label{tab:chunking}

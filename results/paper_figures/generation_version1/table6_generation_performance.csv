@@ -1,0 +1,13 @@
+Prompt Template,Prompt Description,Retrieval Config,Precision At 1,Precision At 3,Precision At 5,Recall At 3,Recall At 5,Mrr,Answer Precision,Answer Recall,Faithfulness,Citation Rate,Answer Correctness,Precision,Recall
+basic,Basic prompt,reranked_3,,,,,,,0.1954,0.1954,0.7914,0.0000,0.7200,,
+basic,Basic prompt,top_3,,,,,,,0.1817,0.1817,0.8199,0.0000,0.6800,,
+basic,Basic prompt,top_5,,,,,,,0.1709,0.1709,0.8241,0.0000,0.6800,,
+citation,Request citations,reranked_3,,,,,,,0.1954,0.1954,0.7914,0.0000,0.7200,,
+citation,Request citations,top_3,,,,,,,0.1817,0.1817,0.8199,0.0000,0.6800,,
+citation,Request citations,top_5,,,,,,,0.1709,0.1709,0.8241,0.0000,0.6800,,
+extractive,Extract answer,reranked_3,,,,,,,0.1954,0.1954,0.7914,0.0000,0.7200,,
+extractive,Extract answer,top_3,,,,,,,0.1817,0.1817,0.8199,0.0000,0.6800,,
+extractive,Extract answer,top_5,,,,,,,0.1709,0.1709,0.8241,0.0000,0.6800,,
+instructional,Detailed instructions,reranked_3,,,,,,,0.1954,0.1954,0.7914,0.0000,0.7200,,
+instructional,Detailed instructions,top_3,,,,,,,0.1817,0.1817,0.8199,0.0000,0.6800,,
+instructional,Detailed instructions,top_5,,,,,,,0.1709,0.1709,0.8241,0.0000,0.6800,,

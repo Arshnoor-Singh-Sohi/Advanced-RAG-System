@@ -416,65 +416,52 @@ def process_query(query):
 
 # Sidebar navigation
 def sidebar():
-    """Create the sidebar navigation"""
+    """Create the sidebar navigation with enhanced UI"""
     with st.sidebar:
-        # Enhanced title with gradient effect and emoji
+        # Premium header with subtle depth effects
+        # Premium header with subtle depth effects - simplified version
         st.markdown("""
-        <div style="
-            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
-            padding: 1.5rem 1rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        ">
-            <h2 style="
-                margin: 0;
-                color: white;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-            ">
-                <span style="margin-right: 8px;">🧠</span> 
-                Advanced RAG System
-            </h2>
-            <div style="
-                margin-top: 0.6rem;
-                font-size: 0.75rem;
-                color: rgba(255, 255, 255, 0.8);
-                border-top: 1px solid rgba(255, 255, 255, 0.2);
-                padding-top: 0.5rem;
-                text-align: right;
-                font-style: italic;
-                display: flex;
-                align-items: center;
-                justify-content: flex-end;
-            ">
-                <span style="margin-right: 4px;">✨</span>
-                Created by: Arshnoor Singh Sohi
+        <div style="background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); padding: 1.2rem; border-radius: 10px; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 1.8rem; margin-right: 10px;">🧠</span>
+                <span style="color: white; font-weight: 700; font-size: 1.4rem;">Advanced RAG System</span>
+            </div>
+            <div style="height: 1px; background: rgba(255, 255, 255, 0.2); margin: 0.7rem 0;"></div>
+            <div style="text-align: right;">
+                <span style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.8); font-style: italic;">✨ Created by: Arshnoor Singh Sohi</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
         
-        # Navigation with enhanced styling
+        # Enhanced navigation section
         st.markdown("""
         <div style="
             margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
+            background: rgba(75, 108, 183, 0.08);
+            padding: 0.8rem 0.6rem;
+            border-radius: 8px;
+            border-left: 3px solid #4b6cb7;
+            text-align: center;
         ">
             <h3 style="
-                font-size: 1.1rem;
-                font-weight: 600;
-                margin-bottom: 0.8rem;
+                font-size: 1.2rem;
+                font-weight: 700;
+                margin: 0;
                 color: #4b6cb7;
-                border-left: 3px solid #4b6cb7;
-                padding-left: 0.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             ">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                    <path d="M3 9L12 4L21 9V20H3V9Z" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
                 Navigation
             </h3>
         </div>
         """, unsafe_allow_html=True)
         
-        # Create custom navigation with icons
+        # Custom navigation buttons with modern styling
         nav_options = {
             "Chat": "💬 Chat",
             "Configuration": "⚙️ Configuration",
@@ -485,20 +472,74 @@ def sidebar():
             "About": "ℹ️ About"
         }
         
-        # Highlight the current page in the navigation
+        # Create styled navigation buttons
         for page, label in nav_options.items():
             if st.session_state.current_page == page:
-                st.markdown(f'<div class="nav-item nav-active">{label}</div>', unsafe_allow_html=True)
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+                    color: white;
+                    padding: 0.8rem 1rem;
+                    border-radius: 8px;
+                    margin-bottom: 0.5rem;
+                    font-weight: 600;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    border-left: 4px solid white;
+                    display: flex;
+                    align-items: center;
+                ">
+                    {label}
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                if st.button(label, key=f"nav_{page}", use_container_width=True):
+                # We'll use st.button for the non-active items since we need the click functionality
+                button_clicked = st.button(
+                    label, 
+                    key=f"nav_{page}", 
+                    use_container_width=True
+                )
+                if button_clicked:
                     st.session_state.current_page = page
                     st.rerun()
         
-        # Show additional settings based on current page
+        # Section divider
+        st.markdown("""
+        <div style="
+            height: 1px;
+            background: linear-gradient(to right, rgba(75, 108, 183, 0.1), rgba(75, 108, 183, 0.5), rgba(75, 108, 183, 0.1));
+            margin: 1.5rem 0 1.2rem;
+        "></div>
+        """, unsafe_allow_html=True)
+        
+        # Context-sensitive sections with enhanced styling
         if st.session_state.current_page == "Chat":
-            st.markdown("---")
-            st.markdown("### Knowledge Base")
+            # Knowledge base section with improved design
+            st.markdown("""
+            <div style="
+                margin-bottom: 1rem;
+                background: rgba(75, 108, 183, 0.05);
+                padding: 0.8rem 1rem;
+                border-radius: 8px;
+                border-left: 3px solid #4b6cb7;
+            ">
+                <h3 style="
+                    font-size: 1rem;
+                    font-weight: 600;
+                    margin: 0;
+                    color: #4b6cb7;
+                    display: flex;
+                    align-items: center;
+                ">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                        <path d="M4 4H20V16H4V4Z" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 16V20H16V16" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Knowledge Base
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
+            # Knowledge source selection with radio buttons
             corpus_option = st.radio(
                 "Knowledge Source",
                 ["Upload Documents", "Use Example Dataset"],
@@ -506,108 +547,169 @@ def sidebar():
                 horizontal=True
             )
             
+            # File uploader with improved styling
             if corpus_option == "Upload Documents":
+                st.markdown("""
+                <div style="
+                    margin: 0.5rem 0;
+                    padding: 0.5rem;
+                    border-radius: 8px;
+                    background: rgba(75, 108, 183, 0.05);
+                    border: 1px dashed rgba(75, 108, 183, 0.3);
+                ">
+                    <p style="
+                        margin: 0;
+                        font-size: 0.9rem;
+                        color: #4b6cb7;
+                    ">Upload your knowledge base file</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 uploaded_file = st.file_uploader(
-                    "Upload your knowledge base file",
-                    type=["txt", "csv", "json", "jsonl", "pkl", "pdf"]
+                    label="",  # Empty label because we use custom text above
+                    type=["txt", "csv", "json", "jsonl", "pkl", "pdf"],
+                    label_visibility="collapsed"  # Hide the default label
                 )
                 
                 if uploaded_file is not None:
-                    if st.button("Process Uploaded File", key="process_file_button"):
+                    if st.button("Process Uploaded File", key="process_file_button", type="primary"):
                         with st.spinner("Processing file..."):
-                            # Save the uploaded file
+                            # File processing logic (unchanged)
                             file_path = save_uploaded_file(uploaded_file)
                             
-                            # Convert to corpus if needed
                             if file_path.endswith(".pkl"):
                                 corpus_path = file_path
                             else:
                                 corpus_path, corpus = convert_file_to_corpus(file_path)
                                 
-                            # Update configuration
                             st.session_state.config["corpus_path"] = corpus_path
-                            
-                            # Clear any existing RAG app
                             st.session_state.rag_app = None
-                            
-                            # Initialize new RAG app with the updated config
                             initialize_rag_app()
-                            
-                            # Prepare the knowledge base
                             st.session_state.rag_app.prepare_knowledge_base(force_rebuild=True)
-                            
                             st.session_state.corpus_uploaded = True
                             st.success("File processed successfully!")
-                            
+            
+            # Example dataset button with improved styling
             else:
-                if st.button("Load Example Dataset", key="load_example_button"):
+                # Example dataset button with improved styling
+                example_col1, example_col2 = st.columns([4, 1])
+                with example_col1:
+                    load_example = st.button(
+                        "Load Example Dataset", 
+                        key="load_example_button",
+                        type="primary",
+                        use_container_width=True
+                    )
+                with example_col2:
+                    st.markdown("""
+                    <div style="
+                        height: 36px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: rgba(75, 108, 183, 0.1);
+                        border-radius: 4px;
+                    ">
+                        <span style="font-size: 1.2rem;">📚</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                if load_example:
                     with st.spinner("Loading example dataset..."):
-                        # Create example dataset if it doesn't exist
+                        # Example dataset loading logic (unchanged)
                         os.makedirs("data", exist_ok=True)
                         example_path = os.path.join("data", "example_corpus.pkl")
                         
                         if not os.path.exists(example_path):
-                            # Create a simple example corpus
                             example_corpus = [
-                                {
-                                    "title": "RAG Introduction",
-                                    "text": "Retrieval-Augmented Generation (RAG) is a technique that combines the power of large language models with information retrieval systems. It enhances the quality of generated text by retrieving relevant information from a knowledge base."
-                                },
-                                {
-                                    "title": "RAG Components",
-                                    "text": "A RAG system typically consists of three main components: 1) A Retriever that finds relevant information, 2) A Generator that creates responses, and 3) A Knowledge Base of documents or facts."
-                                },
-                                {
-                                    "title": "Vector Search",
-                                    "text": "Vector search is a key technique in RAG systems. It converts text into numerical vectors and finds documents with similar vector representations. This allows for semantic searching beyond simple keyword matching."
-                                },
-                                {
-                                    "title": "Embedding Models",
-                                    "text": "Embedding models transform text into numerical vectors that capture semantic meaning. Popular embedding models include models from OpenAI, Sentence Transformers, and various models available on Hugging Face."
-                                },
-                                {
-                                    "title": "Document Chunking",
-                                    "text": "Effective document chunking is crucial for RAG systems. Documents are split into smaller pieces to enable more precise retrieval. Common strategies include fixed-size chunks, paragraph-based, and semantic chunking."
-                                }
+                                {"title": "RAG Introduction", "text": "Retrieval-Augmented Generation (RAG) is a technique that combines the power of large language models with information retrieval systems. It enhances the quality of generated text by retrieving relevant information from a knowledge base."},
+                                {"title": "RAG Components", "text": "A RAG system typically consists of three main components: 1) A Retriever that finds relevant information, 2) A Generator that creates responses, and 3) A Knowledge Base of documents or facts."},
+                                {"title": "Vector Search", "text": "Vector search is a key technique in RAG systems. It converts text into numerical vectors and finds documents with similar vector representations. This allows for semantic searching beyond simple keyword matching."},
+                                {"title": "Embedding Models", "text": "Embedding models transform text into numerical vectors that capture semantic meaning. Popular embedding models include models from OpenAI, Sentence Transformers, and various models available on Hugging Face."},
+                                {"title": "Document Chunking", "text": "Effective document chunking is crucial for RAG systems. Documents are split into smaller pieces to enable more precise retrieval. Common strategies include fixed-size chunks, paragraph-based, and semantic chunking."}
                             ]
                             
                             with open(example_path, "wb") as f:
                                 pickle.dump(example_corpus, f)
                                 
-                        # Update configuration
                         st.session_state.config["corpus_path"] = example_path
-                        
-                        # Clear any existing RAG app
                         st.session_state.rag_app = None
-                        
-                        # Initialize new RAG app with the updated config
                         initialize_rag_app()
-                        
-                        # Prepare the knowledge base
                         st.session_state.rag_app.prepare_knowledge_base(force_rebuild=True)
-                        
                         st.session_state.corpus_uploaded = True
                         st.success("Example dataset loaded!")
                         st.rerun()
 
-            st.markdown("---")
-            st.markdown("### Response Settings")
+            # Section divider
+            st.markdown("""
+            <div style="
+                height: 1px;
+                background: linear-gradient(to right, rgba(75, 108, 183, 0.1), rgba(75, 108, 183, 0.5), rgba(75, 108, 183, 0.1));
+                margin: 1.2rem 0;
+            "></div>
+            """, unsafe_allow_html=True)
+            
+            # Response settings section
+            st.markdown("""
+            <div style="
+                margin-bottom: 1rem;
+                background: rgba(75, 108, 183, 0.05);
+                padding: 0.8rem 1rem;
+                border-radius: 8px;
+                border-left: 3px solid #4b6cb7;
+            ">
+                <h3 style="
+                    font-size: 1rem;
+                    font-weight: 600;
+                    margin: 0;
+                    color: #4b6cb7;
+                    display: flex;
+                    align-items: center;
+                ">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                        <path d="M21 15C21 16.0609 20.5786 17.0783 19.8284 17.8284C19.0783 18.5786 18.0609 19 17 19H7C5.93913 19 4.92172 18.5786 4.17157 17.8284C3.42143 17.0783 3 16.0609 3 15V9C3 7.93913 3.42143 6.92172 4.17157 6.17157C4.92172 5.42143 5.93913 5 7 5H17C18.0609 5 19.0783 5.42143 19.8284 6.17157C20.5786 6.92172 21 7.93913 21 9V15Z" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 9H17" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 13H17" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Response Settings
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             # Get current value from radio button
             response_mode_options = ["Extractive (Basic Retrieval)", "LLM-Enhanced (OpenAI)"]
             current_response_mode_index = response_mode_options.index(st.session_state.response_mode)
             
+            # Create columns for better layout
+            resp_col1, resp_col2 = st.columns(2)
+            with resp_col1:
+                st.markdown("""<p style="margin: 0 0 4px 0; font-size: 0.85rem; color: #666;">Generation Method</p>""", unsafe_allow_html=True)
+            with resp_col2:
+                st.markdown("""<div style="height: 4px;"></div>""", unsafe_allow_html=True)
+            
             selected_response_mode = st.radio(
-                "Response Generation Method",
-                response_mode_options,
+                label="",
+                options=response_mode_options,
                 index=current_response_mode_index,
                 key='response_mode_radio',
-                horizontal=True
+                horizontal=True,
+                label_visibility="collapsed"
             )
-            # Update session state ONLY if the selection changed
+            
             if selected_response_mode != st.session_state.response_mode:
                 st.session_state.response_mode = selected_response_mode
                 st.rerun()
+            
+            # Comparison checkbox with improved styling
+            st.markdown("""
+            <div style="
+                background: rgba(75, 108, 183, 0.05);
+                padding: 0.5rem;
+                border-radius: 6px;
+                margin: 0.5rem 0;
+                border: 1px solid rgba(75, 108, 183, 0.1);
+            ">
+            """, unsafe_allow_html=True)
             
             enable_comparison_checkbox = st.checkbox(
                 "Enable Side-by-Side Comparison",
@@ -615,43 +717,187 @@ def sidebar():
                 key='comparison_checkbox',
                 help="Generate responses using both methods for comparison"
             )
-            # Update session state if checkbox value changes
+            
+            st.markdown("""</div>""", unsafe_allow_html=True)
+            
             if enable_comparison_checkbox != st.session_state.enable_comparison:
                 st.session_state.enable_comparison = enable_comparison_checkbox
                 st.rerun()
 
-            # --- LLM SETTINGS SECTION ---
+            # LLM Settings section
             if st.session_state.response_mode == "LLM-Enhanced (OpenAI)" or st.session_state.enable_comparison:
-                st.markdown("---")
-                st.markdown("### LLM Settings")
+                # Section divider
+                st.markdown("""
+                <div style="
+                    height: 1px;
+                    background: linear-gradient(to right, rgba(75, 108, 183, 0.1), rgba(75, 108, 183, 0.5), rgba(75, 108, 183, 0.1));
+                    margin: 1.2rem 0;
+                "></div>
+                """, unsafe_allow_html=True)
+                
+                # LLM Settings header
+                st.markdown("""
+                <div style="
+                    margin-bottom: 1rem;
+                    background: rgba(75, 108, 183, 0.05);
+                    padding: 0.8rem 1rem;
+                    border-radius: 8px;
+                    border-left: 3px solid #4b6cb7;
+                ">
+                    <h3 style="
+                        font-size: 1rem;
+                        font-weight: 600;
+                        margin: 0;
+                        color: #4b6cb7;
+                        display: flex;
+                        align-items: center;
+                    ">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                            <circle cx="12" cy="12" r="9" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 8V12L15 15" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        LLM Settings
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
 
-                # Temperature Slider
-                current_temperature = st.slider(
-                    "Temperature",
-                    min_value=0.0,
-                    max_value=1.0,
-                    value=st.session_state.temperature,
-                    step=0.05,
-                    key='temperature_slider',
-                    help="Controls randomness. Higher values = more creative/random, Lower values = more deterministic/focused."
-                )
-
-                # Update session state if the slider value changes
+                # Temperature label
+                st.markdown("""<p style="margin: 0 0 4px 0; font-size: 0.85rem; color: #666;">Temperature</p>""", unsafe_allow_html=True)
+                
+                # Temperature slider with visual indicator
+                temp_col1, temp_col2 = st.columns([4, 1])
+                
+                with temp_col1:
+                    current_temperature = st.slider(
+                        "Temperature",
+                        min_value=0.0,
+                        max_value=1.0,
+                        value=st.session_state.temperature,
+                        step=0.05,
+                        key='temperature_slider',
+                        label_visibility="collapsed",
+                        help="Controls randomness. Higher values = more creative/random, Lower values = more deterministic/focused."
+                    )
+                
+                # Temperature indicator
+                with temp_col2:
+                    # Choose a color based on temperature value
+                    if current_temperature < 0.3:
+                        temp_color = "#1E88E5"  # Cool blue for low temperature
+                    elif current_temperature < 0.7:
+                        temp_color = "#7B1FA2"  # Purple for medium temperature
+                    else:
+                        temp_color = "#E53935"  # Warm red for high temperature
+                    
+                    st.markdown(f"""
+                    <div style="
+                        background: {temp_color};
+                        color: white;
+                        border-radius: 6px;
+                        padding: 0.3rem;
+                        font-size: 0.9rem;
+                        font-weight: 600;
+                        text-align: center;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    ">
+                        {current_temperature:.2f}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Update temperature in session state
                 if current_temperature != st.session_state.temperature:
                     st.session_state.temperature = current_temperature
-            # --- END LLM SETTINGS SECTION ---
-            
+                
+                # Temperature description
+                # Temperature description
+                if current_temperature < 0.3:
+                    temp_color = "#1E88E5"  # Cool blue
+                    temp_bg_rgba = "rgba(30, 136, 229, 0.1)"
+                    temp_description = "Focused & Deterministic"
+                elif current_temperature < 0.7:
+                    temp_color = "#7B1FA2"  # Purple
+                    temp_bg_rgba = "rgba(123, 31, 162, 0.1)"
+                    temp_description = "Balanced Creativity"
+                else:
+                    temp_color = "#E53935"  # Warm red
+                    temp_bg_rgba = "rgba(229, 57, 53, 0.1)"
+                    temp_description = "Highly Creative & Varied"
+
+                st.markdown(f"""
+                <div style="
+                    padding: 0.5rem;
+                    background: {temp_bg_rgba};
+                    border-radius: 6px;
+                    margin-top: 0.5rem;
+                    font-size: 0.8rem;
+                ">
+                    <span style="font-weight: 600;">Current setting:</span> 
+                    {temp_description}
+                </div>
+                """, unsafe_allow_html=True)
+        
+        # Help section for Configuration page
         elif st.session_state.current_page == "Configuration":
-            st.markdown("---")
-            st.markdown("### Help")
+            st.markdown("""
+            <div style="
+                margin-bottom: 1rem;
+                background: rgba(75, 108, 183, 0.05);
+                padding: 0.8rem 1rem;
+                border-radius: 8px;
+                border-left: 3px solid #4b6cb7;
+            ">
+                <h3 style="
+                    font-size: 1rem;
+                    font-weight: 600;
+                    margin: 0;
+                    color: #4b6cb7;
+                    display: flex;
+                    align-items: center;
+                ">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                        <circle cx="12" cy="12" r="10" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 16V12" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="8" r="1" fill="#4b6cb7"/>
+                    </svg>
+                    Help
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             st.info(
                 "Configure your RAG system settings in the main panel. "
                 "Changes will apply to new queries."
             )
-            
+        
+        # Experiment Controls for Experiment Lab
         elif st.session_state.current_page == "Experiment Lab":
-            st.markdown("---")
-            st.markdown("### Experiment Controls")
+            st.markdown("""
+            <div style="
+                margin-bottom: 1rem;
+                background: rgba(75, 108, 183, 0.05);
+                padding: 0.8rem 1rem;
+                border-radius: 8px;
+                border-left: 3px solid #4b6cb7;
+            ">
+                <h3 style="
+                    font-size: 1rem;
+                    font-weight: 600;
+                    margin: 0;
+                    color: #4b6cb7;
+                    display: flex;
+                    align-items: center;
+                ">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                        <path d="M9 3H5C3.89543 3 3 3.89543 3 5V9C3 10.1046 3.89543 11 5 11H9C10.1046 11 11 10.1046 11 9V5C11 3.89543 10.1046 3 9 3Z" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 13H5C3.89543 13 3 13.8954 3 15V19C3 20.1046 3.89543 21 5 21H9C10.1046 21 11 20.1046 11 19V15C11 13.8954 10.1046 13 9 13Z" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19 13H15C13.8954 13 13 13.8954 13 15V19C13 20.1046 13.8954 21 15 21H19C20.1046 21 21 20.1046 21 19V15C21 13.8954 20.1046 13 19 13Z" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19 3H15C13.8954 3 13 3.89543 13 5V9C13 10.1046 13.8954 11 15 11H19C20.1046 11 21 10.1046 21 9V5C21 3.89543 20.1046 3 19 3Z" stroke="#4b6cb7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Experiment Controls
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             st.info(
                 "Run experiments to compare different RAG configurations. "
                 "Results will be shown in the main panel."
@@ -660,35 +906,94 @@ def sidebar():
 # Page: Chat Interface
 def chat_page():
     """Chat interface page with input fixed at the bottom."""
-    st.markdown(
-        """
-        <p style="
-            font-size: 3rem;         /* Increase font size (adjust '3rem' as needed) */
-            font-weight: 600;        /* Make it bolder */
-            text-align: center;      /* Center the text */
-            margin-bottom: 1rem;     /* Add some space below */
-            padding-bottom: 0.5rem;  /* Keep padding if desired */
-            /* Optional: Keep border if you liked it from 'main-header' */
-            /* border-bottom: 1px solid rgba(250, 250, 250, 0.2); */
-        ">
-            💬 Advanced RAG Chat Interface
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
+    # Create a more Streamlit-friendly header
+    col1, col2, col3 = st.columns([1, 3, 1])
+    
+    with col2:
+        st.markdown(
+            """
+            <div style="text-align: center; padding: 1.5rem 0;">
+                <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem;">
+                    🧠 Advanced RAG Chat
+                </h1>
+                <p style="font-size: 1.2rem; color: #546E7A; margin-top: 0;">
+                    Knowledge-Enhanced Conversations
+                </p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    
+    # Display RAG components using Streamlit components
+    components_col1, components_col2, components_col3 = st.columns(3)
+    with components_col1:
+        st.markdown(
+            """
+            <div style="background: rgba(66,165,245,0.2); padding: 0.5rem; border-radius: 8px; text-align: center;">
+                <strong style="color: #1976D2;">Retrieval</strong>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with components_col2:
+        st.markdown(
+            """
+            <div style="background: rgba(66,165,245,0.2); padding: 0.5rem; border-radius: 8px; text-align: center;">
+                <strong style="color: #1976D2;">Augmentation</strong>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with components_col3:
+        st.markdown(
+            """
+            <div style="background: rgba(66,165,245,0.2); padding: 0.5rem; border-radius: 8px; text-align: center;">
+                <strong style="color: #1976D2;">Generation</strong>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    
+    st.markdown("<hr style='margin: 1.5rem 0; opacity: 0.2;'>", unsafe_allow_html=True)
 
     # --- Initial Checks ---
     # Check if corpus is loaded
     if not st.session_state.get("corpus_uploaded", False):
-        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
+        # Use Streamlit's native warning component
         st.warning("⚠️ No knowledge base loaded. Please upload documents or load the example dataset from the sidebar.")
-        st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown("""
-        ### Welcome!
-        To get started:
-        1.  Use the sidebar to **Upload Documents** or **Load Example Dataset**.
-        2.  Once processed, you can ask questions below!
-        """)
+        
+        # Create a welcome container with Streamlit components
+        st.markdown("### 👋 Welcome!")
+        st.markdown("Get started with these simple steps:")
+        
+        # Step 1 with Streamlit components
+        col1, col2 = st.columns([1, 10])
+        with col1:
+            st.markdown(
+                """
+                <div style="background: #1976D2; color: white; width: 28px; height: 28px; 
+                     border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                     font-weight: 600; text-align: center;">1</div>
+                """, 
+                unsafe_allow_html=True
+            )
+        with col2:
+            st.markdown("Use the sidebar to **Upload Documents** or **Load Example Dataset**")
+        
+        # Step 2 with Streamlit components
+        col1, col2 = st.columns([1, 10])
+        with col1:
+            st.markdown(
+                """
+                <div style="background: #1976D2; color: white; width: 28px; height: 28px; 
+                     border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                     font-weight: 600; text-align: center;">2</div>
+                """, 
+                unsafe_allow_html=True
+            )
+        with col2:
+            st.markdown("Once processed, you can ask questions in the chat input below!")
+        
         return # Stop rendering the rest of the chat page
 
     # Initialize RAG app if needed
@@ -869,12 +1174,104 @@ def chat_page():
 # Page: Configuration
 def configuration_page():
     """Configuration page with enhanced RAG parameter controls"""
-    st.markdown('<p class="main-header">⚙️ RAG System Configuration</p>', unsafe_allow_html=True)
     
-    st.markdown('<div class="info-box">', unsafe_allow_html=True)
-    st.markdown("Configure your RAG system with the settings below. Changes will apply to new queries.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Add custom styling for the header and subheading
+    st.markdown("""
+        <style>
+            .super-header {
+                font-size: 3rem;
+                font-weight: 800;
+                text-align: center;
+                color: #1e3a8a;
+                margin: 1.8rem auto 1rem auto;
+                padding: 0.8rem 0;
+                border-bottom: 4px solid #3b82f6;
+                border-top: 4px solid #3b82f6;
+                max-width: 95%;
+                line-height: 1.2;
+            }
+            
+            .enhanced-subheading {
+                font-size: 1.6rem;
+                font-weight: 600;
+                text-align: center;
+                color: #1e40af;
+                margin: 1.5rem auto 2rem auto;
+                max-width: 90%;
+                line-height: 1.4;
+            }
+        </style>
+    """, unsafe_allow_html=True)
     
+    # Enhanced bold, large, centered header
+    st.markdown('<p class="super-header">⚙️ RAG System Configuration</p>', unsafe_allow_html=True)
+    
+    # Enhanced subheading - no box, just large text
+    st.markdown('<p class="enhanced-subheading">Configure your RAG system with the settings below. Changes will apply to new queries.</p>', unsafe_allow_html=True)
+    
+    st.markdown("""
+        <style>
+            /* Enhanced Tab Styling */
+            .stTabs [data-baseweb="tab-list"] {
+                gap: 8px;
+                background-color: #f8fafc;
+                padding: 10px 10px 0 10px;
+                border-radius: 10px 10px 0 0;
+                border: 1px solid #e2e8f0;
+                border-bottom: none;
+            }
+            
+            .stTabs [data-baseweb="tab"] {
+                height: 50px;
+                background-color: #f1f5f9;
+                border-radius: 8px 8px 0 0;
+                gap: 8px;
+                padding: 10px 16px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                border: 1px solid #e2e8f0;
+                border-bottom: none;
+            }
+            
+            .stTabs [aria-selected="true"] {
+                background-color: #ffffff !important;
+                border-bottom: 4px solid #3b82f6 !important;
+                color: #1e40af !important;
+                padding-bottom: 20px;
+                margin-bottom: -4px;
+                font-weight: 700;
+            }
+            
+            .stTabs [data-baseweb="tab"]:hover {
+                background-color: #e0e7ff;
+                color: #1e3a8a;
+            }
+            
+            .stTabs [data-baseweb="tab-highlight"] {
+                background-color: #3b82f6;
+                border-radius: 8px;
+            }
+            
+            .stTabs [data-baseweb="tab-panel"] {
+                background-color: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-top: none;
+                border-radius: 0 0 10px 10px;
+                padding: 20px;
+            }
+            
+            /* Make emojis in tabs larger and more prominent */
+            .stTabs [data-baseweb="tab"] span {
+                font-size: 18px;
+            }
+            
+            /* Adjust emoji positioning */
+            .stTabs [data-baseweb="tab"] span:first-child {
+                margin-right: 8px;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
     # Create tabs for different configuration categories
     tabs = st.tabs([
         "📚 Knowledge Base", 
@@ -886,9 +1283,26 @@ def configuration_page():
         "💬 Generation"
     ])
     
+    st.markdown("""
+        <style>
+            .enhanced-tab-header {
+                font-size: 1.8rem;
+                font-weight: 700;
+                color: #1e3a8a;
+                text-align: center;
+                padding: 0.7rem 0;
+                margin: 1rem auto 1.5rem auto;
+                border-bottom: 3px solid #3b82f6;
+                background: linear-gradient(to right, rgba(219, 234, 254, 0), rgba(219, 234, 254, 0.7), rgba(219, 234, 254, 0));
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+                border-radius: 5px;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
     # Tab: Knowledge Base
     with tabs[0]:
-        st.markdown('<p class="sub-header">Knowledge Base Configuration</p>', unsafe_allow_html=True)
+        st.markdown('<p class="enhanced-tab-header">Knowledge Base Configuration</p>', unsafe_allow_html=True)
         
         # Display current corpus info
         if st.session_state.corpus_uploaded:
@@ -932,7 +1346,7 @@ def configuration_page():
     
     # Tab: Chunking - ENHANCED
     with tabs[1]:
-        st.markdown('<p class="sub-header">Chunking Configuration</p>', unsafe_allow_html=True)
+        st.markdown('<p class="enhanced-tab-header">Chunking Configuration</p>', unsafe_allow_html=True)
 
         # --- Unified Strategy Selection ---
         all_strategies = [
@@ -1096,7 +1510,7 @@ def configuration_page():
 
     # Tab: Embedding - ENHANCED
     with tabs[2]:
-        st.markdown('<p class="sub-header">Embedding Configuration</p>', unsafe_allow_html=True)
+        st.markdown('<p class="enhanced-tab-header">Embedding Configuration</p>', unsafe_allow_html=True)
 
         # --- Embedding Model Selection (Retained Categorized Approach) ---
         st.markdown("### Embedding Model Selection")
@@ -1195,7 +1609,7 @@ def configuration_page():
     
     # Tab: Retrieval - ENHANCED
     with tabs[3]:
-        st.markdown('<p class="sub-header">Retrieval Configuration</p>', unsafe_allow_html=True)
+        st.markdown('<p class="enhanced-tab-header">Retrieval Configuration</p>', unsafe_allow_html=True)
         
         # Main retrieval settings
         col1, col2 = st.columns(2)
@@ -1343,7 +1757,7 @@ def configuration_page():
     
     # Tab: Query Processing
     with tabs[4]:
-        st.markdown('<p class="sub-header">Query Processing Configuration</p>', unsafe_allow_html=True)
+        st.markdown('<p class="enhanced-tab-header">Query Processing Configuration</p>', unsafe_allow_html=True)
         
         # Query expansion
         query_expansion = st.checkbox(
@@ -1521,7 +1935,7 @@ def configuration_page():
     # Tab: Reranking
         # --- Tab: Reranking (MERGED VERSION - INCLUDING EXPANDER) ---
     with tabs[5]:
-        st.markdown('<p class="sub-header">Reranking Configuration</p>', unsafe_allow_html=True)
+        st.markdown('<p class="enhanced-tab-header">Reranking Configuration</p>', unsafe_allow_html=True)
 
         # Use reranking - main toggle
         use_reranking = st.checkbox(
@@ -1667,10 +2081,9 @@ def configuration_page():
             st.markdown('<div class="info-box">Reranking is currently disabled.</div>', unsafe_allow_html=True)
 
 
-
     # Tab: Generation
     with tabs[6]:
-        st.markdown('<p class="sub-header">Generation Configuration</p>', unsafe_allow_html=True)
+        st.markdown('<p class="enhanced-tab-header">Generation Configuration</p>', unsafe_allow_html=True)
 
         # --- Response style selection ---
         st.markdown("### Response Style")
@@ -1900,8 +2313,30 @@ def configuration_page():
 
 # Page: Metrics
 def metrics_page():
+    python# Metrics and Analytics Page
+def metrics_page():
     """Metrics and analytics page"""
-    st.markdown('<p class="main-header">📊 RAG System Metrics & Analytics</p>', unsafe_allow_html=True)
+    
+    # Add custom styling for the header (if not already added elsewhere)
+    st.markdown("""
+    <style>
+        .super-header {
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            color: #1e3a8a;
+            margin: 1.8rem auto 1rem auto;
+            padding: 0.8rem 0;
+            border-bottom: 4px solid #3b82f6;
+            border-top: 4px solid #3b82f6;
+            max-width: 95%;
+            line-height: 1.2;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Enhanced bold, large, centered header
+    st.markdown('<p class="super-header">📊 RAG System Metrics & Analytics</p>', unsafe_allow_html=True)
     
     # Check if there's conversation history
     if not st.session_state.conversation_history:
@@ -2034,26 +2469,59 @@ def metrics_page():
 
 # Page: Experiment Lab
 def experiment_lab_page():
-    """Experiment laboratory page"""
-    st.markdown('<p class="main-header">🧪 RAG Experiment Laboratory</p>', unsafe_allow_html=True)
+    """Experiment laboratory page with enhanced UI"""
     
-    st.markdown('<div class="info-box">', unsafe_allow_html=True)
+    # Enhanced header with visual impact
     st.markdown("""
-    Compare different RAG configurations to find the optimal setup for your specific use case.
-    Run experiments across different chunking strategies, retrieval methods, and more.
-    """)
-    st.markdown('</div>', unsafe_allow_html=True)
+    <div style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(75,108,183,0.15) 0%, rgba(24,40,72,0.25) 100%); padding: 1.5rem; border-radius: 12px; border-left: 5px solid #4b6cb7;">
+        <h1 style="font-size: 2.2rem; font-weight: 700; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+            <span style="margin-right: 0.7rem; font-size: 2rem;">🧪</span> RAG Experiment Laboratory
+        </h1>
+        <p style="margin: 0; font-size: 1.1rem; color: inherit; max-width: 800px;">
+            Compare different RAG configurations to find the optimal setup for your specific use case.
+            Run controlled experiments across different components to identify the best performance.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Check if corpus is loaded
+    # Check if corpus is loaded with enhanced warning
     if not st.session_state.corpus_uploaded:
-        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-        st.warning("⚠️ No knowledge base loaded. Please upload documents or load the example dataset from the Chat page.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="margin-bottom: 1.5rem; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px; padding: 1.2rem;">
+            <div style="display: flex; align-items: flex-start;">
+                <div style="font-size: 1.5rem; margin-right: 0.7rem; color: #FF9800;">⚠️</div>
+                <div>
+                    <p style="margin: 0; font-weight: 500; color: #E65100;">No knowledge base loaded</p>
+                    <p style="margin-top: 0.5rem; color: inherit;">Please upload documents or load the example dataset from the Chat page before running experiments.</p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         return
     
     # Initialize RAG app if needed
     if st.session_state.rag_app is None:
         initialize_rag_app()
+    
+    # Enhanced tab styling
+    tab_styles = """
+    <style>
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            background-color: rgba(75,108,183,0.05);
+            border-radius: 6px;
+            padding: 0.25rem 1rem;
+            height: auto;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: rgba(75,108,183,0.2);
+            border-radius: 6px;
+        }
+    </style>
+    """
+    st.markdown(tab_styles, unsafe_allow_html=True)
     
     # Create experiment setup tabs
     tabs = st.tabs([
@@ -2065,35 +2533,95 @@ def experiment_lab_page():
     
     # Tab: Chunking Experiment
     with tabs[0]:
-        st.markdown('<p class="sub-header">Chunking Strategy Experiment</p>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("""
-        Compare different document chunking strategies to find which works best for your knowledge base.
-        """)
-        st.markdown('</div>', unsafe_allow_html=True)
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Chunking Strategy Experiment
+        </h2>
+        """, unsafe_allow_html=True)
         
-        # Test query
+        # Enhanced info box
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border-left: 3px solid #4b6cb7; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: inherit;">Compare different document chunking strategies to find which works best for your knowledge base. This experiment tests how different ways of splitting documents affect retrieval and response quality.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Test query with enhanced styling
+        st.markdown("""
+        <div style="margin-top: 1.2rem; margin-bottom: 0.8rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                <span style="margin-right: 0.5rem;">❓</span> Test Query
+            </h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Query input with enhanced container
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+            <p style="margin: 0 0 0.7rem 0; color: inherit;">Enter a test query that will be used to evaluate each chunking strategy:</p>
+        """, unsafe_allow_html=True)
+        
         test_query = st.text_input(
             "Test Query",
             value="What is vector search in RAG?",
             help="Query to use for testing chunking strategies",
-            key="chunking_test_query"
+            key="chunking_test_query",
+            label_visibility="collapsed"
         )
         
-        # Chunking strategies to test
-        st.markdown("### Select Chunking Strategies to Test")
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Chunking strategies section with enhanced styling
+        st.markdown("""
+        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                <span style="margin-right: 0.5rem;">✂️</span> Select Chunking Strategies to Test
+            </h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Enhanced strategy selection container
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+        """, unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
         with col1:
+            # Enhanced checkboxes with descriptions
             test_fixed = st.checkbox("Fixed Size Chunking", value=True)
+            if test_fixed:
+                st.markdown("""
+                <div style="font-size: 0.85rem; color: #666; margin: -0.5rem 0 0.7rem 1.7rem;">
+                    Splits documents into chunks of equal size
+                </div>
+                """, unsafe_allow_html=True)
+            
             test_paragraph = st.checkbox("Paragraph Chunking", value=True)
+            if test_paragraph:
+                st.markdown("""
+                <div style="font-size: 0.85rem; color: #666; margin: -0.5rem 0 0.7rem 1.7rem;">
+                    Splits documents at paragraph boundaries
+                </div>
+                """, unsafe_allow_html=True)
+                
             test_semantic = st.checkbox("Semantic Chunking", value=True)
+            if test_semantic:
+                st.markdown("""
+                <div style="font-size: 0.85rem; color: #666; margin: -0.5rem 0 0.7rem 1.7rem;">
+                    Splits documents based on semantic meaning
+                </div>
+                """, unsafe_allow_html=True)
             
         with col2:
-            # Fixed size options (only if fixed is selected)
+            # Fixed size options (only if fixed is selected) with enhanced styling
             if test_fixed:
+                st.markdown("""
+                <div style="margin-bottom: 0.5rem; font-weight: 500; color: #4b6cb7;">
+                    Fixed Chunking Parameters
+                </div>
+                """, unsafe_allow_html=True)
+                
                 fixed_size = st.slider(
                     "Fixed Chunk Size",
                     min_value=64,
@@ -2112,8 +2640,32 @@ def experiment_lab_page():
                     help="Overlap between fixed chunks in tokens"
                 )
                 
-        # Run experiment button
-        if st.button("Run Chunking Experiment"):
+                # Visual representation of chunk size and overlap
+                st.markdown(f"""
+                <div style="margin-top: 1rem; background: rgba(75,108,183,0.05); border-radius: 4px; padding: 0.5rem; font-size: 0.9rem;">
+                    <div style="margin-bottom: 0.3rem; font-weight: 500;">Chunk Visualization:</div>
+                    <div style="position: relative; height: 30px; width: 100%; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 0.3rem;">
+                        <div style="position: absolute; height: 100%; width: {min(100, (fixed_size/512)*100)}%; background: #4b6cb7; border-radius: 4px; opacity: 0.7;"></div>
+                        <div style="position: absolute; height: 100%; width: {min(100, (fixed_overlap/512)*100)}%; background: #FF9800; border-radius: 4px; opacity: 0.7;"></div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666;">
+                        Size: {fixed_size} tokens | Overlap: {fixed_overlap} tokens
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+                
+        # Run experiment button with enhanced styling
+        run_col1, run_col2 = st.columns([3, 1])
+        with run_col1:
+            run_chunking_btn = st.button(
+                "Run Chunking Experiment", 
+                type="primary", 
+                use_container_width=True
+            )
+        
+        if run_chunking_btn:
             if not test_query:
                 st.error("Please enter a test query.")
                 return
@@ -2122,8 +2674,20 @@ def experiment_lab_page():
                 st.error("Please select at least one chunking strategy to test.")
                 return
                 
-            # Run the experiment
-            with st.spinner("Running chunking experiment..."):
+            # Run the experiment with enhanced UI for progress
+            with st.spinner(""):
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.1); border-radius: 8px; margin: 1rem 0; border-left: 3px solid #4b6cb7;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="font-size: 1.2rem; margin-right: 0.7rem;">⏳</div>
+                        <div style="font-weight: 500; color: #4b6cb7;">Running chunking experiment...</div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: inherit; margin-left: 2rem;">
+                        This may take a moment as each strategy processes the knowledge base and query.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 # List to store experiment results
                 chunking_results = []
                 
@@ -2210,59 +2774,193 @@ def experiment_lab_page():
                 # Store results in session state
                 st.session_state.chunking_results = chunking_results
                 
-                # Show success message
-                st.success("Chunking experiment completed!")
+                # Show success message with enhanced styling
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; margin: 1rem 0; border-left: 3px solid #4CAF50;">
+                    <div style="display: flex; align-items: center;">
+                        <div style="font-size: 1.2rem; margin-right: 0.7rem; color: #4CAF50;">✅</div>
+                        <div style="font-weight: 500; color: #388E3C;">Chunking experiment completed successfully!</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
                 
-            # Display results table
-            if hasattr(st.session_state, "chunking_results"):
-                st.markdown("### Chunking Experiment Results")
-                
-                # Convert to DataFrame
-                results_df = pd.DataFrame(st.session_state.chunking_results)
-                
-                # Display table
-                st.dataframe(results_df[["Strategy", "Parameters", "Docs Retrieved", "Processing Time"]])
-                
-                # Display answers
-                st.markdown("### Generated Answers")
-                
+            # Display results with enhanced styling
+            if hasattr(st.session_state, "chunking_results") and st.session_state.chunking_results:
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📊</span> Chunking Experiment Results
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # --- Display Performance Table ---
+                try:
+                    results_df = pd.DataFrame(st.session_state.chunking_results)
+                    # Select columns safely, in case some are missing in the future
+                    # Note: Adjusted column list for chunking
+                    cols_to_display = [col for col in ["Strategy", "Parameters", "Docs Retrieved", "Processing Time"] if col in results_df.columns]
+
+                    if cols_to_display:
+                        st.markdown("""
+                        <div style="padding: 1rem; background: var(--secondary-background-color); border-radius: 8px; border: 1px solid rgba(128,128,128,0.1); margin-bottom: 1.5rem;">
+                            <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: var(--primary-color);">Performance Comparison</p>
+                        """, unsafe_allow_html=True)
+
+                        st.dataframe(results_df[cols_to_display], use_container_width=True)
+
+                        st.markdown("</div>", unsafe_allow_html=True)
+                    else:
+                        st.warning("Could not find expected columns for the chunking performance table.")
+
+                except Exception as e:
+                    st.error(f"Error displaying chunking performance table: {e}")
+
+
+                # --- Display Generated Answers ---
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">💬</span> Generated Answers (Chunking)
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True) # Added "(Chunking)" for clarity
+
+                # --- DEFINE CSS ONCE, BEFORE THE LOOP ---
+                # (This CSS is identical to the previous block, defining the theme-aware container)
+                st.markdown("""
+                <style>
+                .theme-aware-container {
+                    padding: 1rem;
+                    background-color: var(--secondary-background-color); /* Adapts */
+                    color: var(--text-color); /* Adapts */
+                    border-radius: 8px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                    margin-bottom: 1rem;
+                    border-left: 3px solid var(--primary-color); /* Adapts */
+                }
+                .theme-aware-container .header {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--primary-color); /* Adapts */
+                }
+                .theme-aware-container .content {
+                    /* color: var(--text-color); /* Inherited or set explicitly if needed */
+                    line-height: 1.6;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+
+                # --- LOOP THROUGH RESULTS AND APPLY THE CONTAINER ---
                 for result in st.session_state.chunking_results:
-                    st.markdown('<div class="content-box">', unsafe_allow_html=True)
-                    st.markdown(f"**{result['Strategy']} Strategy:**")
-                    st.markdown(result["Answer"])
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    # Use .get() for safety, using 'Strategy' as the key now
+                    strategy_name = result.get('Strategy', 'Unknown Strategy')
+                    answer_content = result.get('Answer', 'No answer provided.') # CRITICAL: This MUST be plain text/markdown
+
+                    st.markdown(f"""
+                        <div class="theme-aware-container">
+                            <div class="header">{strategy_name} Method:</div>
+                            <div class="content">
+                                {answer_content}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+            elif hasattr(st.session_state, "chunking_results"):
+                st.info("No chunking results found to display.")
+
     
     # Tab: Retrieval Experiment
     with tabs[1]:
-        st.markdown('<p class="sub-header">Retrieval Method Experiment</p>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("""
-        Compare different retrieval methods to find which works best for your knowledge base and queries.
-        """)
-        st.markdown('</div>', unsafe_allow_html=True)
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Retrieval Method Experiment
+        </h2>
+        """, unsafe_allow_html=True)
         
-        # Test query
+        # Enhanced info box
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border-left: 3px solid #4b6cb7; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: inherit;">Compare different retrieval methods to find which works best for your knowledge base and query types. This experiment tests how different retrieval approaches affect result quality and performance.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Test query with enhanced styling
+        st.markdown("""
+        <div style="margin-top: 1.2rem; margin-bottom: 0.8rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                <span style="margin-right: 0.5rem;">❓</span> Test Query
+            </h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Query input with enhanced container
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+            <p style="margin: 0 0 0.7rem 0; color: inherit;">Enter a test query that will be used to evaluate each retrieval method:</p>
+        """, unsafe_allow_html=True)
+        
         test_query = st.text_input(
             "Test Query",
             value="What is vector search in RAG?",
             help="Query to use for testing retrieval methods",
-            key="retrieval_test_query"
+            key="retrieval_test_query",
+            label_visibility="collapsed"
         )
         
-        # Retrieval methods to test
-        st.markdown("### Select Retrieval Methods to Test")
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Retrieval methods with enhanced styling
+        st.markdown("""
+        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                <span style="margin-right: 0.5rem;">🔍</span> Select Retrieval Methods to Test
+            </h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Enhanced method selection container
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+        """, unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
         with col1:
+            # Enhanced checkboxes with descriptions
             test_vector = st.checkbox("Vector Search", value=True)
+            if test_vector:
+                st.markdown("""
+                <div style="font-size: 0.85rem; color: #666; margin: -0.5rem 0 0.7rem 1.7rem;">
+                    Semantic search based on vector embeddings
+                </div>
+                """, unsafe_allow_html=True)
+                
             test_bm25 = st.checkbox("BM25 Search", value=True)
+            if test_bm25:
+                st.markdown("""
+                <div style="font-size: 0.85rem; color: #666; margin: -0.5rem 0 0.7rem 1.7rem;">
+                    Keyword-based relevance ranking algorithm
+                </div>
+                """, unsafe_allow_html=True)
+                
             test_hybrid = st.checkbox("Hybrid Search", value=True)
+            if test_hybrid:
+                st.markdown("""
+                <div style="font-size: 0.85rem; color: #666; margin: -0.5rem 0 0.7rem 1.7rem;">
+                    Combines vector and keyword-based search
+                </div>
+                """, unsafe_allow_html=True)
             
         with col2:
-            # Hybrid alpha (only if hybrid is selected)
+            # Parameters with enhanced styling
             if test_hybrid:
+                st.markdown("""
+                <div style="margin-bottom: 0.5rem; font-weight: 500; color: #4b6cb7;">
+                    Hybrid Search Parameters
+                </div>
+                """, unsafe_allow_html=True)
+                
                 hybrid_alpha = st.slider(
                     "Hybrid Alpha (Vector Weight)",
                     min_value=0.0,
@@ -2272,7 +2970,27 @@ def experiment_lab_page():
                     help="Weight of vector search in hybrid retrieval"
                 )
                 
-            # Top-k for all methods
+                # Visual representation of alpha weight
+                st.markdown(f"""
+                <div style="margin-top: 0.5rem; background: rgba(75,108,183,0.05); border-radius: 4px; padding: 0.5rem; font-size: 0.9rem;">
+                    <div style="position: relative; height: 25px; width: 100%; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 0.3rem;">
+                        <div style="position: absolute; height: 100%; width: {hybrid_alpha*100}%; background: #4b6cb7; border-radius: 4px 0 0 4px; opacity: 0.7;"></div>
+                        <div style="position: absolute; height: 100%; width: {(1-hybrid_alpha)*100}%; left: {hybrid_alpha*100}%; background: #FF9800; border-radius: 0 4px 4px 0; opacity: 0.7;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #666;">
+                        <span>Vector: {hybrid_alpha:.1f}</span>
+                        <span>BM25: {1-hybrid_alpha:.1f}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            # Top-k for all methods with enhanced styling
+            st.markdown("""
+            <div style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 500; color: #4b6cb7;">
+                Top-K Parameter
+            </div>
+            """, unsafe_allow_html=True)
+            
             top_k = st.slider(
                 "Number of Documents to Retrieve (Top-K)",
                 min_value=1,
@@ -2281,9 +2999,19 @@ def experiment_lab_page():
                 step=1,
                 help="Number of documents to retrieve for each method"
             )
+        
+        st.markdown("</div>", unsafe_allow_html=True)
                 
-        # Run experiment button
-        if st.button("Run Retrieval Experiment"):
+        # Run experiment button with enhanced styling
+        run_col1, run_col2 = st.columns([3, 1])
+        with run_col1:
+            run_retrieval_btn = st.button(
+                "Run Retrieval Experiment", 
+                type="primary", 
+                use_container_width=True
+            )
+        
+        if run_retrieval_btn:
             if not test_query:
                 st.error("Please enter a test query.")
                 return
@@ -2292,8 +3020,20 @@ def experiment_lab_page():
                 st.error("Please select at least one retrieval method to test.")
                 return
                 
-            # Run the experiment
-            with st.spinner("Running retrieval experiment..."):
+            # Run the experiment with enhanced UI for progress
+            with st.spinner(""):
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.1); border-radius: 8px; margin: 1rem 0; border-left: 3px solid #4b6cb7;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="font-size: 1.2rem; margin-right: 0.7rem;">⏳</div>
+                        <div style="font-weight: 500; color: #4b6cb7;">Running retrieval experiment...</div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: inherit; margin-left: 2rem;">
+                        Building base knowledge base and testing each retrieval method...
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 # Use the current chunking strategy
                 current_chunking = st.session_state.config["chunking_strategy"]
                 current_size = st.session_state.config["chunk_size"]
@@ -2308,11 +3048,6 @@ def experiment_lab_page():
                 base_app.load_corpus(st.session_state.config["corpus_path"])
                 base_app.prepare_knowledge_base(force_rebuild=True)
                 
-                # Get embeddings once
-                # query_embedding = EmbeddingProvider.get_sentence_transformer_embeddings(
-                #     [test_query], model_name=base_app.config["embedding_model"]
-                # )[0]
-                
                 # Test vector search
                 if test_vector:
                     # Create a temporary app config
@@ -2324,9 +3059,6 @@ def experiment_lab_page():
                     temp_app = RAGApplication()
                     temp_app.config = temp_config
                     temp_app.corpus = base_app.corpus
-                    # temp_app.chunked_docs = base_app.chunked_docs
-                    # temp_app.doc_embeddings = base_app.doc_embeddings
-                    # temp_app.doc_ids = base_app.doc_ids
                     temp_app.vector_store = base_app.vector_store
                     temp_app._create_retriever()
                     
@@ -2355,9 +3087,6 @@ def experiment_lab_page():
                     temp_app = RAGApplication()
                     temp_app.config = temp_config
                     temp_app.corpus = base_app.corpus
-                    # temp_app.chunked_docs = base_app.chunked_docs
-                    # temp_app.doc_embeddings = base_app.doc_embeddings
-                    # temp_app.doc_ids = base_app.doc_ids
                     temp_app.vector_store = base_app.vector_store
                     temp_app._create_retriever()
                     
@@ -2387,9 +3116,6 @@ def experiment_lab_page():
                     temp_app = RAGApplication()
                     temp_app.config = temp_config
                     temp_app.corpus = base_app.corpus
-                    # temp_app.chunked_docs = base_app.chunked_docs
-                    # temp_app.doc_embeddings = base_app.doc_embeddings
-                    # temp_app.doc_ids = base_app.doc_ids
                     temp_app.vector_store = base_app.vector_store
                     temp_app._create_retriever()
                     
@@ -2410,52 +3136,165 @@ def experiment_lab_page():
                 # Store results in session state
                 st.session_state.retrieval_results = retrieval_results
                 
-                # Show success message
-                st.success("Retrieval experiment completed!")
+                # Show success message with enhanced styling
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; margin: 1rem 0; border-left: 3px solid #4CAF50;">
+                    <div style="display: flex; align-items: center;">
+                        <div style="font-size: 1.2rem; margin-right: 0.7rem; color: #4CAF50;">✅</div>
+                        <div style="font-weight: 500; color: #388E3C;">Retrieval experiment completed successfully!</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
                 
-            # Display results table
-            if hasattr(st.session_state, "retrieval_results"):
-                st.markdown("### Retrieval Experiment Results")
-                
-                # Convert to DataFrame
-                results_df = pd.DataFrame(st.session_state.retrieval_results)
-                
-                # Display table
-                st.dataframe(results_df[["Method", "Parameters", "Docs Retrieved", "Processing Time"]])
-                
-                # Display answers
-                st.markdown("### Generated Answers")
-                
+            # Display results with enhanced styling
+            if hasattr(st.session_state, "retrieval_results") and st.session_state.retrieval_results:
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📊</span> Retrieval Experiment Results
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # --- Display Performance Table ---
+                try:
+                    results_df = pd.DataFrame(st.session_state.retrieval_results)
+                    # Select columns safely, in case some are missing in the future
+                    cols_to_display = [col for col in ["Method", "Parameters", "Docs Retrieved", "Processing Time"] if col in results_df.columns]
+
+                    if cols_to_display:
+                        st.markdown("""
+                        <div style="padding: 1rem; background: var(--secondary-background-color); border-radius: 8px; border: 1px solid rgba(128,128,128,0.1); margin-bottom: 1.5rem;">
+                            <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: var(--primary-color);">Performance Comparison</p>
+                        """, unsafe_allow_html=True)
+
+                        st.dataframe(results_df[cols_to_display], use_container_width=True)
+
+                        st.markdown("</div>", unsafe_allow_html=True)
+                    else:
+                        st.warning("Could not find expected columns for the performance table.")
+
+                except Exception as e:
+                    st.error(f"Error displaying performance table: {e}")
+
+
+                # --- Display Generated Answers ---
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">💬</span> Generated Answers
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # --- DEFINE CSS ONCE, BEFORE THE LOOP ---
+                st.markdown("""
+                <style>
+                .theme-aware-container {
+                    padding: 1rem;
+                    background-color: var(--secondary-background-color); /* Adapts */
+                    color: var(--text-color); /* Adapts */
+                    border-radius: 8px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                    margin-bottom: 1rem;
+                    border-left: 3px solid var(--primary-color); /* Adapts */
+                }
+                .theme-aware-container .header {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: var(--primary-color); /* Adapts */
+                }
+                .theme-aware-container .content {
+                    /* color: var(--text-color); /* Inherited or set explicitly if needed */
+                    /* Add specific content styling if needed, e.g., line-height */
+                    line-height: 1.6;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+
+                # --- LOOP THROUGH RESULTS AND APPLY THE CONTAINER ---
                 for result in st.session_state.retrieval_results:
-                    st.markdown('<div class="content-box">', unsafe_allow_html=True)
-                    st.markdown(f"**{result['Method']} Method:**")
-                    st.markdown(result["Answer"])
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    # Use .get() for safety
+                    method_name = result.get('Method', 'Unknown')
+                    answer_content = result.get('Answer', 'No answer provided.') # CRITICAL: This should be plain text/markdown
+
+                    st.markdown(f"""
+                        <div class="theme-aware-container">
+                            <div class="header">{method_name} Method:</div>
+                            <div class="content">
+                                {answer_content}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+            elif hasattr(st.session_state, "retrieval_results"):
+                st.info("No retrieval results found to display.")
     
     # Tab: Combined Experiment
     with tabs[2]:
-        st.markdown('<p class="sub-header">Combined Experiment</p>', unsafe_allow_html=True)
+        st.markdown("""
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Combined Experiment
+        </h2>
+        """, unsafe_allow_html=True)
         
-        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-        st.warning("⚠️ This experiment may take several minutes to complete.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Enhanced warning box
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(255,152,0,0.1); border-radius: 8px; margin-bottom: 1.5rem; border-left: 3px solid #FF9800;">
+            <div style="display: flex; align-items: center;">
+                <div style="font-size: 1.2rem; margin-right: 0.7rem; color: #FF9800;">⚠️</div>
+                <div style="font-weight: 500; color: #E65100;">This experiment may take several minutes to complete.</div>
+            </div>
+            <div style="margin-top: 0.5rem; margin-left: 2rem; font-size: 0.9rem; color: inherit;">
+                Tests multiple combinations of configurations to find the optimal setup.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Test queries
-        st.markdown("### Test Queries")
-        st.markdown("Enter multiple test queries separated by new lines:")
+        # Test queries with enhanced styling
+        st.markdown("""
+        <div style="margin-top: 1.2rem; margin-bottom: 0.8rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                <span style="margin-right: 0.5rem;">❓</span> Test Queries
+            </h3>
+        </div>
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+            <p style="margin: 0 0 0.7rem 0; color: inherit;">Enter multiple test queries separated by new lines:</p>
+        """, unsafe_allow_html=True)
         
         test_queries = st.text_area(
             "Test Queries",
             value="What is vector search in RAG?\nHow does document chunking work?\nWhat are embedding models?",
             height=100,
-            help="Queries to use for testing configurations"
+            help="Queries to use for testing configurations",
+            label_visibility="collapsed"
         ).strip().split("\n")
         
-        # Configurations to test
-        st.markdown("### Select Configurations to Test")
+        st.markdown("""
+        <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+            <span style="font-weight: 500; color: #4b6cb7;">{}</span> queries will be tested with each configuration
+        </div>
+        """.format(len(test_queries)), unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Configuration selection with enhanced styling
+        st.markdown("""
+        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                <span style="margin-right: 0.5rem;">⚙️</span> Select Configurations to Test
+            </h3>
+        </div>
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+        """, unsafe_allow_html=True)
         
         # Chunking strategies
-        st.markdown("**Chunking Strategies:**")
+        st.markdown("""
+        <div style="margin-bottom: 0.8rem; font-weight: 500; color: #4b6cb7; display: flex; align-items: center;">
+            <span style="margin-right: 0.5rem;">✂️</span> Chunking Strategies:
+        </div>
+        """, unsafe_allow_html=True)
+        
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -2466,7 +3305,12 @@ def experiment_lab_page():
             test_semantic = st.checkbox("Semantic", value=False, key="combined_semantic")
             
         # Retrieval methods
-        st.markdown("**Retrieval Methods:**")
+        st.markdown("""
+        <div style="margin: 1rem 0 0.8rem 0; font-weight: 500; color: #4b6cb7; display: flex; align-items: center;">
+            <span style="margin-right: 0.5rem;">🔍</span> Retrieval Methods:
+        </div>
+        """, unsafe_allow_html=True)
+        
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -2477,16 +3321,47 @@ def experiment_lab_page():
             test_hybrid = st.checkbox("Hybrid", value=True, key="combined_hybrid")
             
         # Reranking options
-        st.markdown("**Reranking Options:**")
+        st.markdown("""
+        <div style="margin: 1rem 0 0.8rem 0; font-weight: 500; color: #4b6cb7; display: flex; align-items: center;">
+            <span style="margin-right: 0.5rem;">🔄</span> Reranking Options:
+        </div>
+        """, unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         
         with col1:
             test_no_reranking = st.checkbox("No Reranking", value=True, key="combined_no_reranking")
         with col2:
             test_cross_encoder = st.checkbox("Cross-Encoder", value=True, key="combined_cross_encoder")
+        
+        # Calculate number of configurations
+        num_chunking = sum([test_fixed, test_paragraph, test_semantic])
+        num_retrieval = sum([test_vector, test_bm25, test_hybrid])
+        num_reranking = sum([test_no_reranking, test_cross_encoder])
+        total_configs = num_chunking * num_retrieval * num_reranking
+        
+        # Display configuration count
+        st.markdown(f"""
+        <div style="margin-top: 1rem; padding: 0.7rem; background: rgba(75,108,183,0.1); border-radius: 6px; text-align: center;">
+            <div style="font-weight: 600; color: #4b6cb7;">Total Configurations: {total_configs}</div>
+            <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
+                {num_chunking} chunking × {num_retrieval} retrieval × {num_reranking} reranking options
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
             
-        # Run button
-        if st.button("Run Combined Experiment"):
+        # Run button with enhanced styling
+        run_col1, run_col2 = st.columns([3, 1])
+        with run_col1:
+            run_combined_btn = st.button(
+                "Run Combined Experiment", 
+                type="primary", 
+                use_container_width=True
+            )
+        
+        if run_combined_btn:
             if not test_queries or not test_queries[0]:
                 st.error("Please enter at least one test query.")
                 return
@@ -2503,8 +3378,20 @@ def experiment_lab_page():
                 st.error("Please select at least one reranking option.")
                 return
                 
-            # Run the experiment
-            with st.spinner("Running comprehensive experiment... This may take a while."):
+            # Run the experiment with enhanced UI for progress
+            with st.spinner(""):
+                # Enhanced progress container
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.1); border-radius: 8px; margin: 1rem 0; border-left: 3px solid #4b6cb7;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="font-size: 1.2rem; margin-right: 0.7rem;">⏳</div>
+                        <div style="font-weight: 500; color: #4b6cb7;">Running comprehensive experiment...</div>
+                    </div>
+                    <div style="margin: 0.5rem 0 1rem 2rem; font-size: 0.9rem; color: inherit;">
+                        Testing all combinations of selected configurations. This may take several minutes.
+                    </div>
+                """, unsafe_allow_html=True)
+                
                 progress_bar = st.progress(0)
                 progress_status = st.empty()
                 
@@ -2555,7 +3442,14 @@ def experiment_lab_page():
                         current_iteration += 1
                         progress = current_iteration / total_iterations
                         progress_bar.progress(progress)
-                        progress_status.text(f"Processing configuration {current_iteration} of {total_iterations}...")
+                        
+                        # Enhanced progress status
+                        progress_status.markdown(f"""
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #666; padding: 0 0.5rem;">
+                            <div>Processing: <span style="color: #4b6cb7; font-weight: 500;">Configuration {current_iteration} of {total_iterations}</span></div>
+                            <div>{(progress * 100):.0f}% complete</div>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         # Create a RAG app with this configuration
                         app = RAGApplication()
@@ -2578,7 +3472,7 @@ def experiment_lab_page():
                             "Time (sec)": process_time,
                             "Answer": answer
                         })
-                        
+                
                 # Store results in session state
                 st.session_state.combined_results = combined_results
                 
@@ -2586,21 +3480,53 @@ def experiment_lab_page():
                 progress_bar.empty()
                 progress_status.empty()
                 
-                # Show success message
-                st.success(f"Combined experiment completed with {len(combined_results)} configurations!")
+                # Show success message with enhanced styling
+                st.markdown(f"""
+                    <div style="display: flex; align-items: center; margin: 1rem 0;">
+                        <div style="font-size: 1.2rem; margin-right: 0.7rem; color: #4CAF50;">✅</div>
+                        <div style="font-weight: 500; color: #388E3C;">Combined experiment completed with {len(combined_results)} configurations!</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
                 
-            # Display results table
+            # Display results with enhanced styling
             if hasattr(st.session_state, "combined_results"):
-                st.markdown("### Combined Experiment Results")
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📊</span> Combined Experiment Results
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 # Convert to DataFrame
                 results_df = pd.DataFrame(st.session_state.combined_results)
                 
-                # Display table
-                st.dataframe(results_df[["Query", "Chunking", "Retrieval", "Reranking", "Docs Retrieved", "Time (sec)"]])
+                # Enhanced table container
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+                    <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: #4b6cb7;">Performance Across All Configurations</p>
+                """, unsafe_allow_html=True)
                 
-                # Create a pivot table for analysis
-                st.markdown("### Performance Analysis")
+                # Display table
+                st.dataframe(results_df[["Query", "Chunking", "Retrieval", "Reranking", "Docs Retrieved", "Time (sec)"]], use_container_width=True)
+                
+                st.markdown("</div>", unsafe_allow_html=True)
+                
+                # Create a pivot table for analysis with enhanced styling
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📊</span> Performance Analysis
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Create a pivot table with styling
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+                    <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: #4b6cb7;">Average Processing Time by Configuration</p>
+                """, unsafe_allow_html=True)
                 
                 pivot = pd.pivot_table(
                     results_df,
@@ -2610,22 +3536,47 @@ def experiment_lab_page():
                     aggfunc="mean"
                 )
                 
-                st.dataframe(pivot)
+                st.dataframe(pivot, use_container_width=True)
                 
-                # Create a bar chart of average times
-                st.markdown("### Average Processing Time by Configuration")
+                st.markdown("</div>", unsafe_allow_html=True)
                 
+                # Create enhanced visualizations
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📈</span> Average Processing Time by Configuration
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Create a visually enhanced bar chart
                 fig, ax = plt.subplots(figsize=(12, 6))
+                fig.patch.set_facecolor('#f9f9f9')
+                ax.set_facecolor('#f9f9f9')
                 
                 avg_times = results_df.groupby(["Chunking", "Retrieval", "Reranking"])["Time (sec)"].mean().reset_index()
                 avg_times["Configuration"] = avg_times.apply(
                     lambda x: f"{x['Chunking']}/{x['Retrieval']}/{x['Reranking']}", axis=1
                 )
                 
-                sns.barplot(x="Configuration", y="Time (sec)", data=avg_times, ax=ax)
+                # Use better colors and styling
+                colors = sns.color_palette("viridis", len(avg_times))
+                bars = sns.barplot(x="Configuration", y="Time (sec)", data=avg_times, ax=ax, palette=colors)
+                
+                # Add value annotations on top of bars
+                for i, p in enumerate(bars.patches):
+                    height = p.get_height()
+                    bars.annotate(f"{height:.2f}s",
+                                xy=(p.get_x() + p.get_width() / 2., height),
+                                xytext=(0, 3),  # 3 points vertical offset
+                                textcoords="offset points",
+                                ha='center', va='bottom', fontsize=8, color='#333')
+                
                 ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
-                ax.set_title("Average Processing Time by Configuration")
-                ax.grid(True, linestyle='--', alpha=0.7)
+                ax.set_title("Average Processing Time by Configuration", fontsize=14, fontweight='bold', pad=15)
+                ax.grid(True, linestyle='--', alpha=0.3)
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
                 
                 plt.tight_layout()
                 
@@ -2634,16 +3585,150 @@ def experiment_lab_page():
                 fig.savefig(buf, format="png", bbox_inches='tight')
                 buf.seek(0)
                 st.image(buf)
+                
+                # Heat map of configuration performance with enhanced styling
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">🔥</span> Configuration Performance Heat Map
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Create a pivot table with responsive query filter
+                if "Query" in results_df.columns:
+                    query_options = ["All Queries"] + list(results_df["Query"].unique())
+                    
+                    # Enhanced query filter
+                    st.markdown("""
+                    <div style="margin-bottom: 0.8rem; font-weight: 500; color: #4b6cb7;">
+                        Filter by Query:
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    selected_query = st.selectbox(
+                        "Select Query",
+                        query_options,
+                        key="combined_query_filter",
+                        label_visibility="collapsed"
+                    )
+                    
+                    if selected_query != "All Queries":
+                        filtered_df = results_df[results_df["Query"] == selected_query]
+                    else:
+                        filtered_df = results_df
+                else:
+                    filtered_df = results_df
+                
+                # Create a visually enhanced heat map
+                pivot_data = filtered_df.pivot_table(
+                    values="Time (sec)",
+                    index=["Chunking", "Retrieval"],
+                    columns="Reranking",
+                    aggfunc="mean"
+                )
+                
+                # Plot heat map with improved styling
+                fig, ax = plt.subplots(figsize=(10, 6))
+                fig.patch.set_facecolor('#f9f9f9')
+                
+                sns.heatmap(
+                    pivot_data, 
+                    annot=True, 
+                    cmap="YlGnBu", 
+                    fmt=".2f", 
+                    ax=ax, 
+                    linewidths=0.5,
+                    cbar_kws={"shrink": 0.8, "label": "Seconds"}
+                )
+                
+                ax.set_title("Average Processing Time (sec) by Configuration", fontsize=14, fontweight='bold', pad=15)
+                
+                plt.tight_layout()
+                
+                # Convert plot to image for Streamlit
+                buf = BytesIO()
+                fig.savefig(buf, format="png", bbox_inches='tight')
+                buf.seek(0)
+                st.image(buf)
+                
+                # Best configuration analysis with enhanced styling
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">🏆</span> Best Configurations
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Find best configuration by time
+                best_time_idx = filtered_df["Time (sec)"].idxmin()
+                best_time_config = filtered_df.loc[best_time_idx]
+                
+                # Display best configuration in an enhanced card
+                st.markdown(f"""
+                <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; border-left: 3px solid #4CAF50; margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; color: #388E3C; margin-bottom: 0.8rem; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">🚀</span> Fastest Configuration:
+                    </div>
+                    <div style="margin-left: 1.5rem;">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Chunking:</div>
+                            <div>{best_time_config["Chunking"]}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Retrieval:</div>
+                            <div>{best_time_config["Retrieval"]}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Reranking:</div>
+                            <div>{best_time_config["Reranking"]}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Time:</div>
+                            <div>{best_time_config["Time (sec)"]:.2f} seconds</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Enhanced export button
+                export_col1, export_col2 = st.columns([3, 1])
+                with export_col1:
+                    if st.button("Export Combined Results", type="primary", use_container_width=True):
+                        csv = combined_df.to_csv(index=False)
+                        b64 = base64.b64encode(csv.encode()).decode()
+                        
+                        st.markdown(f"""
+                        <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; text-align: center; margin-top: 1rem;">
+                            <a href="data:file/csv;base64,{b64}" download="combined_experiment.csv" style="
+                                display: inline-block;
+                                padding: 0.5rem 1rem;
+                                background: #4CAF50;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 4px;
+                                font-weight: 500;
+                            ">
+                                <span style="margin-right: 0.5rem;">📥</span> Download CSV File
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
     
     # Tab: Results
     with tabs[3]:
-        st.markdown('<p class="sub-header">Experiment Results & Analysis</p>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("""
-        View and analyze results from all your experiments. Export data for further analysis or for your research paper.
-        """)
-        st.markdown('</div>', unsafe_allow_html=True)
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Experiment Results & Analysis
+        </h2>
+        """, unsafe_allow_html=True)
+        
+        # Enhanced info box
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border-left: 3px solid #4b6cb7; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: inherit;">View and analyze results from all your experiments. Export data for further analysis or for your research paper.</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Check if there are any results
         has_chunking_results = hasattr(st.session_state, "chunking_results")
@@ -2651,40 +3736,122 @@ def experiment_lab_page():
         has_combined_results = hasattr(st.session_state, "combined_results")
         
         if not (has_chunking_results or has_retrieval_results or has_combined_results):
-            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-            st.warning("No experiment results available. Run experiments to generate results.")
-            st.markdown('</div>', unsafe_allow_html=True)
+            # Enhanced empty state
+            st.markdown("""
+            <div style="padding: 2rem; margin: 1rem 0; background: rgba(75,108,183,0.05); border-radius: 8px; text-align: center; border: 1px dashed rgba(75,108,183,0.2);">
+                <div style="font-size: 3.5rem; margin-bottom: 1rem; color: rgba(75,108,183,0.3);">📊</div>
+                <p style="margin: 0; font-weight: 500; color: inherit; margin-bottom: 0.5rem;">No experiment results available</p>
+                <p style="margin: 0; font-size: 0.9rem; color: inherit;">Run experiments in the other tabs to generate results for analysis.</p>
+            </div>
+            """, unsafe_allow_html=True)
             return
             
-        # Select experiment to view
+        # Enhanced experiment selection
+        st.markdown("""
+        <div style="margin-top: 1.2rem; margin-bottom: 0.8rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                <span style="margin-right: 0.5rem;">🔍</span> Select Experiment Results
+            </h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        experiment_options = []
+        if has_chunking_results:
+            experiment_options.append("Chunking Experiment")
+        if has_retrieval_results:
+            experiment_options.append("Retrieval Experiment")
+        if has_combined_results:
+            experiment_options.append("Combined Experiment")
+        
+        # Enhanced selection container
+        st.markdown("""
+        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+        """, unsafe_allow_html=True)
+            
         experiment_type = st.selectbox(
-            "Select Experiment Results",
-            ["Chunking Experiment", "Retrieval Experiment", "Combined Experiment"],
-            key="results_experiment_type"
+            "Select experiment type to view results",
+            experiment_options,
+            key="results_experiment_type",
+            label_visibility="collapsed"
         )
         
-        # Display selected experiment results
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Display selected experiment results with enhanced styling
         if experiment_type == "Chunking Experiment" and has_chunking_results:
+            # Enhanced results header
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(75,108,183,0.2);">
+                <h3 style="font-size: 1.3rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">✂️</span> Chunking Experiment Results
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             # Convert to DataFrame
             chunking_df = pd.DataFrame(st.session_state.chunking_results)
             
+            # Enhanced table container
+            st.markdown("""
+            <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+                <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: #4b6cb7;">Performance Data</p>
+            """, unsafe_allow_html=True)
+            
             # Display table
-            st.dataframe(chunking_df)
+            st.dataframe(chunking_df, use_container_width=True)
             
-            # Create visualizations
-            st.markdown("### Chunking Strategy Performance")
+            st.markdown("</div>", unsafe_allow_html=True)
             
+            # Enhanced visualization section
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📈</span> Chunking Strategy Performance
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Create enhanced visualizations
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+            fig.patch.set_facecolor('#f9f9f9')
+            ax1.set_facecolor('#f9f9f9')
+            ax2.set_facecolor('#f9f9f9')
             
-            # Processing time comparison
-            sns.barplot(x="Strategy", y="Processing Time", data=chunking_df, ax=ax1)
-            ax1.set_title("Processing Time by Chunking Strategy")
-            ax1.grid(True, linestyle='--', alpha=0.7)
+            # Processing time comparison with enhanced styling
+            colors1 = sns.color_palette("Blues_d", len(chunking_df))
+            bars1 = sns.barplot(x="Strategy", y="Processing Time", data=chunking_df, ax=ax1, palette=colors1)
             
-            # Documents retrieved comparison
-            sns.barplot(x="Strategy", y="Docs Retrieved", data=chunking_df, ax=ax2)
-            ax2.set_title("Documents Retrieved by Chunking Strategy")
-            ax2.grid(True, linestyle='--', alpha=0.7)
+            # Add value annotations
+            for i, p in enumerate(bars1.patches):
+                height = p.get_height()
+                bars1.annotate(f"{height:.2f}s",
+                            xy=(p.get_x() + p.get_width() / 2., height),
+                            xytext=(0, 3),  # 3 points vertical offset
+                            textcoords="offset points",
+                            ha='center', va='bottom', fontsize=9, color='#333')
+            
+            ax1.set_title("Processing Time by Chunking Strategy", fontsize=12, fontweight='bold')
+            ax1.grid(True, linestyle='--', alpha=0.3)
+            ax1.spines['top'].set_visible(False)
+            ax1.spines['right'].set_visible(False)
+            
+            # Documents retrieved comparison with enhanced styling
+            colors2 = sns.color_palette("Greens_d", len(chunking_df))
+            bars2 = sns.barplot(x="Strategy", y="Docs Retrieved", data=chunking_df, ax=ax2, palette=colors2)
+            
+            # Add value annotations
+            for i, p in enumerate(bars2.patches):
+                height = p.get_height()
+                bars2.annotate(f"{int(height)}",
+                            xy=(p.get_x() + p.get_width() / 2., height),
+                            xytext=(0, 3),  # 3 points vertical offset
+                            textcoords="offset points",
+                            ha='center', va='bottom', fontsize=9, color='#333')
+            
+            ax2.set_title("Documents Retrieved by Chunking Strategy", fontsize=12, fontweight='bold')
+            ax2.grid(True, linestyle='--', alpha=0.3)
+            ax2.spines['top'].set_visible(False)
+            ax2.spines['right'].set_visible(False)
             
             plt.tight_layout()
             
@@ -2694,34 +3861,103 @@ def experiment_lab_page():
             buf.seek(0)
             st.image(buf)
             
-            # Export button
-            if st.button("Export Chunking Results"):
-                csv = chunking_df.to_csv(index=False)
-                b64 = base64.b64encode(csv.encode()).decode()
-                href = f'<a href="data:file/csv;base64,{b64}" download="chunking_experiment.csv">Download CSV File</a>'
-                st.markdown(href, unsafe_allow_html=True)
+            # Enhanced export button
+            export_col1, export_col2 = st.columns([3, 1])
+            with export_col1:
+                if st.button("Export Chunking Results", type="primary", use_container_width=True):
+                    csv = chunking_df.to_csv(index=False)
+                    b64 = base64.b64encode(csv.encode()).decode()
+                    
+                    st.markdown(f"""
+                    <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; text-align: center; margin-top: 1rem;">
+                        <a href="data:file/csv;base64,{b64}" download="chunking_experiment.csv" style="
+                            display: inline-block;
+                            padding: 0.5rem 1rem;
+                            background: #4CAF50;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            font-weight: 500;
+                        ">
+                            <span style="margin-right: 0.5rem;">📥</span> Download CSV File
+                        </a>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
         elif experiment_type == "Retrieval Experiment" and has_retrieval_results:
+            # Enhanced results header
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(75,108,183,0.2);">
+                <h3 style="font-size: 1.3rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🔍</span> Retrieval Experiment Results
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             # Convert to DataFrame
             retrieval_df = pd.DataFrame(st.session_state.retrieval_results)
             
+            # Enhanced table container
+            st.markdown("""
+            <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+                <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: #4b6cb7;">Performance Data</p>
+            """, unsafe_allow_html=True)
+            
             # Display table
-            st.dataframe(retrieval_df)
+            st.dataframe(retrieval_df, use_container_width=True)
             
-            # Create visualizations
-            st.markdown("### Retrieval Method Performance")
+            st.markdown("</div>", unsafe_allow_html=True)
             
+            # Enhanced visualization section
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📈</span> Retrieval Method Performance
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Create enhanced visualizations
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+            fig.patch.set_facecolor('#f9f9f9')
+            ax1.set_facecolor('#f9f9f9')
+            ax2.set_facecolor('#f9f9f9')
             
-            # Processing time comparison
-            sns.barplot(x="Method", y="Processing Time", data=retrieval_df, ax=ax1)
-            ax1.set_title("Processing Time by Retrieval Method")
-            ax1.grid(True, linestyle='--', alpha=0.7)
+            # Processing time comparison with enhanced styling
+            colors1 = sns.color_palette("Purples_d", len(retrieval_df))
+            bars1 = sns.barplot(x="Method", y="Processing Time", data=retrieval_df, ax=ax1, palette=colors1)
             
-            # Documents retrieved comparison
-            sns.barplot(x="Method", y="Docs Retrieved", data=retrieval_df, ax=ax2)
-            ax2.set_title("Documents Retrieved by Retrieval Method")
-            ax2.grid(True, linestyle='--', alpha=0.7)
+            # Add value annotations
+            for i, p in enumerate(bars1.patches):
+                height = p.get_height()
+                bars1.annotate(f"{height:.2f}s",
+                            xy=(p.get_x() + p.get_width() / 2., height),
+                            xytext=(0, 3),  # 3 points vertical offset
+                            textcoords="offset points",
+                            ha='center', va='bottom', fontsize=9, color='#333')
+            
+            ax1.set_title("Processing Time by Retrieval Method", fontsize=12, fontweight='bold')
+            ax1.grid(True, linestyle='--', alpha=0.3)
+            ax1.spines['top'].set_visible(False)
+            ax1.spines['right'].set_visible(False)
+            
+            # Documents retrieved comparison with enhanced styling
+            colors2 = sns.color_palette("Oranges_d", len(retrieval_df))
+            bars2 = sns.barplot(x="Method", y="Docs Retrieved", data=retrieval_df, ax=ax2, palette=colors2)
+            
+            # Add value annotations
+            for i, p in enumerate(bars2.patches):
+                height = p.get_height()
+                bars2.annotate(f"{int(height)}",
+                            xy=(p.get_x() + p.get_width() / 2., height),
+                            xytext=(0, 3),  # 3 points vertical offset
+                            textcoords="offset points",
+                            ha='center', va='bottom', fontsize=9, color='#333')
+            
+            ax2.set_title("Documents Retrieved by Retrieval Method", fontsize=12, fontweight='bold')
+            ax2.grid(True, linestyle='--', alpha=0.3)
+            ax2.spines['top'].set_visible(False)
+            ax2.spines['right'].set_visible(False)
             
             plt.tight_layout()
             
@@ -2731,29 +3967,77 @@ def experiment_lab_page():
             buf.seek(0)
             st.image(buf)
             
-            # Export button
-            if st.button("Export Retrieval Results"):
-                csv = retrieval_df.to_csv(index=False)
-                b64 = base64.b64encode(csv.encode()).decode()
-                href = f'<a href="data:file/csv;base64,{b64}" download="retrieval_experiment.csv">Download CSV File</a>'
-                st.markdown(href, unsafe_allow_html=True)
+            # Enhanced export button
+            export_col1, export_col2 = st.columns([3, 1])
+            with export_col1:
+                if st.button("Export Retrieval Results", type="primary", use_container_width=True):
+                    csv = retrieval_df.to_csv(index=False)
+                    b64 = base64.b64encode(csv.encode()).decode()
+                    
+                    st.markdown(f"""
+                    <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; text-align: center; margin-top: 1rem;">
+                        <a href="data:file/csv;base64,{b64}" download="retrieval_experiment.csv" style="
+                            display: inline-block;
+                            padding: 0.5rem 1rem;
+                            background: #4CAF50;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            font-weight: 500;
+                        ">
+                            <span style="margin-right: 0.5rem;">📥</span> Download CSV File
+                        </a>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
         elif experiment_type == "Combined Experiment" and has_combined_results:
+            # Enhanced results header
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(75,108,183,0.2);">
+                <h3 style="font-size: 1.3rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🔄</span> Combined Experiment Results
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             # Convert to DataFrame
             combined_df = pd.DataFrame(st.session_state.combined_results)
             
+            # Enhanced table container
+            st.markdown("""
+            <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+                <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: #4b6cb7;">Performance Data</p>
+            """, unsafe_allow_html=True)
+            
             # Display table
-            st.dataframe(combined_df)
+            st.dataframe(combined_df, use_container_width=True)
             
-            # Create visualizations
-            st.markdown("### Combined Experiment Analysis")
+            st.markdown("</div>", unsafe_allow_html=True)
             
-            # Query filter
+            # Enhanced analysis section
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📊</span> Combined Experiment Analysis
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Enhanced query filter
             if "Query" in combined_df.columns:
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+                    <p style="margin: 0 0 0.7rem 0; font-weight: 500; color: #4b6cb7;">Filter Results by Query:</p>
+                """, unsafe_allow_html=True)
+                
                 selected_query = st.selectbox(
                     "Filter by Query",
-                    ["All Queries"] + list(combined_df["Query"].unique())
+                    ["All Queries"] + list(combined_df["Query"].unique()),
+                    key="results_query_filter",
+                    label_visibility="collapsed"
                 )
+                
+                st.markdown("</div>", unsafe_allow_html=True)
                 
                 if selected_query != "All Queries":
                     filtered_df = combined_df[combined_df["Query"] == selected_query]
@@ -2762,10 +4046,16 @@ def experiment_lab_page():
             else:
                 filtered_df = combined_df
                 
-            # Heat map of configuration performance
-            st.markdown("### Configuration Performance Heat Map")
+            # Enhanced heat map section
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🔥</span> Configuration Performance Heat Map
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Create a pivot table
+            # Create a visually enhanced heat map
             pivot_data = filtered_df.pivot_table(
                 values="Time (sec)",
                 index=["Chunking", "Retrieval"],
@@ -2773,10 +4063,22 @@ def experiment_lab_page():
                 aggfunc="mean"
             )
             
-            # Plot heat map
             fig, ax = plt.subplots(figsize=(10, 6))
-            sns.heatmap(pivot_data, annot=True, cmap="YlGnBu", fmt=".2f", ax=ax)
-            ax.set_title("Average Processing Time (sec) by Configuration")
+            fig.patch.set_facecolor('#f9f9f9')
+            
+            sns.heatmap(
+                pivot_data, 
+                annot=True, 
+                cmap="YlGnBu", 
+                fmt=".2f", 
+                ax=ax, 
+                linewidths=0.5,
+                cbar_kws={"shrink": 0.8, "label": "Seconds"}
+            )
+            
+            ax.set_title("Average Processing Time (sec) by Configuration", fontsize=14, fontweight='bold', pad=15)
+            
+            plt.tight_layout()
             
             # Convert plot to image for Streamlit
             buf = BytesIO()
@@ -2784,57 +4086,141 @@ def experiment_lab_page():
             buf.seek(0)
             st.image(buf)
             
-            # Best configuration analysis
-            st.markdown("### Best Configurations")
+            # Enhanced best configuration section
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🏆</span> Best Configurations
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             # Find best configuration by time
             best_time_idx = filtered_df["Time (sec)"].idxmin()
             best_time_config = filtered_df.loc[best_time_idx]
             
-            st.markdown("**Fastest Configuration:**")
+            # Enhanced best configuration card
             st.markdown(f"""
-            - Chunking: {best_time_config["Chunking"]}
-            - Retrieval: {best_time_config["Retrieval"]}
-            - Reranking: {best_time_config["Reranking"]}
-            - Time: {best_time_config["Time (sec)"]:.2f} seconds
-            """)
+            <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; border-left: 3px solid #4CAF50; margin-bottom: 1.5rem;">
+                <div style="font-weight: 600; color: #388E3C; margin-bottom: 0.8rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🚀</span> Fastest Configuration:
+                </div>
+                <div style="margin-left: 1.5rem;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Chunking:</div>
+                        <div>{best_time_config["Chunking"]}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Retrieval:</div>
+                        <div>{best_time_config["Retrieval"]}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Reranking:</div>
+                        <div>{best_time_config["Reranking"]}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="width: 120px; font-weight: 500; color: #4b6cb7;">Time:</div>
+                        <div>{best_time_config["Time (sec)"]:.2f} seconds</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Export button
-            if st.button("Export Combined Results"):
-                csv = combined_df.to_csv(index=False)
-                b64 = base64.b64encode(csv.encode()).decode()
-                href = f'<a href="data:file/csv;base64,{b64}" download="combined_experiment.csv">Download CSV File</a>'
-                st.markdown(href, unsafe_allow_html=True)
-
+            # Enhanced export button
+            export_col1, export_col2 = st.columns([3, 1])
+            with export_col1:
+                if st.button("Export Combined Results", type="primary", use_container_width=True):
+                    csv = combined_df.to_csv(index=False)
+                    b64 = base64.b64encode(csv.encode()).decode()
+                    
+                    st.markdown(f"""
+                    <div style="padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 8px; text-align: center; margin-top: 1rem;">
+                        <a href="data:file/csv;base64,{b64}" download="combined_experiment.csv" style="
+                            display: inline-block;
+                            padding: 0.5rem 1rem;
+                            background: #4CAF50;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            font-weight: 500;
+                        ">
+                            <span style="margin-right: 0.5rem;">📥</span> Download CSV File
+                        </a>
+                    </div>
+                    """, unsafe_allow_html=True)
 
 def experiment_results_page():
     """Display results from experiment runs stored in the results and figures folders"""
-    st.markdown('<p class="main-header">📈 Experiment Results</p>', unsafe_allow_html=True)
+    
+    # Enhanced header with visual impact
+    st.markdown("""
+    <div style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(75,108,183,0.15) 0%, rgba(24,40,72,0.25) 100%); padding: 1.5rem; border-radius: 12px; border-left: 5px solid #4b6cb7;">
+        <h1 style="font-size: 2.2rem; font-weight: 700; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+            <span style="margin-right: 0.7rem; font-size: 2rem;">📈</span> Experiment Results
+        </h1>
+        <p style="margin: 0; font-size: 1.1rem; color: inherit; max-width: 800px;">
+            Access and analyze results from your RAG experiments, organized by component type or chronological order.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Enhanced tab styling
+    tab_styles = """
+    <style>
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            background-color: rgba(75,108,183,0.05);
+            border-radius: 6px;
+            padding: 0.25rem 1rem;
+            height: auto;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: rgba(75,108,183,0.2);
+            border-radius: 6px;
+        }
+    </style>
+    """
+    st.markdown(tab_styles, unsafe_allow_html=True)
 
     # Create tabs to separate figures-based results view and chronological browser
     result_view_tabs = st.tabs(["Analysis Results", "Chronological Results Browser"])
     
     with result_view_tabs[0]:
-    
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        # Enhanced info box
         st.markdown("""
-        View results from previously run experiments. This page displays analysis, figures, and recommendations
-        from the experiment runs executed via the run_experiments.py script or individual experiment modules.
-        """)
-        st.markdown('</div>', unsafe_allow_html=True)
+        <div style="margin-bottom: 1.5rem; padding: 1.2rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1);">
+            <div style="display: flex; align-items: flex-start;">
+                <div style="font-size: 1.5rem; margin-right: 0.7rem; color: #4b6cb7;">ℹ️</div>
+                <div>
+                    <p style="margin: 0; font-weight: 500; color: inherit; margin-bottom: 0.5rem;">Analysis Results Overview</p>
+                    <p style="margin: 0; color: inherit;">View analysis results, figures, and recommendations from experiment runs executed via the run_experiments.py script or individual experiment modules.</p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Check if results/figures directories exist
         results_dir = "results"
         figures_dir = "figures"
         
         if not os.path.exists(results_dir) and not os.path.exists(figures_dir):
-            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-            st.warning("""
-            No experiment results found. To generate results:
-            1. Run experiments using run_experiments.py 
-            2. Or run individual experiment modules in the experiments/ directory
-            """)
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("""
+            <div style="margin-bottom: 1.5rem; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px; padding: 1.2rem;">
+                <div style="display: flex; align-items: flex-start;">
+                    <div style="font-size: 1.5rem; margin-right: 0.7rem; color: #FF9800;">⚠️</div>
+                    <div>
+                        <p style="margin: 0; font-weight: 500; color: #E65100;">No experiment results found</p>
+                        <p style="margin-top: 0.5rem; color: inherit;">To generate results:</p>
+                        <ol style="margin-top: 0.3rem; margin-bottom: 0; padding-left: 1.5rem;">
+                            <li>Run experiments using <code>run_experiments.py</code></li>
+                            <li>Or run individual experiment modules in the <code>experiments/</code> directory</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             return
         
         # Define the experiment categories that align with the analysis folders
@@ -2844,10 +4230,10 @@ def experiment_results_page():
             "combined"  # For overall results and comparisons
         ]
         
-        # Create tabs for different experiment types
-        tabs = st.tabs([category.replace("_", " ").title() for category in experiment_categories])
+        # Create visually enhanced category tabs 
+        category_tabs = st.tabs([category.replace("_", " ").title() for category in experiment_categories])
         
-        # Function to load and format recommendations from JSON
+        # Function to load and format recommendations from JSON (keep original function)
         def load_recommendations(json_path):
             try:
                 with open(json_path, 'r') as f:
@@ -2856,14 +4242,14 @@ def experiment_results_page():
             except:
                 return None
         
-        # Function to render a figure if it exists
+        # Function to render a figure if it exists (keep original function)
         def render_figure(fig_path, caption=None):
             if os.path.exists(fig_path):
                 st.image(fig_path, caption=caption, use_container_width=True)
                 return True
             return False
         
-        # Function to render data from CSV
+        # Enhanced function to render data from CSV
         def render_csv(csv_path, max_rows=20):
             try:
                 df = pd.read_csv(csv_path)
@@ -2871,11 +4257,26 @@ def experiment_results_page():
                 df = df.fillna("N/A")
                 st.dataframe(df, use_container_width=True)
                 
-                # Provide download option
+                # Enhanced download option
                 csv_data = df.to_csv(index=False).encode('utf-8')
                 b64 = base64.b64encode(csv_data).decode()
-                href = f'<a href="data:file/csv;base64,{b64}" download="{os.path.basename(csv_path)}">Download CSV</a>'
-                st.markdown(href, unsafe_allow_html=True)
+                
+                st.markdown(f"""
+                <div style="margin-top: 1rem; text-align: right;">
+                    <a href="data:file/csv;base64,{b64}" download="{os.path.basename(csv_path)}" style="
+                        display: inline-block;
+                        padding: 0.5rem 1rem;
+                        background: rgba(75,108,183,0.1);
+                        color: #4b6cb7;
+                        text-decoration: none;
+                        border-radius: 4px;
+                        font-weight: 500;
+                        border: 1px solid rgba(75,108,183,0.2);
+                    ">
+                        <span style="margin-right: 0.5rem;">📥</span> Download CSV
+                    </a>
+                </div>
+                """, unsafe_allow_html=True)
                 return True
             except Exception as e:
                 st.error(f"Error loading CSV file: {str(e)}")
@@ -2883,8 +4284,13 @@ def experiment_results_page():
         
         # Process each category in its respective tab
         for i, category in enumerate(experiment_categories):
-            with tabs[i]:
-                st.markdown(f'<p class="sub-header">{category.replace("_", " ").title()} Experiment Results</p>', unsafe_allow_html=True)
+            with category_tabs[i]:
+                # Enhanced category header
+                st.markdown(f"""
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+                    {category.replace("_", " ").title()} Experiment Results
+                </h2>
+                """, unsafe_allow_html=True)
                 
                 # Check for analysis folder
                 analysis_dir = os.path.join(figures_dir, f"{category}_analysis")
@@ -2900,9 +4306,16 @@ def experiment_results_page():
                 summary_csv = os.path.join(figures_dir, f"{category}_summary.csv")
                 recommendations_json = os.path.join(figures_dir, "recommendations.json")
                 
-                # First show direct category figures
+                # First show direct category figures with enhanced styling
                 if specific_figures:
-                    st.markdown("### Key Visualizations")
+                    st.markdown("""
+                    <div style="margin-top: 1.2rem; margin-bottom: 0.8rem;">
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                            <span style="margin-right: 0.5rem;">🖼️</span> Key Visualizations
+                        </h3>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     cols = st.columns(min(2, len(specific_figures)))
                     for j, fig_file in enumerate(specific_figures):
                         col_idx = j % len(cols)
@@ -2910,7 +4323,15 @@ def experiment_results_page():
                             # Create a display name from the filename
                             display_name = fig_file.replace(f"{category}_", "").replace("_", " ").replace(".png", "").replace(".jpg", "")
                             display_name = display_name.title()
+                            
+                            # Create a card for the image
+                            st.markdown("""
+                            <div style="padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 1rem;">
+                            """, unsafe_allow_html=True)
+                            
                             render_figure(os.path.join(figures_dir, fig_file), caption=display_name)
+                            
+                            st.markdown("</div>", unsafe_allow_html=True)
                             has_content = True
                 
                 # Show analysis folder contents if it exists
@@ -2922,9 +4343,16 @@ def experiment_results_page():
                     csv_files = [f for f in analysis_files if f.endswith('.csv')]
                     json_files = [f for f in analysis_files if f.endswith('.json')]
                     
-                    # Display visualizations
+                    # Display visualizations with enhanced styling
                     if png_files:
-                        st.markdown("### Analysis Visualizations")
+                        st.markdown("""
+                        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                <span style="margin-right: 0.5rem;">📊</span> Analysis Visualizations
+                            </h3>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                         display_cols = min(2, len(png_files))
                         fig_cols = st.columns(display_cols)
                         
@@ -2934,23 +4362,52 @@ def experiment_results_page():
                                 # Create a display name from the filename
                                 display_name = fig_file.replace("_", " ").replace(".png", "").replace(".jpg", "")
                                 display_name = ' '.join(word.capitalize() for word in display_name.split())
+                                
+                                # Create a card for the image
+                                st.markdown("""
+                                <div style="padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 1rem;">
+                                """, unsafe_allow_html=True)
+                                
                                 render_figure(os.path.join(analysis_dir, fig_file), caption=display_name)
+                                
+                                st.markdown("</div>", unsafe_allow_html=True)
                         has_content = True
                     
-                    # Display data tables
+                    # Display data tables with enhanced styling
                     if csv_files:
-                        st.markdown("### Data Analysis")
+                        st.markdown("""
+                        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                <span style="margin-right: 0.5rem;">📑</span> Data Analysis
+                            </h3>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                         for csv_file in csv_files:
                             display_name = csv_file.replace("_", " ").replace(".csv", "")
                             display_name = ' '.join(word.capitalize() for word in display_name.split())
                             
-                            with st.expander(f"{display_name} Data", expanded=False):
+                            # Enhanced expander styling
+                            st.markdown(f"""
+                            <div style="margin-bottom: 0.8rem; font-weight: 500; color: #4b6cb7;">
+                                {display_name} Data
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            with st.expander("View Data", expanded=False):
                                 render_csv(os.path.join(analysis_dir, csv_file))
                         has_content = True
                     
-                    # Display JSON data (like parameters)
+                    # Display JSON data with enhanced styling
                     if json_files:
-                        st.markdown("### Configuration Parameters")
+                        st.markdown("""
+                        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                <span style="margin-right: 0.5rem;">⚙️</span> Configuration Parameters
+                            </h3>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                         for json_file in json_files:
                             display_name = json_file.replace("_", " ").replace(".json", "")
                             display_name = ' '.join(word.capitalize() for word in display_name.split())
@@ -2958,58 +4415,116 @@ def experiment_results_page():
                             try:
                                 with open(os.path.join(analysis_dir, json_file), 'r') as f:
                                     json_data = json.load(f)
-                                    
-                                with st.expander(f"{display_name}", expanded=False):
+                                
+                                # Enhanced expander styling
+                                st.markdown(f"""
+                                <div style="margin-bottom: 0.8rem; font-weight: 500; color: #4b6cb7;">
+                                    {display_name}
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                with st.expander("View Configuration", expanded=False):
                                     st.json(json_data)
                             except:
                                 st.error(f"Error loading JSON file: {json_file}")
                         has_content = True
                 
-                # Show summary CSV if it exists
+                # Show summary CSV with enhanced styling
                 if os.path.exists(summary_csv):
-                    st.markdown("### Summary Results")
+                    st.markdown("""
+                    <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                            <span style="margin-right: 0.5rem;">📋</span> Summary Results
+                        </h3>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Enhanced container for the CSV
+                    st.markdown("""
+                    <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1.5rem;">
+                    """, unsafe_allow_html=True)
+                    
                     render_csv(summary_csv)
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
                     has_content = True
                 
-                # For category-specific recommendations
+                # For category-specific recommendations with enhanced styling
                 if os.path.exists(recommendations_json):
                     recommendations = load_recommendations(recommendations_json)
                     if recommendations and category in recommendations:
-                        st.markdown("### Recommendations")
+                        st.markdown("""
+                        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                <span style="margin-right: 0.5rem;">💡</span> Recommendations
+                            </h3>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                         rec_data = recommendations[category]
                         
-                        # Display recommendations in a nice format
-                        st.markdown('<div class="content-box">', unsafe_allow_html=True)
+                        # Display recommendations in an enhanced box
+                        st.markdown("""
+                        <div style="padding: 1.2rem; background: rgba(75,108,183,0.05); border-radius: 8px; border-left: 3px solid #4b6cb7; margin-bottom: 1.5rem;">
+                        """, unsafe_allow_html=True)
+                        
                         if isinstance(rec_data, list):
                             for j, rec in enumerate(rec_data):
-                                st.markdown(f"**{j+1}.** {rec}")
+                                st.markdown(f"""
+                                <div style="display: flex; margin-bottom: 0.8rem; align-items: baseline;">
+                                    <div style="background: #4b6cb7; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 0.8rem; flex-shrink: 0;">
+                                        {j+1}
+                                    </div>
+                                    <div>{rec}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
                         elif isinstance(rec_data, dict):
                             for key, value in rec_data.items():
-                                st.markdown(f"**{key}:** {value}")
+                                st.markdown(f"""
+                                <div style="margin-bottom: 0.8rem;">
+                                    <div style="font-weight: 600; color: #4b6cb7; margin-bottom: 0.3rem;">{key}</div>
+                                    <div>{value}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
                         else:
                             st.write(rec_data)
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
                         has_content = True
                 
-                # Check if there's any category-specific folder in results directory
+                # Check for category-specific folder in results directory with enhanced styling
                 results_category_dir = os.path.join(results_dir, category)
                 if os.path.exists(results_category_dir) and os.path.isdir(results_category_dir):
-                    st.markdown("### Detailed Results")
+                    st.markdown("""
+                    <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                            <span style="margin-right: 0.5rem;">🔍</span> Detailed Results
+                        </h3>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                     # List subdirectories (experiment runs)
                     result_runs = [d for d in os.listdir(results_category_dir) 
-                                if os.path.isdir(os.path.join(results_category_dir, d))]
+                                  if os.path.isdir(os.path.join(results_category_dir, d))]
                     
                     if result_runs:
                         # Sort runs by modification time (newest first)
                         result_runs.sort(key=lambda x: os.path.getmtime(os.path.join(results_category_dir, x)), reverse=True)
                         
-                        # Create a selectbox for choosing the run
+                        # Enhanced experiment run selection
+                        st.markdown("""
+                        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                            <p style="margin: 0 0 0.8rem 0; font-weight: 500; color: #4b6cb7;">Select an experiment run to view detailed results:</p>
+                        """, unsafe_allow_html=True)
+                        
                         selected_run = st.selectbox(
                             "Select Experiment Run",
                             result_runs,
-                            key=f"select_run_{category}"
+                            key=f"select_run_{category}",
+                            label_visibility="collapsed"
                         )
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
                         
                         # Display contents of the selected run
                         run_dir = os.path.join(results_category_dir, selected_run)
@@ -3020,36 +4535,103 @@ def experiment_results_page():
                         run_csvs = [f for f in run_files if f.endswith('.csv')]
                         run_jsons = [f for f in run_files if f.endswith('.json')]
                         
-                        # Display images
+                        # Display run metadata
+                        run_time = os.path.getmtime(os.path.join(results_category_dir, selected_run))
+                        run_datetime = datetime.datetime.fromtimestamp(run_time)
+                        
+                        st.markdown(f"""
+                        <div style="margin-bottom: 1.2rem; display: flex; flex-wrap: wrap; gap: 1rem;">
+                            <div style="padding: 0.8rem; background: rgba(75,108,183,0.1); border-radius: 8px; flex-grow: 1; text-align: center;">
+                                <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.3rem;">Run Date</div>
+                                <div style="font-size: 1rem; font-weight: 600; color: #4b6cb7;">{run_datetime.strftime('%Y-%m-%d')}</div>
+                            </div>
+                            <div style="padding: 0.8rem; background: rgba(75,108,183,0.1); border-radius: 8px; flex-grow: 1; text-align: center;">
+                                <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.3rem;">Run Time</div>
+                                <div style="font-size: 1rem; font-weight: 600; color: #4b6cb7;">{run_datetime.strftime('%H:%M:%S')}</div>
+                            </div>
+                            <div style="padding: 0.8rem; background: rgba(75,108,183,0.1); border-radius: 8px; flex-grow: 1; text-align: center;">
+                                <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.3rem;">Files</div>
+                                <div style="font-size: 1rem; font-weight: 600; color: #4b6cb7;">{len(run_files)}</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Display images with enhanced styling
                         if run_images:
-                            st.markdown("#### Visualizations")
+                            st.markdown("""
+                            <div style="margin-top: 1.2rem; margin-bottom: 0.8rem;">
+                                <h4 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                    <span style="margin-right: 0.5rem;">📊</span> Visualizations
+                                </h4>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
                             cols = st.columns(min(2, len(run_images)))
                             for j, img in enumerate(run_images):
                                 col_idx = j % len(cols)
                                 with cols[col_idx]:
                                     display_name = img.replace("_", " ").replace(".png", "").replace(".jpg", "")
                                     display_name = display_name.title()
+                                    
+                                    # Create a card for the image
+                                    st.markdown("""
+                                    <div style="padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 1rem;">
+                                    """, unsafe_allow_html=True)
+                                    
                                     render_figure(os.path.join(run_dir, img), caption=display_name)
+                                    
+                                    st.markdown("</div>", unsafe_allow_html=True)
                         
-                        # Display CSVs
+                        # Display CSVs with enhanced styling
                         if run_csvs:
-                            st.markdown("#### Data Tables")
+                            st.markdown("""
+                            <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                                <h4 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                    <span style="margin-right: 0.5rem;">📑</span> Data Tables
+                                </h4>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
                             for csv_file in run_csvs:
                                 display_name = csv_file.replace("_", " ").replace(".csv", "")
                                 display_name = display_name.title()
-                                with st.expander(f"{display_name}", expanded=False):
+                                
+                                # Enhanced expander styling
+                                st.markdown(f"""
+                                <div style="margin-bottom: 0.8rem; font-weight: 500; color: #4b6cb7;">
+                                    {display_name}
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                with st.expander("View Data", expanded=False):
                                     render_csv(os.path.join(run_dir, csv_file))
                         
-                        # Display JSONs
+                        # Display JSONs with enhanced styling
                         if run_jsons:
-                            st.markdown("#### Configuration & Parameters")
+                            st.markdown("""
+                            <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                                <h4 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                    <span style="margin-right: 0.5rem;">⚙️</span> Configuration & Parameters
+                                </h4>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
                             for json_file in run_jsons:
                                 display_name = json_file.replace("_", " ").replace(".json", "")
                                 display_name = display_name.title()
+                                
                                 try:
                                     with open(os.path.join(run_dir, json_file), 'r') as f:
                                         json_data = json.load(f)
-                                    with st.expander(f"{display_name}", expanded=False):
+                                    
+                                    # Enhanced expander styling
+                                    st.markdown(f"""
+                                    <div style="margin-bottom: 0.8rem; font-weight: 500; color: #4b6cb7;">
+                                        {display_name}
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    with st.expander("View Configuration", expanded=False):
                                         st.json(json_data)
                                 except:
                                     st.error(f"Error loading JSON file: {json_file}")
@@ -3058,12 +4640,23 @@ def experiment_results_page():
                     else:
                         st.info(f"No experiment runs found for {category}.")
                 
-                # Check for combined results
+                # Check for combined results with enhanced styling
                 if category == "combined":
                     combined_csv = os.path.join(figures_dir, "combined_results.csv")
                     if os.path.exists(combined_csv):
-                        st.markdown("### Cross-Experiment Comparison")
-                        st.info("This dataset compares results across different experiment types.")
+                        st.markdown("""
+                        <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                <span style="margin-right: 0.5rem;">🔄</span> Cross-Experiment Comparison
+                            </h3>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown("""
+                        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border-left: 3px solid #4b6cb7; margin-bottom: 1.5rem;">
+                            <p style="margin: 0; color: inherit;">This dataset compares results across different experiment types, allowing identification of optimal configurations and performance patterns.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         # Read the CSV with proper handling of NaN values
                         try:
@@ -3071,35 +4664,58 @@ def experiment_results_page():
                             # Fill NaN values with "N/A" for display
                             df_display = df.fillna("N/A")
                             
-                            # Display the data
+                            # Display the data in an enhanced container
+                            st.markdown("""
+                            <div style="margin-bottom: 1.5rem;">
+                                <div style="margin-bottom: 0.8rem; font-weight: 500; color: #4b6cb7;">
+                                    Combined Results Data
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
                             st.dataframe(df_display, use_container_width=True)
                             
                             # Only try to visualize if we have numerical data
                             numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
                             if len(numeric_cols) >= 2:
-                                st.markdown("### Visualization of Key Metrics")
+                                st.markdown("""
+                                <div style="margin-top: 1.5rem; margin-bottom: 0.8rem;">
+                                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                        <span style="margin-right: 0.5rem;">📈</span> Visualization of Key Metrics
+                                    </h3>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # Enhanced visualization controls
+                                st.markdown("""
+                                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                                    <p style="margin: 0 0 0.8rem 0; font-weight: 500; color: #4b6cb7;">Select metrics to visualize:</p>
+                                """, unsafe_allow_html=True)
                                 
                                 # Filter out columns with all NaN values
                                 valid_metrics = [col for col in numeric_cols 
-                                                if not df[col].isna().all()]
+                                               if not df[col].isna().all()]
                                 
                                 # Only proceed if we have valid metrics
                                 if len(valid_metrics) >= 2:
                                     # Allow selecting metrics to plot
-                                    x_axis = st.selectbox(
-                                        "X-Axis Metric", 
-                                        valid_metrics,
-                                        key="combined_x_metric"
-                                    )
+                                    metric_cols = st.columns(2)
                                     
-                                    y_axis = st.selectbox(
-                                        "Y-Axis Metric", 
-                                        [m for m in valid_metrics if m != x_axis],
-                                        key="combined_y_metric"
-                                    )
+                                    with metric_cols[0]:
+                                        x_axis = st.selectbox(
+                                            "X-Axis Metric", 
+                                            valid_metrics,
+                                            key="combined_x_metric"
+                                        )
+                                    
+                                    with metric_cols[1]:
+                                        y_axis = st.selectbox(
+                                            "Y-Axis Metric", 
+                                            [m for m in valid_metrics if m != x_axis],
+                                            key="combined_y_metric"
+                                        )
                                     
                                     # Create a color column if we have a third dimension
-                                    color_col = None
                                     if len(valid_metrics) > 2:
                                         color_options = ["None"] + [m for m in valid_metrics if m != x_axis and m != y_axis]
                                         color_selection = st.selectbox(
@@ -3107,15 +4723,20 @@ def experiment_results_page():
                                             color_options,
                                             key="combined_color_metric"
                                         )
-                                        if color_selection != "None":
-                                            color_col = color_selection
+                                        color_col = None if color_selection == "None" else color_selection
+                                    else:
+                                        color_col = None
+                                    
+                                    st.markdown("</div>", unsafe_allow_html=True)
                                     
                                     # Filter to only rows where both selected metrics have values
                                     plot_data = df.dropna(subset=[x_axis, y_axis])
                                     
                                     if not plot_data.empty:
-                                        # Create the plot
+                                        # Create the plot with enhanced styling
                                         fig, ax = plt.subplots(figsize=(10, 6))
+                                        fig.patch.set_facecolor('#f9f9f9')
+                                        ax.set_facecolor('#f9f9f9')
                                         
                                         if color_col:
                                             # Drop rows where color column is NaN
@@ -3125,17 +4746,22 @@ def experiment_results_page():
                                                 plot_data[y_axis],
                                                 c=plot_data[color_col], 
                                                 cmap='viridis', 
-                                                alpha=0.7,
-                                                s=100
+                                                alpha=0.8,
+                                                s=120,
+                                                edgecolors='white',
+                                                linewidths=1
                                             )
                                             cbar = plt.colorbar(scatter)
-                                            cbar.set_label(color_col)
+                                            cbar.set_label(color_col, fontsize=11)
                                         else:
                                             ax.scatter(
                                                 plot_data[x_axis], 
                                                 plot_data[y_axis], 
-                                                alpha=0.7,
-                                                s=100
+                                                alpha=0.8,
+                                                s=120,
+                                                color='#4b6cb7',
+                                                edgecolors='white',
+                                                linewidths=1
                                             )
                                         
                                         # Get categorical columns to use as labels
@@ -3146,68 +4772,116 @@ def experiment_results_page():
                                                 ax.annotate(
                                                     row[cat_cols[0]], 
                                                     (row[x_axis], row[y_axis]),
-                                                    xytext=(5, 5),
-                                                    textcoords='offset points'
+                                                    xytext=(6, 6),
+                                                    textcoords='offset points',
+                                                    fontsize=9,
+                                                    color='#333333'
                                                 )
                                         
-                                        ax.set_xlabel(x_axis)
-                                        ax.set_ylabel(y_axis)
-                                        ax.set_title(f"{y_axis} vs {x_axis}")
-                                        ax.grid(True, linestyle='--', alpha=0.7)
+                                        ax.set_xlabel(x_axis, fontsize=12, fontweight='bold')
+                                        ax.set_ylabel(y_axis, fontsize=12, fontweight='bold')
+                                        ax.set_title(f"{y_axis} vs {x_axis}", fontsize=14, fontweight='bold', pad=15)
+                                        ax.grid(True, linestyle='--', alpha=0.3)
+                                        ax.spines['top'].set_visible(False)
+                                        ax.spines['right'].set_visible(False)
                                         
+                                        plt.tight_layout()
                                         st.pyplot(fig)
                                         plt.close(fig)
                                     else:
                                         st.warning("Not enough data points with both selected metrics.")
+                                else:
+                                    st.markdown("</div>", unsafe_allow_html=True)
+                                    st.warning("Not enough valid numerical metrics for visualization.")
                             
-                            # Provide download option
+                            # Enhanced download option
                             csv_data = df.to_csv(index=False).encode('utf-8')
                             b64 = base64.b64encode(csv_data).decode()
-                            href = f'<a href="data:file/csv;base64,{b64}" download="combined_results.csv">Download CSV</a>'
-                            st.markdown(href, unsafe_allow_html=True)
+                            
+                            st.markdown(f"""
+                            <div style="margin-top: 1rem; text-align: right;">
+                                <a href="data:file/csv;base64,{b64}" download="combined_results.csv" style="
+                                    display: inline-block;
+                                    padding: 0.5rem 1rem;
+                                    background: rgba(75,108,183,0.1);
+                                    color: #4b6cb7;
+                                    text-decoration: none;
+                                    border-radius: 4px;
+                                    font-weight: 500;
+                                    border: 1px solid rgba(75,108,183,0.2);
+                                ">
+                                    <span style="margin-right: 0.5rem;">📥</span> Download CSV
+                                </a>
+                            </div>
+                            """, unsafe_allow_html=True)
                             
                             has_content = True
                         except Exception as e:
                             st.error(f"Error processing combined results: {str(e)}")
                 
-                # Show a message if no content was found for this category
+                # Show a message if no content was found with enhanced styling
                 if not has_content:
-                    st.info(f"No results found for {category} experiments. Run the corresponding experiment to generate data.")
+                    st.markdown("""
+                    <div style="padding: 2rem; margin: 1rem 0; background: rgba(75,108,183,0.05); border-radius: 8px; text-align: center; border: 1px dashed rgba(75,108,183,0.2);">
+                        <div style="font-size: 3.5rem; margin-bottom: 1rem; color: rgba(75,108,183,0.3);">📊</div>
+                        <p style="margin: 0; font-weight: 500; color: inherit; margin-bottom: 0.5rem;">No results found for {category} experiments</p>
+                        <p style="margin: 0; font-size: 0.9rem; color: inherit;">Run the corresponding experiment to generate data.</p>
+                    </div>
+                    """.format(category=category), unsafe_allow_html=True)
+    
+    # In the second tab, call the browse_experiment_results function
     with result_view_tabs[1]:
         browse_experiment_results()
 
 def browse_experiment_results():
     """Browse experiment results from the results directory organized chronologically"""
-    st.markdown('<p class="main-header">🔍 Experiment Results Browser</p>', unsafe_allow_html=True)
     
-    st.markdown('<div class="info-box">', unsafe_allow_html=True)
+    # Enhanced header with visual impact
     st.markdown("""
-    This page allows you to browse all experiment runs chronologically. 
-    Experiment results are organized by type and date/time of execution.
-    """)
-    st.markdown('</div>', unsafe_allow_html=True)
+    <div style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(75,108,183,0.15) 0%, rgba(24,40,72,0.25) 100%); padding: 1.5rem; border-radius: 12px; border-left: 5px solid #4b6cb7;">
+        <h1 style="font-size: 2.2rem; font-weight: 700; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+            <span style="margin-right: 0.7rem; font-size: 2rem;">🔍</span> Experiment Results Browser
+        </h1>
+        <p style="margin: 0; font-size: 1.1rem; color: inherit; max-width: 800px;">
+            Explore your experiment results chronologically. Results are organized by experiment type and execution timestamp for easy comparison and analysis.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Check if results directory exists
+    # Check if results directory exists with enhanced styling
     results_dir = "results"
     
     if not os.path.exists(results_dir):
-        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-        st.warning("""
-        No experiment results found. To generate results:
-        1. Run experiments using run_experiments.py 
-        2. Or run individual experiment modules in the experiments/ directory
-        """)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="margin-bottom: 1.5rem; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px; padding: 1.2rem;">
+            <div style="display: flex; align-items: flex-start;">
+                <div style="font-size: 1.5rem; margin-right: 0.7rem; color: #FF9800;">⚠️</div>
+                <div>
+                    <p style="margin: 0; font-weight: 500; color: #E65100;">No experiment results found</p>
+                    <p style="margin-top: 0.5rem; color: inherit;">To generate results:</p>
+                    <ol style="margin-top: 0.3rem; margin-bottom: 0; padding-left: 1.5rem;">
+                        <li>Run experiments using <code>run_experiments.py</code></li>
+                        <li>Or run individual experiment modules in the <code>experiments/</code> directory</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         return
     
-    # Get all experiment folders
     # Get all experiment folders - modified to skip non-experiment directories
     experiment_folders = [f for f in os.listdir(results_dir) 
                         if os.path.isdir(os.path.join(results_dir, f)) 
                         and f not in ["Evaluation", "figures", "Paper figures"]]
     
     if not experiment_folders:
-        st.info("No experiment runs found in the results directory.")
+        st.markdown("""
+        <div style="padding: 2rem; margin: 1rem 0; background: rgba(75,108,183,0.05); border-radius: 8px; text-align: center; border: 1px dashed rgba(75,108,183,0.2);">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem; color: rgba(75,108,183,0.3);">📊</div>
+            <p style="margin: 0; font-weight: 500; color: inherit; margin-bottom: 0.5rem;">No experiment runs found</p>
+            <p style="margin: 0; font-size: 0.9rem; color: inherit;">Run some experiments to see their results here.</p>
+        </div>
+        """, unsafe_allow_html=True)
         return
     
     # Parse experiment folder names to extract info
@@ -3270,74 +4944,330 @@ def browse_experiment_results():
     # Group experiments by type
     experiment_types = sorted(list(set(exp['type'] for exp in experiment_data)))
     
+    # Enhanced tab styling 
+    tab_styles = """
+    <style>
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            background-color: rgba(75,108,183,0.05);
+            border-radius: 6px;
+            padding: 0.25rem 1rem;
+            height: auto;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: rgba(75,108,183,0.2);
+            border-radius: 6px;
+        }
+    </style>
+    """
+    st.markdown(tab_styles, unsafe_allow_html=True)
+    
+    # Summary statistics before displaying tabs
+    total_experiments = len(experiment_data)
+    earliest_date = min([exp["datetime"] for exp in experiment_data if exp["datetime"] != datetime.datetime.min])
+    latest_date = max([exp["datetime"] for exp in experiment_data if exp["datetime"] != datetime.datetime.min])
+    
+    # Display summary stats with enhanced styling
+    st.markdown("""
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1);">
+        <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-top: 0; margin-bottom: 0.8rem;">Experiment Summary</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+    """, unsafe_allow_html=True)
+    
+    # Create metrics row
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 0.7rem; background: rgba(75,108,183,0.1); border-radius: 8px;">
+            <div style="font-size: 0.85rem; color: #4b6cb7; margin-bottom: 0.3rem;">Total Experiments</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #4b6cb7;">{total_experiments}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col2:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 0.7rem; background: rgba(75,108,183,0.1); border-radius: 8px;">
+            <div style="font-size: 0.85rem; color: #4b6cb7; margin-bottom: 0.3rem;">Experiment Types</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #4b6cb7;">{len(experiment_types)}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col3:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 0.7rem; background: rgba(75,108,183,0.1); border-radius: 8px;">
+            <div style="font-size: 0.85rem; color: #4b6cb7; margin-bottom: 0.3rem;">Date Range</div>
+            <div style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7;">{earliest_date.strftime('%Y-%m-%d')} to {latest_date.strftime('%Y-%m-%d')}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("</div></div>", unsafe_allow_html=True)
+    
     # Create tabs for different experiment types
     tabs = st.tabs([exp_type.replace("_", " ").title() for exp_type in experiment_types])
     
     # Process each experiment type in its respective tab
     for i, exp_type in enumerate(experiment_types):
         with tabs[i]:
-            st.markdown(f'<p class="sub-header">{exp_type.replace("_", " ").title()} Experiments</p>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+                {exp_type.replace("_", " ").title()} Experiments
+            </h2>
+            """, unsafe_allow_html=True)
             
             # Filter experiments of this type
             type_experiments = [exp for exp in experiment_data if exp['type'] == exp_type]
+            
+            # Enhanced experiment timeline visualization
+            st.markdown("""
+            <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1);">
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-top: 0; margin-bottom: 0.8rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📅</span> Experiment Timeline
+                </h3>
+            """, unsafe_allow_html=True)
+            
+            # Create a visual timeline of experiments
+            valid_dates = [exp for exp in type_experiments if exp['datetime'] != datetime.datetime.min]
+            if valid_dates:
+                # Sort by date for timeline
+                valid_dates.sort(key=lambda x: x['datetime'])
+                
+                # Create timeline with dots
+                st.markdown("""
+                <div style="position: relative; height: 80px; margin: 0 1rem;">
+                    <div style="position: absolute; top: 40px; left: 0; right: 0; height: 2px; background-color: rgba(75,108,183,0.2);"></div>
+                """, unsafe_allow_html=True)
+                
+                # Calculate positions
+                timeline_width = 100  # percentage width
+                if len(valid_dates) > 1:
+                    start_date = valid_dates[0]['datetime']
+                    end_date = valid_dates[-1]['datetime']
+                    date_range = (end_date - start_date).total_seconds()
+                    
+                    if date_range > 0:
+                        # Create dots for each experiment
+                        for exp in valid_dates:
+                            position = ((exp['datetime'] - start_date).total_seconds() / date_range) * timeline_width
+                            
+                            # Format the date for tooltip
+                            date_display = f"{exp['date']} at {exp['time']}"
+                            
+                            st.markdown(f"""
+                            <div style="position: absolute; top: 30px; left: {position}%; transform: translateX(-50%);">
+                                <div style="width: 14px; height: 14px; background-color: #4b6cb7; border-radius: 50%; cursor: pointer;"
+                                     title="{date_display}"></div>
+                                <div style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap;">
+                                    {exp['date']}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    # Only one experiment
+                    st.markdown(f"""
+                    <div style="position: absolute; top: 30px; left: 50%; transform: translateX(-50%);">
+                        <div style="width: 14px; height: 14px; background-color: #4b6cb7; border-radius: 50%;"></div>
+                        <div style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); font-size: 0.7rem;">
+                            {valid_dates[0]['date']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.markdown("</div>", unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div style="text-align: center; padding: 1rem; color: #666;">
+                    No timeline data available for these experiments.
+                </div>
+                """, unsafe_allow_html=True)
+                
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Create an enhanced dropdown for experiment selection
+            st.markdown("""
+            <div style="margin: 1.5rem 0 1rem 0;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.8rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🔖</span> Select Experiment Run
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             # Create a selection widget for choosing the experiment run
             run_display_names = [f"{exp['date']} at {exp['time']}" if exp['date'] != 'Unknown' 
                                 else exp['folder'] for exp in type_experiments]
             
-            selected_index = st.selectbox(
-                f"Select {exp_type.replace('_', ' ').title()} Run",
-                range(len(run_display_names)),
-                format_func=lambda i: run_display_names[i],
-                key=f"select_run_{exp_type}"
-            )
+            # Container for select box with enhanced styling
+            select_container = st.container()
+            with select_container:
+                selected_index = st.selectbox(
+                    "Select experiment run",
+                    range(len(run_display_names)),
+                    format_func=lambda i: run_display_names[i],
+                    key=f"select_run_{exp_type}",
+                    label_visibility="collapsed"
+                )
             
             selected_experiment = type_experiments[selected_index]
             
-            # Display metadata about the selected experiment
-            st.markdown("### Experiment Details")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f"**Date:** {selected_experiment['date']}")
-            with col2:
-                st.markdown(f"**Time:** {selected_experiment['time']}")
+            # Enhanced experiment details display
+            st.markdown("""
+            <div style="margin: 1.5rem 0; padding: 1.2rem; background: rgba(75,108,183,0.1); border-radius: 8px; border: 1px solid rgba(75,108,183,0.15);">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; margin: 0 0 1rem 0; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📋</span> Experiment Details
+                </h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+            """, unsafe_allow_html=True)
+            
+            # Display metadata in attractive cards
+            detail_cols = st.columns(4)
+            
+            with detail_cols[0]:
+                st.markdown(f"""
+                <div style="padding: 0.8rem; background: rgba(255,255,255,0.5); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%;">
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.3rem;">Date</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7;">{selected_experiment['date']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            with detail_cols[1]:
+                st.markdown(f"""
+                <div style="padding: 0.8rem; background: rgba(255,255,255,0.5); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%;">
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.3rem;">Time</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7;">{selected_experiment['time']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            with detail_cols[2]:
+                folder_display = selected_experiment['folder']
+                # Truncate if too long
+                if len(folder_display) > 20:
+                    folder_display = folder_display[:17] + "..."
+                
+                st.markdown(f"""
+                <div style="padding: 0.8rem; background: rgba(255,255,255,0.5); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%;">
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.3rem;">Folder</div>
+                    <div style="font-size: 1rem; font-weight: 600; color: #4b6cb7; text-overflow: ellipsis; overflow: hidden;" title="{selected_experiment['folder']}">
+                        {folder_display}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            with detail_cols[3]:
+                # Determine how many files this experiment has
+                exp_path = selected_experiment['path']
+                file_count = len([f for f in os.listdir(exp_path) if os.path.isfile(os.path.join(exp_path, f))])
+                
+                st.markdown(f"""
+                <div style="padding: 0.8rem; background: rgba(255,255,255,0.5); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%;">
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.3rem;">Files</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7;">{file_count}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown("</div></div>", unsafe_allow_html=True)
             
             # Path to selected experiment folder
             exp_path = selected_experiment['path']
             
-            # Check for config.json
+            # Enhanced configuration section
             config_path = os.path.join(exp_path, "config.json")
             if os.path.exists(config_path):
-                with st.expander("Experiment Configuration", expanded=False):
+                st.markdown("""
+                <div style="margin: 1.5rem 0 1rem 0;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">⚙️</span> Experiment Configuration
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                with st.expander("View Configuration", expanded=False):
                     try:
                         with open(config_path, 'r') as f:
                             config_data = json.load(f)
+                        
+                        # Format the JSON nicely
                         st.json(config_data)
                     except Exception as e:
                         st.error(f"Error loading config.json: {e}")
             
-            # Check for results.csv
+            # Enhanced results CSV section
             results_csv_path = os.path.join(exp_path, "results.csv")
             if os.path.exists(results_csv_path):
-                with st.expander("Results Data (CSV)", expanded=False):
+                st.markdown("""
+                <div style="margin: 1.5rem 0 1rem 0;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📊</span> Results Data
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                with st.expander("View Results Data", expanded=False):
                     try:
                         df = pd.read_csv(results_csv_path)
                         # Handle NaN values for display
                         df = df.fillna("N/A")
+                        
+                        # Show summary statistics first if numerical data exists
+                        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
+                        if numeric_cols:
+                            st.markdown("""
+                            <div style="margin-bottom: 1rem;">
+                                <h4 style="font-size: 1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem;">Summary Statistics</h4>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Display summary stats
+                            summary_stats = df[numeric_cols].describe()
+                            st.dataframe(summary_stats, use_container_width=True)
+                            
+                            st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+                        
+                        # Full data display
+                        st.markdown("""
+                        <div style="margin-bottom: 0.5rem;">
+                            <h4 style="font-size: 1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem;">Full Dataset</h4>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                         st.dataframe(df, use_container_width=True)
                         
-                        # Provide download option
+                        # Provide download option with enhanced styling
                         csv_data = df.to_csv(index=False).encode('utf-8')
                         b64 = base64.b64encode(csv_data).decode()
-                        href = f'<a href="data:file/csv;base64,{b64}" download="results.csv">Download CSV</a>'
-                        st.markdown(href, unsafe_allow_html=True)
+                        
+                        st.markdown(f"""
+                        <div style="margin-top: 1rem; text-align: right;">
+                            <a href="data:file/csv;base64,{b64}" download="results.csv" style="
+                                display: inline-block;
+                                padding: 0.5rem 1rem;
+                                background: rgba(75,108,183,0.1);
+                                color: #4b6cb7;
+                                text-decoration: none;
+                                border-radius: 4px;
+                                font-weight: 500;
+                                border: 1px solid rgba(75,108,183,0.2);
+                            ">
+                                <span style="margin-right: 0.5rem;">📥</span> Download CSV
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
                     except Exception as e:
                         st.error(f"Error loading results.csv: {e}")
             
-            # Check for results.json
+            # Enhanced results JSON section
             results_json_path = os.path.join(exp_path, "results.json")
             if os.path.exists(results_json_path):
-                with st.expander("Detailed Results (JSON)", expanded=False):
+                st.markdown("""
+                <div style="margin: 1.5rem 0 1rem 0;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">🔍</span> Detailed Results
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                with st.expander("View Detailed Results", expanded=False):
                     try:
                         with open(results_json_path, 'r') as f:
                             results_data = json.load(f)
@@ -3345,20 +5275,33 @@ def browse_experiment_results():
                     except Exception as e:
                         st.error(f"Error loading results.json: {e}")
             
-            # Check for report directory
+            # Enhanced visualizations section
             report_dir = os.path.join(exp_path, "report")
             if os.path.exists(report_dir) and os.path.isdir(report_dir):
-                st.markdown("### Visualizations")
-                
                 # Get all image files in the report directory
                 image_files = [f for f in os.listdir(report_dir) 
-                              if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                            if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
                 
                 if image_files:
+                    st.markdown("""
+                    <div style="margin: 1.5rem 0 1rem 0;">
+                        <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+                            <span style="margin-right: 0.5rem;">📈</span> Visualizations
+                        </h3>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Enhanced visualization container
+                    st.markdown("""
+                    <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                        <p style="margin: 0 0 1rem 0; color: inherit;">The following visualizations were generated during the experiment run:</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     # Sort image files by name
                     image_files.sort()
                     
-                    # Group images by 2 for display
+                    # Group images by 2 for display with enhanced styling
                     for i in range(0, len(image_files), 2):
                         col1, col2 = st.columns(2)
                         
@@ -3368,7 +5311,14 @@ def browse_experiment_results():
                         img_name = ' '.join(word.title() for word in img_name.split())
                         
                         with col1:
+                            # Create a container for the image
+                            st.markdown("""
+                            <div style="padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 1rem;">
+                            """, unsafe_allow_html=True)
+                            
                             st.image(img_path, caption=img_name, use_container_width=True)
+                            
+                            st.markdown("</div>", unsafe_allow_html=True)
                         
                         # Second image (if available)
                         if i + 1 < len(image_files):
@@ -3377,82 +5327,181 @@ def browse_experiment_results():
                             img_name = ' '.join(word.title() for word in img_name.split())
                             
                             with col2:
+                                # Create a container for the image
+                                st.markdown("""
+                                <div style="padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 1rem;">
+                                """, unsafe_allow_html=True)
+                                
                                 st.image(img_path, caption=img_name, use_container_width=True)
+                                
+                                st.markdown("</div>", unsafe_allow_html=True)
                 else:
                     st.info("No visualizations found in the report directory.")
             
-            # Check for other CSV files at the top level
+            # Enhanced additional data files section
             csv_files = [f for f in os.listdir(exp_path) 
-                        if f.lower().endswith('.csv') and f != 'results.csv']
+                      if f.lower().endswith('.csv') and f != 'results.csv']
             
             if csv_files:
-                st.markdown("### Additional Data Files")
+                st.markdown("""
+                <div style="margin: 1.5rem 0 1rem 0;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📑</span> Additional Data Files
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                for csv_file in csv_files:
+                # Show files in a card-based layout
+                csv_col1, csv_col2 = st.columns(2)
+                
+                for idx, csv_file in enumerate(csv_files):
+                    col = csv_col1 if idx % 2 == 0 else csv_col2
+                    
                     file_path = os.path.join(exp_path, csv_file)
                     file_name = csv_file.replace('.csv', '').replace('_', ' ')
                     file_name = ' '.join(word.title() for word in file_name.split())
                     
-                    with st.expander(f"{file_name}", expanded=False):
-                        try:
-                            df = pd.read_csv(file_path)
-                            # Handle NaN values
-                            df = df.fillna("N/A")
-                            st.dataframe(df, use_container_width=True)
-                            
-                            # Provide download option
-                            csv_data = df.to_csv(index=False).encode('utf-8')
-                            b64 = base64.b64encode(csv_data).decode()
-                            href = f'<a href="data:file/csv;base64,{b64}" download="{csv_file}">Download CSV</a>'
-                            st.markdown(href, unsafe_allow_html=True)
-                        except Exception as e:
-                            st.error(f"Error loading {csv_file}: {e}")
+                    with col:
+                        # Create a card for each file
+                        st.markdown(f"""
+                        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(75,108,183,0.1);">
+                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.2rem; margin-right: 0.5rem;">📄</span>
+                                <span style="font-weight: 600; color: #4b6cb7;">{file_name}</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: inherit; margin-bottom: 0.5rem;">File: {csv_file}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        with st.expander(f"View {file_name}", expanded=False):
+                            try:
+                                df = pd.read_csv(file_path)
+                                # Handle NaN values
+                                df = df.fillna("N/A")
+                                st.dataframe(df, use_container_width=True)
+                                
+                                # Provide download option
+                                csv_data = df.to_csv(index=False).encode('utf-8')
+                                b64 = base64.b64encode(csv_data).decode()
+                                
+                                st.markdown(f"""
+                                <div style="margin-top: 1rem; text-align: right;">
+                                    <a href="data:file/csv;base64,{b64}" download="{csv_file}" style="
+                                        display: inline-block;
+                                        padding: 0.5rem 1rem;
+                                        background: rgba(75,108,183,0.1);
+                                        color: #4b6cb7;
+                                        text-decoration: none;
+                                        border-radius: 4px;
+                                        font-weight: 500;
+                                        border: 1px solid rgba(75,108,183,0.2);
+                                    ">
+                                        <span style="margin-right: 0.5rem;">📥</span> Download CSV
+                                    </a>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            except Exception as e:
+                                st.error(f"Error loading {csv_file}: {e}")
             
-            # Check for other JSON files at the top level
+            # Enhanced additional JSON files section
             json_files = [f for f in os.listdir(exp_path) 
-                        if f.lower().endswith('.json') and f not in ['config.json', 'results.json']]
+                       if f.lower().endswith('.json') and f not in ['config.json', 'results.json']]
             
             if json_files:
-                st.markdown("### Additional Parameter Files")
+                st.markdown("""
+                <div style="margin: 1.5rem 0 1rem 0;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">🔧</span> Additional Parameter Files
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                for json_file in json_files:
+                # Show files in a card-based layout
+                json_col1, json_col2 = st.columns(2)
+                
+                for idx, json_file in enumerate(json_files):
+                    col = json_col1 if idx % 2 == 0 else json_col2
+                    
                     file_path = os.path.join(exp_path, json_file)
                     file_name = json_file.replace('.json', '').replace('_', ' ')
                     file_name = ' '.join(word.title() for word in file_name.split())
                     
-                    with st.expander(f"{file_name}", expanded=False):
-                        try:
-                            with open(file_path, 'r') as f:
-                                json_data = json.load(f)
-                            st.json(json_data)
-                        except Exception as e:
-                            st.error(f"Error loading {json_file}: {e}")
-
+                    with col:
+                        # Create a card for each file
+                        st.markdown(f"""
+                        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(75,108,183,0.1);">
+                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.2rem; margin-right: 0.5rem;">⚙️</span>
+                                <span style="font-weight: 600; color: #4b6cb7;">{file_name}</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: inherit; margin-bottom: 0.5rem;">File: {json_file}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        with st.expander(f"View {file_name}", expanded=False):
+                            try:
+                                with open(file_path, 'r') as f:
+                                    json_data = json.load(f)
+                                st.json(json_data)
+                            except Exception as e:
+                                st.error(f"Error loading {json_file}: {e}")
 
 # Create the new evaluation_page function
 def evaluation_page():
     """Evaluation page for systematic testing of RAG configurations"""
-    st.markdown('<p class="main-header">📝 RAG System Evaluation</p>', unsafe_allow_html=True)
     
-    st.markdown('<div class="info-box">', unsafe_allow_html=True)
+    # Enhanced header with visual impact
     st.markdown("""
-    Systematically evaluate your RAG system on a dataset of questions.
-    Compare different configurations and analyze results.
-    """)
-    st.markdown('</div>', unsafe_allow_html=True)
+    <div style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(75,108,183,0.15) 0%, rgba(24,40,72,0.25) 100%); padding: 1.5rem; border-radius: 12px; border-left: 5px solid #4b6cb7;">
+        <h1 style="font-size: 2.2rem; font-weight: 700; color: #4b6cb7; margin-bottom: 0.5rem; display: flex; align-items: center;">
+            <span style="margin-right: 0.7rem; font-size: 2rem;">📝</span> RAG System Evaluation
+        </h1>
+        <p style="margin: 0; font-size: 1.1rem; color: inherit; max-width: 800px;">
+            Systematically evaluate your RAG system on a dataset of questions.
+            Compare different configurations and analyze results with detailed metrics.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Check if corpus is loaded
     if not st.session_state.corpus_uploaded:
-        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-        st.warning("⚠️ No knowledge base loaded. Please upload documents or load the example dataset from the Chat page.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="margin-bottom: 1.5rem; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px; padding: 1rem;">
+            <div style="display: flex; align-items: flex-start;">
+                <div style="font-size: 1.5rem; margin-right: 0.7rem; color: #FF9800;">⚠️</div>
+                <div>
+                    <p style="margin: 0; font-weight: 500; color: #E65100;">No knowledge base loaded</p>
+                    <p style="margin-top: 0.3rem; color: inherit;">Please upload documents or load the example dataset from the Chat page.</p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         return
     
     # Initialize RAG app if needed
     if st.session_state.rag_app is None:
         initialize_rag_app()
     
-    # Create tabs for evaluation workflow
+    # Create tabs for evaluation workflow with enhanced styling
+    tab_styles = """
+    <style>
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            background-color: rgba(75,108,183,0.05);
+            border-radius: 6px;
+            padding: 0.25rem 1rem;
+            height: auto;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: rgba(75,108,183,0.2);
+            border-radius: 6px;
+        }
+    </style>
+    """
+    st.markdown(tab_styles, unsafe_allow_html=True)
+    
     tabs = st.tabs([
         "📋 Datasets", 
         "⚙️ Evaluation Setup", 
@@ -3462,7 +5511,11 @@ def evaluation_page():
     
     # Tab: Datasets
     with tabs[0]:
-        st.markdown('<p class="sub-header">Evaluation Datasets</p>', unsafe_allow_html=True)
+        st.markdown("""
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Evaluation Datasets
+        </h2>
+        """, unsafe_allow_html=True)
         
         # Check if evaluation module is available
         try:
@@ -3476,10 +5529,20 @@ def evaluation_page():
             # List available datasets
             available_datasets = list_available_datasets()
             
-            st.markdown("### Available Datasets")
+            st.markdown("""
+            <div style="margin-top: 1rem; margin-bottom: 0.5rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📚</span> Available Datasets
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             if not available_datasets:
-                st.info("No evaluation datasets found. Create or upload a dataset below.")
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border-left: 3px solid #4b6cb7; margin-bottom: 1rem;">
+                    <p style="margin: 0; color: inherit;">No evaluation datasets found. Create or upload a dataset below.</p>
+                </div>
+                """, unsafe_allow_html=True)
             else:
                 # Show available datasets
                 dataset_names = [os.path.basename(ds) for ds in available_datasets]
@@ -3490,26 +5553,60 @@ def evaluation_page():
                     "Path": available_datasets
                 })
                 
-                st.dataframe(dataset_df)
+                st.dataframe(dataset_df, use_container_width=True)
             
-            st.markdown("### Create or Upload Dataset")
+            # Create or Upload Dataset section with improved styling
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">➕</span> Create or Upload Dataset
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
-            dataset_option = st.radio(
-                "Dataset Source",
-                ["Create Example Dataset", "Upload CSV", "Create Manually"],
-                key="dataset_source_radio",
-                horizontal=True
-            )
+            # Dataset Source Radio button styling
+            dataset_option_col1, dataset_option_col2 = st.columns([3, 1])
+            with dataset_option_col1:
+                dataset_option = st.radio(
+                    "Dataset Source",
+                    ["Create Example Dataset", "Upload CSV", "Create Manually"],
+                    key="dataset_source_radio",
+                    horizontal=True
+                )
+            
+            # Apply styling based on the option
+            st.markdown("""
+            <div style="height: 1rem;"></div>
+            """, unsafe_allow_html=True)
             
             if dataset_option == "Create Example Dataset":
-                if st.button("Create Example Dataset", key="create_example_button"):
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                    <p style="margin: 0 0 1rem 0;">Generate an example dataset with predefined questions and answers to quickly test your evaluation setup.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    create_btn = st.button(
+                        "Create Example Dataset", 
+                        key="create_example_button",
+                        type="primary",
+                        use_container_width=True
+                    )
+                
+                if create_btn:
                     with st.spinner("Creating example dataset..."):
                         example_dataset = create_example_dataset()
                         st.success(f"Created example dataset with {len(example_dataset.questions)} questions.")
                         st.rerun()  # Refresh to show the new dataset
             
             elif dataset_option == "Upload CSV":
-                st.info("Upload a CSV file with questions and expected answers. The CSV should have columns: 'question', 'expected_answer'.")
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                    <p style="margin: 0; color: inherit;">Upload a CSV file with questions and expected answers. The CSV should have columns: 'question', 'expected_answer'.</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 uploaded_file = st.file_uploader(
                     "Upload CSV file",
@@ -3518,6 +5615,10 @@ def evaluation_page():
                 )
                 
                 if uploaded_file is not None:
+                    st.markdown("""
+                    <div style="height: 0.5rem;"></div>
+                    """, unsafe_allow_html=True)
+                    
                     # Save uploaded file
                     save_path = os.path.join("data", "evaluation", uploaded_file.name)
                     os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -3528,7 +5629,16 @@ def evaluation_page():
                     # Create dataset name (without extension)
                     dataset_name = os.path.splitext(uploaded_file.name)[0]
                     
-                    if st.button("Process CSV Dataset", key="process_csv_button"):
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        process_btn = st.button(
+                            "Process CSV Dataset", 
+                            key="process_csv_button",
+                            type="primary",
+                            use_container_width=True
+                        )
+                    
+                    if process_btn:
                         with st.spinner("Processing CSV dataset..."):
                             try:
                                 # Create dataset from CSV
@@ -3543,27 +5653,65 @@ def evaluation_page():
                                 st.error(f"Error processing CSV file: {str(e)}")
             
             elif dataset_option == "Create Manually":
-                st.info("Create a dataset by manually adding questions and expected answers.")
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                    <p style="margin: 0; color: inherit;">Create a custom dataset by manually adding questions and expected answers one by one.</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                # Dataset name
-                dataset_name = st.text_input("Dataset Name", value="manual_dataset")
+                # Dataset name with improved styling
+                dataset_name = st.text_input(
+                    "Dataset Name",
+                    value="manual_dataset",
+                    help="Name for your custom dataset"
+                )
                 
-                # Create form for adding questions
+                # Create form for adding questions with enhanced styling
                 with st.form("add_question_form"):
-                    st.markdown("### Add Question")
+                    st.markdown("""
+                    <div style="margin-bottom: 0.5rem;">
+                        <h4 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                            <span style="margin-right: 0.5rem;">❓</span> Add Question
+                        </h4>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    question = st.text_area("Question", height=100)
-                    expected_answer = st.text_area("Expected Answer", height=150)
-                    category = st.text_input("Category (optional)", value="general")
-                    
-                    difficulty = st.select_slider(
-                        "Difficulty",
-                        options=["easy", "medium", "hard"],
-                        value="medium"
+                    # Question and answer fields
+                    question = st.text_area(
+                        "Question", 
+                        height=100,
+                        placeholder="Enter the question text here..."
                     )
                     
-                    # Submit button
-                    submitted = st.form_submit_button("Add Question")
+                    expected_answer = st.text_area(
+                        "Expected Answer", 
+                        height=150,
+                        placeholder="Enter the expected answer here..."
+                    )
+                    
+                    # Additional fields
+                    cols = st.columns(2)
+                    with cols[0]:
+                        category = st.text_input(
+                            "Category (optional)", 
+                            value="general",
+                            help="Group questions by category for analysis"
+                        )
+                    
+                    with cols[1]:
+                        difficulty = st.select_slider(
+                            "Difficulty",
+                            options=["easy", "medium", "hard"],
+                            value="medium",
+                            help="Rate the difficulty of this question"
+                        )
+                    
+                    # Submit button with improved styling
+                    submitted = st.form_submit_button(
+                        "Add Question",
+                        type="primary",
+                        use_container_width=True
+                    )
                 
                 if submitted:
                     if not question or not expected_answer:
@@ -3598,7 +5746,11 @@ def evaluation_page():
     
     # Tab: Evaluation Setup
     with tabs[1]:
-        st.markdown('<p class="sub-header">Evaluation Configuration</p>', unsafe_allow_html=True)
+        st.markdown("""
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Evaluation Configuration
+        </h2>
+        """, unsafe_allow_html=True)
         
         # Get available datasets
         try:
@@ -3606,16 +5758,33 @@ def evaluation_page():
             available_datasets = list_available_datasets()
             
             if not available_datasets:
-                st.warning("No evaluation datasets available. Please create or upload a dataset in the Datasets tab.")
+                st.markdown("""
+                <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px;">
+                    <p style="margin: 0; font-weight: 500; color: inherit;">No evaluation datasets available. Please create or upload a dataset in the Datasets tab.</p>
+                </div>
+                """, unsafe_allow_html=True)
             else:
+                # Dataset selection with enhanced styling
+                st.markdown("""
+                <div style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                    <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1);">
+                        <h4 style="font-size: 1rem; font-weight: 600; color: #4b6cb7; margin-top: 0; margin-bottom: 0.7rem;">Select Evaluation Dataset</h4>
+                """, unsafe_allow_html=True)
+                
                 # Select dataset
                 dataset_names = [os.path.basename(ds) for ds in available_datasets]
                 selected_dataset_idx = st.selectbox(
-                    "Select Dataset",
+                    "Dataset",
                     range(len(dataset_names)),
                     format_func=lambda i: dataset_names[i],
-                    key="selected_dataset_idx"
+                    key="selected_dataset_idx",
+                    label_visibility="collapsed"
                 )
+                
+                st.markdown("""
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 selected_dataset_path = available_datasets[selected_dataset_idx]
                 
@@ -3627,28 +5796,58 @@ def evaluation_page():
                 
                 st.info(f"Selected dataset: {dataset_names[selected_dataset_idx]}")
                 
-                # Display dataset info
-                st.markdown("### Dataset Preview")
+                # Display dataset info with enhanced styling
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">🔍</span> Dataset Preview
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 try:
                     from src.components.evaluation_dataset import EvaluationDataset
                     dataset = EvaluationDataset.load(selected_dataset_path)
                     
-                    # Show dataset statistics
+                    # Show dataset statistics with enhanced styling
                     question_count = len(dataset.questions)
                     categories = set(q.get("category", "general") for q in dataset.questions)
                     difficulties = set(q.get("difficulty", "medium") for q in dataset.questions)
                     
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Questions", question_count)
-                    with col2:
-                        st.metric("Categories", len(categories))
-                    with col3:
-                        st.metric("Difficulty Levels", len(difficulties))
+                    # Metrics with styling
+                    metrics_cols = st.columns(3)
+                    with metrics_cols[0]:
+                        st.markdown("""
+                        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; text-align: center; height: 100%;">
+                            <div style="font-size: 0.9rem; color: #4b6cb7; font-weight: 500; margin-bottom: 0.3rem;">Questions</div>
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #4b6cb7;">{}</div>
+                        </div>
+                        """.format(question_count), unsafe_allow_html=True)
                     
-                    # Show sample questions
-                    st.markdown("#### Sample Questions")
+                    with metrics_cols[1]:
+                        st.markdown("""
+                        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; text-align: center; height: 100%;">
+                            <div style="font-size: 0.9rem; color: #4b6cb7; font-weight: 500; margin-bottom: 0.3rem;">Categories</div>
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #4b6cb7;">{}</div>
+                        </div>
+                        """.format(len(categories)), unsafe_allow_html=True)
+                    
+                    with metrics_cols[2]:
+                        st.markdown("""
+                        <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; text-align: center; height: 100%;">
+                            <div style="font-size: 0.9rem; color: #4b6cb7; font-weight: 500; margin-bottom: 0.3rem;">Difficulty Levels</div>
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #4b6cb7;">{}</div>
+                        </div>
+                        """.format(len(difficulties)), unsafe_allow_html=True)
+                    
+                    # Sample questions with enhanced styling
+                    st.markdown("""
+                    <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                        <h4 style="font-size: 1.1rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                            <span style="margin-right: 0.5rem;">❓</span> Sample Questions
+                        </h4>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                     sample_size = min(5, question_count)
                     sample_questions = dataset.questions[:sample_size]
@@ -3663,9 +5862,23 @@ def evaluation_page():
                 except Exception as e:
                     st.error(f"Error loading dataset: {str(e)}")
                 
-                # Configuration settings
-                st.markdown("### Evaluation Settings")
+                # Configuration settings with enhanced styling
+                st.markdown("""
+                <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">⚙️</span> Evaluation Settings
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
                 
+                # Enhanced settings panel
+                st.markdown("""
+                <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                    <p style="margin: 0 0 1rem 0; color: inherit;">Configure how the evaluation will run and which settings to use.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Configuration name with improved styling
                 if "eval_config_name" not in st.session_state:
                     st.session_state.eval_config_name = "default"
                     
@@ -3676,6 +5889,7 @@ def evaluation_page():
                 )
                 st.session_state.eval_config_name = eval_config_name
                 
+                # Max questions slider with improved styling
                 max_questions = st.slider(
                     "Maximum Questions",
                     min_value=1,
@@ -3686,8 +5900,18 @@ def evaluation_page():
                 )
                 st.session_state.eval_max_questions = max_questions
                 
-                # Save the current configuration for comparison
-                if st.button("Save Current Configuration for Evaluation", key="save_eval_config_button"):
+                # Save button with improved styling
+                st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+                save_col1, save_col2 = st.columns([3, 1])
+                with save_col1:
+                    save_btn = st.button(
+                        "Save Current Configuration for Evaluation", 
+                        key="save_eval_config_button",
+                        type="primary",
+                        use_container_width=True
+                    )
+                    
+                if save_btn:
                     if "eval_configurations" not in st.session_state:
                         st.session_state.eval_configurations = []
                         
@@ -3717,46 +5941,83 @@ def evaluation_page():
     
     # Tab: Run Evaluation
     with tabs[2]:
-        st.markdown('<p class="sub-header">Run Evaluation</p>', unsafe_allow_html=True)
+        st.markdown("""
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Run Evaluation
+        </h2>
+        """, unsafe_allow_html=True)
         
         # Check if configurations are available
         if "eval_configurations" not in st.session_state or not st.session_state.eval_configurations:
-            st.warning("No configurations saved for evaluation. Please save at least one configuration in the Evaluation Setup tab.")
+            st.markdown("""
+            <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px;">
+                <p style="margin: 0; font-weight: 500; color: inherit;">No configurations saved for evaluation. Please save at least one configuration in the Evaluation Setup tab.</p>
+            </div>
+            """, unsafe_allow_html=True)
         elif "selected_eval_dataset" not in st.session_state:
-            st.warning("No dataset selected. Please select a dataset in the Evaluation Setup tab.")
+            st.markdown("""
+            <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px;">
+                <p style="margin: 0; font-weight: 500; color: inherit;">No dataset selected. Please select a dataset in the Evaluation Setup tab.</p>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            # Show saved configurations
-            st.markdown("### Saved Configurations")
+            # Show saved configurations with enhanced styling
+            st.markdown("""
+            <div style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">💾</span> Saved Configurations
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             config_names = [config["name"] for config in st.session_state.eval_configurations]
             
-            # Create a table of configurations
+            # Create a styled table of configurations
             config_df = pd.DataFrame({
                 "Configuration": config_names
             })
             
-            st.dataframe(config_df)
+            st.dataframe(config_df, use_container_width=True)
             
-            # Select configurations to evaluate
+            # Select configurations with enhanced styling
+            st.markdown("""
+            <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🔄</span> Select Configurations to Evaluate
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             selected_configs = st.multiselect(
-                "Select Configurations to Evaluate",
+                "Select Configurations",
                 config_names,
                 default=config_names[0] if config_names else None,
-                key="configs_to_evaluate"
+                key="configs_to_evaluate",
+                label_visibility="collapsed"
             )
             
             if not selected_configs:
-                st.warning("Please select at least one configuration to evaluate.")
+                st.markdown("""
+                <div style="padding: 1rem; margin: 1rem 0; background: rgba(255,152,0,0.1); border-left: 4px solid #FF9800; border-radius: 8px;">
+                    <p style="margin: 0; font-weight: 500; color: inherit;">Please select at least one configuration to evaluate.</p>
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                # Run button
+                # Run button with enhanced styling
+                st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
                 col1, col2 = st.columns([3, 1])
                 
                 with col1:
-                    # Progress placeholder
+                    # Progress placeholder with enhanced styling
                     progress_placeholder = st.empty()
                     
                 with col2:
-                    run_button = st.button("Run Evaluation", key="run_eval_button", use_container_width=True)
+                    run_button = st.button(
+                        "Run Evaluation", 
+                        key="run_eval_button", 
+                        type="primary",
+                        use_container_width=True
+                    )
                 
                 if run_button:
                     if "eval_results" not in st.session_state:
@@ -3781,7 +6042,14 @@ def evaluation_page():
                                 # Update progress
                                 progress = i / len(selected_configs)
                                 progress_bar.progress(progress)
-                                progress_placeholder.markdown(f"Evaluating configuration '{config_name}'...")
+                                progress_placeholder.markdown(f"""
+                                <div style="padding: 0.5rem; background: rgba(75,108,183,0.05); border-radius: 4px; margin-bottom: 0.5rem;">
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="font-size: 1.2rem; margin-right: 0.5rem;">⏳</div>
+                                        <div>Evaluating configuration <b>{config_name}</b>...</div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
                                 
                                 # Find configuration
                                 config_dict = None
@@ -3821,7 +6089,14 @@ def evaluation_page():
                             
                             # Update progress
                             progress_bar.progress(1.0)
-                            progress_placeholder.success("Evaluation completed!")
+                            progress_placeholder.markdown("""
+                            <div style="padding: 0.7rem; background: rgba(76,175,80,0.1); border-radius: 4px; margin-bottom: 0.5rem; border-left: 3px solid #4CAF50;">
+                                <div style="display: flex; align-items: center;">
+                                    <div style="font-size: 1.2rem; margin-right: 0.5rem; color: #4CAF50;">✅</div>
+                                    <div style="font-weight: 500;">Evaluation completed successfully!</div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                             
                         except Exception as e:
                             progress_placeholder.error(f"Error loading dataset: {str(e)}")
@@ -3833,11 +6108,21 @@ def evaluation_page():
     
     # Tab: Results
     with tabs[3]:
-        st.markdown('<p class="sub-header">Evaluation Results</p>', unsafe_allow_html=True)
+        st.markdown("""
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #4b6cb7; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(75,108,183,0.2);">
+            Evaluation Results
+        </h2>
+        """, unsafe_allow_html=True)
         
         # Check if results are available
         if "eval_results" not in st.session_state or not st.session_state.eval_results:
-            st.info("No evaluation results available. Run an evaluation in the 'Run Evaluation' tab.")
+            st.markdown("""
+            <div style="padding: 1.5rem; margin: 1rem 0; background: rgba(75,108,183,0.05); border-radius: 8px; text-align: center; border: 1px dashed rgba(75,108,183,0.2);">
+                <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.7;">📊</div>
+                <p style="margin: 0; font-weight: 500; color: inherit; margin-bottom: 0.5rem;">No evaluation results available</p>
+                <p style="margin: 0; font-size: 0.9rem; color: inherit;">Run an evaluation in the 'Run Evaluation' tab to see results here.</p>
+            </div>
+            """, unsafe_allow_html=True)
         else:
             # Create comparison dataframe
             results = []
@@ -3863,14 +6148,27 @@ def evaluation_page():
             # Create dataframe
             results_df = pd.DataFrame(results)
             
-            # Display summary
-            st.markdown("### Evaluation Summary")
+            # Display summary with enhanced styling
+            st.markdown("""
+            <div style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📊</span> Evaluation Summary
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             st.dataframe(results_df, use_container_width=True)
             
-            # Create visualizations
-            st.markdown("### Retrieval Metrics")
+            # Create enhanced visualizations
+            st.markdown("""
+            <div style="margin-top: 2rem; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📈</span> Retrieval Metrics
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Retrieval metrics chart
+            # Retrieval metrics chart with enhanced styling
             fig, ax = plt.subplots(figsize=(10, 5))
             
             # Extract data for plotting
@@ -3883,29 +6181,38 @@ def evaluation_page():
             pos = np.arange(len(configs))
             width = 0.25
             
-            # Create bars
-            ax.bar(pos - width, precision, width, label='Precision', color='blue', alpha=0.7)
-            ax.bar(pos, recall, width, label='Recall', color='green', alpha=0.7)
-            ax.bar(pos + width, mrr, width, label='MRR', color='red', alpha=0.7)
+            # Create bars with better colors
+            ax.bar(pos - width, precision, width, label='Precision', color='#4285F4', alpha=0.8)
+            ax.bar(pos, recall, width, label='Recall', color='#34A853', alpha=0.8)
+            ax.bar(pos + width, mrr, width, label='MRR', color='#EA4335', alpha=0.8)
             
-            # Add labels and legend
-            ax.set_xlabel('Configuration')
-            ax.set_ylabel('Score')
-            ax.set_title('Retrieval Metrics')
+            # Add labels and legend with enhanced styling
+            ax.set_xlabel('Configuration', fontsize=11)
+            ax.set_ylabel('Score', fontsize=11)
+            ax.set_title('Retrieval Metrics Comparison', fontsize=13, fontweight='bold')
             ax.set_xticks(pos)
             ax.set_xticklabels(configs, rotation=45, ha='right')
-            ax.legend()
-            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            ax.legend(frameon=True, fancybox=True, shadow=True)
+            ax.grid(axis='y', linestyle='--', alpha=0.3)
             
             # Set y-axis limits
             ax.set_ylim(0, 1)
+            
+            # Add subtle background
+            ax.set_facecolor('#f9f9f9')
             
             plt.tight_layout()
             st.pyplot(fig)
             plt.close(fig)
             
-            # Answer quality chart
-            st.markdown("### Answer Quality Metrics")
+            # Answer quality chart with enhanced styling
+            st.markdown("""
+            <div style="margin-top: 2rem; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">💬</span> Answer Quality Metrics
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             fig, ax = plt.subplots(figsize=(10, 5))
             
@@ -3913,28 +6220,37 @@ def evaluation_page():
             rouge = results_df["ROUGE-1"].tolist()
             faithfulness = results_df["Faithfulness"].tolist()
             
-            # Create bars
-            ax.bar(pos - width/2, rouge, width, label='ROUGE-1', color='purple', alpha=0.7)
-            ax.bar(pos + width/2, faithfulness, width, label='Faithfulness', color='orange', alpha=0.7)
+            # Create bars with better colors
+            ax.bar(pos - width/2, rouge, width, label='ROUGE-1', color='#9C27B0', alpha=0.8)
+            ax.bar(pos + width/2, faithfulness, width, label='Faithfulness', color='#FF9800', alpha=0.8)
             
-            # Add labels and legend
-            ax.set_xlabel('Configuration')
-            ax.set_ylabel('Score')
-            ax.set_title('Answer Quality Metrics')
+            # Add labels and legend with enhanced styling
+            ax.set_xlabel('Configuration', fontsize=11)
+            ax.set_ylabel('Score', fontsize=11)
+            ax.set_title('Answer Quality Metrics Comparison', fontsize=13, fontweight='bold')
             ax.set_xticks(pos)
             ax.set_xticklabels(configs, rotation=45, ha='right')
-            ax.legend()
-            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            ax.legend(frameon=True, fancybox=True, shadow=True)
+            ax.grid(axis='y', linestyle='--', alpha=0.3)
             
             # Set y-axis limits
             ax.set_ylim(0, 1)
+            
+            # Add subtle background
+            ax.set_facecolor('#f9f9f9')
             
             plt.tight_layout()
             st.pyplot(fig)
             plt.close(fig)
             
-            # Performance chart
-            st.markdown("### Performance Metrics")
+            # Performance chart with enhanced styling
+            st.markdown("""
+            <div style="margin-top: 2rem; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">⏱️</span> Performance Metrics
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             fig, ax = plt.subplots(figsize=(10, 5))
             
@@ -3942,32 +6258,49 @@ def evaluation_page():
             retrieval_time = results_df["Retrieval Time (s)"].tolist()
             answer_time = results_df["Answer Time (s)"].tolist()
             
-            # Create bars
-            ax.bar(pos - width/2, retrieval_time, width, label='Retrieval Time', color='teal', alpha=0.7)
-            ax.bar(pos + width/2, answer_time, width, label='Answer Time', color='brown', alpha=0.7)
+            # Create bars with better colors
+            ax.bar(pos - width/2, retrieval_time, width, label='Retrieval Time', color='#009688', alpha=0.8)
+            ax.bar(pos + width/2, answer_time, width, label='Answer Time', color='#795548', alpha=0.8)
             
-            # Add labels and legend
-            ax.set_xlabel('Configuration')
-            ax.set_ylabel('Time (seconds)')
-            ax.set_title('Performance Metrics')
+            # Add labels and legend with enhanced styling
+            ax.set_xlabel('Configuration', fontsize=11)
+            ax.set_ylabel('Time (seconds)', fontsize=11)
+            ax.set_title('Performance Metrics Comparison', fontsize=13, fontweight='bold')
             ax.set_xticks(pos)
             ax.set_xticklabels(configs, rotation=45, ha='right')
-            ax.legend()
-            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            ax.legend(frameon=True, fancybox=True, shadow=True)
+            ax.grid(axis='y', linestyle='--', alpha=0.3)
+            
+            # Add subtle background
+            ax.set_facecolor('#f9f9f9')
             
             plt.tight_layout()
             st.pyplot(fig)
             plt.close(fig)
             
-            # Detailed results
-            st.markdown("### Detailed Results")
+            # Detailed results with enhanced styling
+            st.markdown("""
+            <div style="margin-top: 2rem; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🔍</span> Detailed Results
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Select a configuration to view detailed results
+            # Select a configuration with enhanced styling
+            st.markdown("""
+            <div style="padding: 1rem; background: rgba(75,108,183,0.05); border-radius: 8px; border: 1px solid rgba(75,108,183,0.1); margin-bottom: 1rem;">
+                <p style="margin: 0 0 0.7rem 0; color: inherit;">Select a configuration to view detailed question-by-question results.</p>
+            """, unsafe_allow_html=True)
+            
             selected_config = st.selectbox(
                 "Select Configuration",
                 configs,
-                key="detailed_results_config"
+                key="detailed_results_config",
+                label_visibility="collapsed"
             )
+            
+            st.markdown("</div>", unsafe_allow_html=True)
             
             # Find the selected result
             selected_result = None
@@ -3990,12 +6323,18 @@ def evaluation_page():
                 ]
                 
                 if all(col in questions_df.columns for col in display_columns):
-                    # Display table
+                    # Display table with enhanced styling
                     st.dataframe(questions_df[display_columns], use_container_width=True)
                     
                     # Question category analysis if available
                     if "category" in questions_df.columns:
-                        st.markdown("### Category Analysis")
+                        st.markdown("""
+                        <div style="margin-top: 2rem; margin-bottom: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                                <span style="margin-right: 0.5rem;">📊</span> Category Analysis
+                            </h3>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         # Group by category
                         category_df = questions_df.groupby("category").agg({
@@ -4006,7 +6345,7 @@ def evaluation_page():
                             "faithfulness": "mean"
                         }).reset_index()
                         
-                        # Create chart
+                        # Create chart with enhanced styling
                         fig, ax = plt.subplots(figsize=(10, 5))
                         
                         categories = category_df["category"].tolist()
@@ -4018,31 +6357,49 @@ def evaluation_page():
                         pos = np.arange(len(categories))
                         width = 0.25
                         
-                        # Create bars
-                        ax.bar(pos - width, precision, width, label='Precision', color='blue', alpha=0.7)
-                        ax.bar(pos, recall, width, label='Recall', color='green', alpha=0.7)
-                        ax.bar(pos + width, mrr, width, label='MRR', color='red', alpha=0.7)
+                        # Create bars with better colors
+                        ax.bar(pos - width, precision, width, label='Precision', color='#4285F4', alpha=0.8)
+                        ax.bar(pos, recall, width, label='Recall', color='#34A853', alpha=0.8)
+                        ax.bar(pos + width, mrr, width, label='MRR', color='#EA4335', alpha=0.8)
                         
-                        # Add labels and legend
-                        ax.set_xlabel('Category')
-                        ax.set_ylabel('Score')
-                        ax.set_title(f'Metrics by Category for {selected_config}')
+                        # Add labels and legend with enhanced styling
+                        ax.set_xlabel('Category', fontsize=11)
+                        ax.set_ylabel('Score', fontsize=11)
+                        ax.set_title(f'Metrics by Category for {selected_config}', fontsize=13, fontweight='bold')
                         ax.set_xticks(pos)
                         ax.set_xticklabels(categories, rotation=45, ha='right')
-                        ax.legend()
-                        ax.grid(axis='y', linestyle='--', alpha=0.7)
+                        ax.legend(frameon=True, fancybox=True, shadow=True)
+                        ax.grid(axis='y', linestyle='--', alpha=0.3)
                         
                         # Set y-axis limits
                         ax.set_ylim(0, 1)
+                        
+                        # Add subtle background
+                        ax.set_facecolor('#f9f9f9')
                         
                         plt.tight_layout()
                         st.pyplot(fig)
                         plt.close(fig)
                 
-                # Export option
-                st.markdown("### Export Results")
+                # Export option with enhanced styling
+                st.markdown("""
+                <div style="margin-top: 2rem; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; color: #4b6cb7; display: flex; align-items: center;">
+                        <span style="margin-right: 0.5rem;">📥</span> Export Results
+                    </h3>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                if st.button("Export Results to CSV"):
+                export_col1, export_col2 = st.columns([3, 1])
+                with export_col1:
+                    export_btn = st.button(
+                        "Export Results to CSV",
+                        key="export_results_btn",
+                        type="primary",
+                        use_container_width=True
+                    )
+                
+                if export_btn:
                     # Create CSV
                     csv = results_df.to_csv(index=False).encode('utf-8')
                     
@@ -4051,110 +6408,239 @@ def evaluation_page():
                     href = f'<a href="data:file/csv;base64,{b64}" download="rag_evaluation_results.csv">Download CSV File</a>'
                     st.markdown(href, unsafe_allow_html=True)
 
-
 # Page: About
 def about_page():
-    """About page with information about the system"""
-    st.markdown('<p class="main-header">ℹ️ About Advanced RAG Knowledge Management System</p>', unsafe_allow_html=True)
+    """About page with comprehensive information about the Advanced RAG Knowledge Management System"""
     
+    # Create header with visual impact - ENHANCED for better visibility
     st.markdown("""
-    This Advanced RAG Knowledge Management System is a comprehensive platform for implementing, 
-    testing, and optimizing Retrieval-Augmented Generation (RAG) systems.
-    """)
+    <div style="text-align: center; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(75,108,183,0.2) 0%, rgba(24,40,72,0.3) 100%); padding: 2rem; border-radius: 12px; border: 2px solid rgba(75,108,183,0.4);">
+        <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 0.8rem; color: #4b6cb7; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Advanced RAG Knowledge Management System</h1>
+        <p style="font-size: 1.3rem; max-width: 800px; margin: 0 auto; color: var(--text-color, #555);">A comprehensive platform for implementing, experimenting with, and optimizing Retrieval-Augmented Generation systems.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # System architecture
-    st.markdown("## System Architecture")
-    
+    # System Overview - Clean modern card-based layout
     st.markdown("""
-    The system is built with a modular architecture that separates core components for flexibility 
-    and extensibility:
-    
-    1. **Document Processing**: Multiple chunking strategies for optimal information segmentation
-    2. **Embedding & Indexing**: Various embedding models and efficient vector storage
-    3. **Retrieval Engine**: Multiple retrieval methods including vector, keyword, and hybrid search
-    4. **Query Processing**: Query expansion and reformulation techniques
-    5. **Reranking**: Enhanced precision through cross-encoder reranking and diversity optimization
-    6. **Answer Generation**: Contextual response generation with different prompt engineering strategies
-    7. **Evaluation Framework**: Comprehensive metrics and evaluation tools
-    """)
-    
-    # Features
-    st.markdown("## Key Features")
-    
+    <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.8rem; font-weight: 600; border-bottom: 2px solid rgba(75,108,183,0.3); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">System Overview</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Overview columns with icons
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
-        **Knowledge Management**
-        - Document ingestion and processing
-        - Multiple chunking strategies
-        - Efficient vector indexing
-        - Customizable knowledge sources
-        """)
-        
+        <div style="background: rgba(75,108,183,0.05); padding: 1.5rem; border-radius: 10px; height: 100%;">
+            <h3 style="font-size: 1.3rem; color: #4b6cb7; margin-bottom: 1rem;">🧠 Intelligent Retrieval</h3>
+            <p>Our system leverages state-of-the-art embedding models and advanced retrieval techniques to find the most relevant information for user queries, combining semantic understanding with keyword-based precision.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     with col2:
         st.markdown("""
-        **Retrieval Capabilities**
-        - Semantic vector search
-        - BM25 keyword search
-        - Hybrid search strategies
-        - Multi-stage retrieval pipeline
-        """)
-        
-    col1, col2 = st.columns(2)
+        <div style="background: rgba(75,108,183,0.05); padding: 1.5rem; border-radius: 10px; height: 100%;">
+            <h3 style="font-size: 1.3rem; color: #4b6cb7; margin-bottom: 1rem;">🔬 Research-Oriented</h3>
+            <p>Designed as both a practical tool and research platform, enabling systematic experimentation and comparison of different RAG components to identify optimal configurations for specific use cases.</p>
+        </div>
+        """, unsafe_allow_html=True)
     
-    with col1:
-        st.markdown("""
-        **Advanced Techniques**
-        - Query expansion
-        - Context-aware reranking
-        - Diversity optimization
-        - Prompt engineering
-        """)
-        
-    with col2:
-        st.markdown("""
-        **Experimentation**
-        - Comparative analysis
-        - Performance metrics
-        - Configuration testing
-        - Results visualization
-        """)
-    
-    # Implementation details
-    st.markdown("## Implementation Details")
-    
+    # System Architecture with visual representation
     st.markdown("""
-    The system is implemented in Python with the following key libraries:
+    <div style="margin: 2.5rem 0 1.5rem 0;">
+        <h2 style="font-size: 1.8rem; font-weight: 600; border-bottom: 2px solid rgba(75,108,183,0.3); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">System Architecture</h2>
+    </div>
+    """, unsafe_allow_html=True)
     
-    - **Sentence Transformers**: For embedding generation
-    - **FAISS**: For efficient vector search
-    - **HuggingFace Transformers**: For reranking and embedding models
-    - **NLTK**: For text processing and chunking
-    - **Streamlit**: For the web interface
-    - **Pandas & Matplotlib**: For data analysis and visualization
-    """)
+    # Architecture diagram using Streamlit's native capabilities
+    architecture_cols = st.columns([1, 6, 1])
     
-    # Research applications
-    st.markdown("## Research Applications")
+    with architecture_cols[1]:
+        # Create a sequence of connected components for the RAG pipeline
+        pipeline_steps = [
+            {"icon": "📄", "title": "Document Processing", "color": "#4b6cb7", "description": "Multiple chunking strategies for optimal information segmentation"},
+            {"icon": "🔢", "title": "Embedding & Indexing", "color": "#5d7aba", "description": "Various embedding models and efficient vector storage"},
+            {"icon": "🔍", "title": "Retrieval Engine", "color": "#6f89be", "description": "Vector, keyword, and hybrid search methods"},
+            {"icon": "❓", "title": "Query Processing", "color": "#8198c1", "description": "Query expansion and reformulation techniques"},
+            {"icon": "🔄", "title": "Reranking", "color": "#93a7c5", "description": "Enhanced precision through cross-encoder reranking and diversity optimization"},
+            {"icon": "💬", "title": "Answer Generation", "color": "#a5b6c9", "description": "Contextual response generation with prompt engineering"},
+            {"icon": "📊", "title": "Evaluation Framework", "color": "#b7c5cc", "description": "Comprehensive metrics and evaluation tools"}
+        ]
+        
+        # Render each component with connecting line
+        for i, step in enumerate(pipeline_steps):
+            # Create container
+            st.markdown(f"""
+            <div style="position: relative; margin-bottom: 10px; padding: 15px 20px 15px 70px; background: linear-gradient(90deg, {step['color']}20, rgba(255,255,255,0)); border-radius: 8px; border-left: 4px solid {step['color']};">
+                <div style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); background: {step['color']}; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    {step['icon']}
+                </div>
+                <h3 style="margin: 0; color: {step['color']}; font-size: 1.15rem;">{step['title']}</h3>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">{step['description']}</p>
+            </div>
+            """, unsafe_allow_html=True)
     
+    # Key Features section with enhanced grid layout
     st.markdown("""
-    This system is designed to support research in several key areas:
+    <div style="margin: 2.5rem 0 1.5rem 0;">
+        <h2 style="font-size: 1.8rem; font-weight: 600; border-bottom: 2px solid rgba(75,108,183,0.3); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Key Features</h2>
+    </div>
+    """, unsafe_allow_html=True)
     
-    1. **Chunking Strategy Comparison**: Evaluate different document segmentation approaches
-    2. **Embedding Model Evaluation**: Compare embedding models for retrieval performance
-    3. **Retrieval Method Analysis**: Measure effectiveness of different retrieval techniques
-    4. **Reranking Impact Assessment**: Quantify the benefits of reranking stages
-    5. **RAG Pipeline Optimization**: Find optimal configurations for specific use cases
-    """)
+    # Features in a 2x4 grid with icons and descriptions
+    features = [
+        {"icon": "📚", "title": "Knowledge Management", "description": "Document ingestion and processing with multiple chunking strategies, efficient vector indexing, and customizable knowledge sources."},
+        {"icon": "🔎", "title": "Retrieval Capabilities", "description": "Semantic vector search, BM25 keyword search, hybrid search strategies, and a multi-stage retrieval pipeline."},
+        {"icon": "🧩", "title": "Advanced Techniques", "description": "Query expansion, context-aware reranking, diversity optimization, and sophisticated prompt engineering."},
+        {"icon": "🔬", "title": "Experimentation", "description": "Comparative analysis, performance metrics, configuration testing, and comprehensive results visualization."},
+        {"icon": "📈", "title": "Results Visualization", "description": "Dynamic visualization of experiment results with interactive charts, tables, and comparison tools."},
+        {"icon": "⏱️", "title": "Temporal Analysis", "description": "Track performance evolution over time with chronological experiment result browsing and timestamp analysis."},
+        {"icon": "🔄", "title": "Dual-Mode Results Browser", "description": "Analysis-oriented and chronological views of experiment results for comprehensive performance assessment."},
+        {"icon": "📋", "title": "Evaluation Framework", "description": "Systematic evaluation of RAG components with detailed metrics and interactive result displays."}
+    ]
+    
+    # Display features in a grid
+    for i in range(0, len(features), 2):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if i < len(features):
+                st.markdown(f"""
+                <div style="background: rgba(75,108,183,0.05); padding: 1.2rem; border-radius: 10px; height: 100%; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.5rem; margin-right: 0.5rem;">{features[i]['icon']}</span>
+                        <h3 style="font-size: 1.1rem; color: #4b6cb7; margin: 0;">{features[i]['title']}</h3>
+                    </div>
+                    <p style="margin: 0; font-size: 0.9rem;">{features[i]['description']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        with col2:
+            if i+1 < len(features):
+                st.markdown(f"""
+                <div style="background: rgba(75,108,183,0.05); padding: 1.2rem; border-radius: 10px; height: 100%; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.5rem; margin-right: 0.5rem;">{features[i+1]['icon']}</span>
+                        <h3 style="font-size: 1.1rem; color: #4b6cb7; margin: 0;">{features[i+1]['title']}</h3>
+                    </div>
+                    <p style="margin: 0; font-size: 0.9rem;">{features[i+1]['description']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    # Results Visualization Framework (New Feature Highlight)
+    st.markdown("""
+    <div style="margin: 2.5rem 0 1.5rem 0;">
+        <h2 style="font-size: 1.8rem; font-weight: 600; border-bottom: 2px solid rgba(75,108,183,0.3); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Results Visualization Framework</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Show new feature visualization with special callout box
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(75,108,183,0.1) 0%, rgba(24,40,72,0.2) 100%); padding: 1.5rem; border-radius: 12px; border-left: 5px solid #4b6cb7; margin-bottom: 1.5rem;">
+        <h3 style="color: #4b6cb7; margin-top: 0;">New Feature Highlight</h3>
+        <p>Our latest enhancement transforms the system into a complete research platform with comprehensive experiment results visualization and analysis capabilities.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Dual-mode browser description - FIXED for dark mode
+    cols = st.columns(2)
+    
+    with cols[0]:
+        st.markdown("""
+        <div style="background: rgba(75,108,183,0.15); padding: 1.2rem; border-radius: 10px; height: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid rgba(75,108,183,0.2);">
+            <h3 style="font-size: 1.1rem; color: #4b6cb7; margin-bottom: 0.7rem;">Analysis-Oriented View</h3>
+            <p style="margin: 0; font-size: 0.9rem; color: inherit;">Organizes results by experiment type (chunking, embedding, retrieval, query processing, reranking, and generation), allowing researchers to compare different approaches within each RAG component.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with cols[1]:
+        st.markdown("""
+        <div style="background: rgba(75,108,183,0.15); padding: 1.2rem; border-radius: 10px; height: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid rgba(75,108,183,0.2);">
+            <h3 style="font-size: 1.1rem; color: #4b6cb7; margin-bottom: 0.7rem;">Chronological Results Browser</h3>
+            <p style="margin: 0; font-size: 0.9rem; color: inherit;">Provides a temporal perspective on experiments, organizing results by experiment type and execution timestamp, enabling tracking of system performance evolution over time.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Implementation Details
+    st.markdown("""
+    <div style="margin: 2.5rem 0 1.5rem 0;">
+        <h2 style="font-size: 1.8rem; font-weight: 600; border-bottom: 2px solid rgba(75,108,183,0.3); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Implementation Details</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Technology stack with logos and descriptions
+    tech_stack = [
+        {"name": "LangChain", "icon": "🔗", "description": "For building modular RAG pipelines"},
+        {"name": "Sentence Transformers", "icon": "🔤", "description": "For embedding generation"},
+        {"name": "FAISS", "icon": "📊", "description": "For efficient vector search"},
+        {"name": "HuggingFace Transformers", "icon": "🤗", "description": "For reranking and embedding models"},
+        {"name": "NLTK", "icon": "📝", "description": "For text processing and chunking"},
+        {"name": "OpenAI", "icon": "🧠", "description": "For LLM-based response generation"},
+        {"name": "Streamlit", "icon": "🌊", "description": "For the interactive web interface"},
+        {"name": "Pandas & Matplotlib", "icon": "📈", "description": "For data analysis and visualization"}
+    ]
+    
+    # Display technologies in a grid
+    tech_cols = st.columns(4)
+    
+    for i, tech in enumerate(tech_stack):
+        col_index = i % 4
+        with tech_cols[col_index]:
+            st.markdown(f"""
+            <div style="background: rgba(75,108,183,0.1); padding: 1rem; border-radius: 8px; text-align: center; margin-bottom: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">{tech['icon']}</div>
+                <h3 style="font-size: 1rem; margin: 0 0 0.3rem 0; color: #4b6cb7;">{tech['name']}</h3>
+                <p style="margin: 0; font-size: 0.8rem; color: inherit;">{tech['description']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Research Applications
+    st.markdown("""
+    <div style="margin: 2.5rem 0 1.5rem 0;">
+        <h2 style="font-size: 1.8rem; font-weight: 600; border-bottom: 2px solid rgba(75,108,183,0.3); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Research Applications</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Research applications in a visual format - FIXED for dark mode
+    applications = [
+        {"id": 1, "title": "Chunking Strategy Comparison", "description": "Evaluate different document segmentation approaches for optimal information retrieval", "color": "#4285F4"},
+        {"id": 2, "title": "Embedding Model Evaluation", "description": "Compare embedding models for retrieval performance across different domains", "color": "#EA4335"},
+        {"id": 3, "title": "Retrieval Method Analysis", "description": "Measure effectiveness of different retrieval techniques for various query types", "color": "#FBBC05"},
+        {"id": 4, "title": "Reranking Impact Assessment", "description": "Quantify the benefits of reranking stages on precision and recall", "color": "#34A853"},
+        {"id": 5, "title": "RAG Pipeline Optimization", "description": "Find optimal configurations for specific knowledge domains and query patterns", "color": "#8E44AD"},
+        {"id": 6, "title": "Cross-Component Interaction", "description": "Analyze how different RAG components affect each other's performance", "color": "#F39C12"}
+    ]
+    
+    # Display applications in an attractive layout
+    for app in applications:
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; margin-bottom: 1rem; background: rgba(75,108,183,0.1); padding: 1rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid rgba(75,108,183,0.2);">
+            <div style="background: {app['color']}; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 1rem;">
+                {app['id']}
+            </div>
+            <div>
+                <h3 style="margin: 0 0 0.3rem 0; font-size: 1.1rem; color: {app['color']};">{app['title']}</h3>
+                <p style="margin: 0; font-size: 0.9rem; color: inherit;">{app['description']}</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Footer
-    st.markdown("---")
     st.markdown("""
-    Developed for Advanced Research in Retrieval-Augmented Generation
-    
-    Version 1.0
-    """)
+    <div style="margin-top: 3rem; text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(75,108,183,0.1) 0%, rgba(24,40,72,0.2) 100%); border-radius: 12px;">
+        <p style="margin-bottom: 0.5rem; font-size: 1.1rem; color: #4b6cb7; font-weight: 600;">Advanced Research in Retrieval-Augmented Generation</p>
+        <div style="display: flex; align-items: center; justify-content: center; margin-top: 1rem;">
+            <div style="margin: 0 1rem; font-size: 0.9rem; color: inherit;">
+                ✨ Created by: Arshnoor Singh Sohi
+            </div>
+            <div style="width: 1px; height: 20px; background: #ccc;"></div>
+            <div style="margin: 0 1rem; font-size: 0.9rem; color: inherit;">
+                Version 2.0
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Main function to run the app
 def main():
