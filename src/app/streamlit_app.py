@@ -418,10 +418,61 @@ def process_query(query):
 def sidebar():
     """Create the sidebar navigation"""
     with st.sidebar:
-        st.markdown("## 🧠 Advanced RAG System")
+        # Enhanced title with gradient effect and emoji
+        st.markdown("""
+        <div style="
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            padding: 1.5rem 1rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        ">
+            <h2 style="
+                margin: 0;
+                color: white;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+            ">
+                <span style="margin-right: 8px;">🧠</span> 
+                Advanced RAG System
+            </h2>
+            <div style="
+                margin-top: 0.6rem;
+                font-size: 0.75rem;
+                color: rgba(255, 255, 255, 0.8);
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                padding-top: 0.5rem;
+                text-align: right;
+                font-style: italic;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+            ">
+                <span style="margin-right: 4px;">✨</span>
+                Created by: Arshnoor Singh Sohi
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Navigation
-        st.markdown("### Navigation")
+        # Navigation with enhanced styling
+        st.markdown("""
+        <div style="
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        ">
+            <h3 style="
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin-bottom: 0.8rem;
+                color: #4b6cb7;
+                border-left: 3px solid #4b6cb7;
+                padding-left: 0.5rem;
+            ">
+                Navigation
+            </h3>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Create custom navigation with icons
         nav_options = {

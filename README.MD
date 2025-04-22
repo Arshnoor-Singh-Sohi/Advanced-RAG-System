@@ -2,6 +2,11 @@
 
 This repository contains a comprehensive Retrieval-Augmented Generation (RAG) system designed for both practical knowledge management applications and as an experimental platform for advanced RAG research.
 
+## Live Demo
+
+Try the live application: [Advanced RAG Knowledge Management System](https://your-streamlit-app-url.streamlit.app)
+
+
 ## Table of Contents
 - [Overview](#overview)
 - [Key Features](#key-features)
