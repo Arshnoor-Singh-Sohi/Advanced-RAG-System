@@ -25,6 +25,7 @@ import base64
 from io import BytesIO
 import traceback
 import matplotlib as mpl
+import datetime
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -428,6 +429,7 @@ def sidebar():
             "Configuration": "⚙️ Configuration",
             "Metrics": "📊 Metrics",
             "Experiment Lab": "🧪 Experiment Lab",
+            "Experiment Results": "📈 Experiment Results",
             "Evaluation": "📝 Evaluation", 
             "About": "ℹ️ About"
         }
@@ -2754,6 +2756,627 @@ def experiment_lab_page():
                 st.markdown(href, unsafe_allow_html=True)
 
 
+def experiment_results_page():
+    """Display results from experiment runs stored in the results and figures folders"""
+    st.markdown('<p class="main-header">📈 Experiment Results</p>', unsafe_allow_html=True)
+
+    # Create tabs to separate figures-based results view and chronological browser
+    result_view_tabs = st.tabs(["Analysis Results", "Chronological Results Browser"])
+    
+    with result_view_tabs[0]:
+    
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown("""
+        View results from previously run experiments. This page displays analysis, figures, and recommendations
+        from the experiment runs executed via the run_experiments.py script or individual experiment modules.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Check if results/figures directories exist
+        results_dir = "results"
+        figures_dir = "figures"
+        
+        if not os.path.exists(results_dir) and not os.path.exists(figures_dir):
+            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
+            st.warning("""
+            No experiment results found. To generate results:
+            1. Run experiments using run_experiments.py 
+            2. Or run individual experiment modules in the experiments/ directory
+            """)
+            st.markdown('</div>', unsafe_allow_html=True)
+            return
+        
+        # Define the experiment categories that align with the analysis folders
+        experiment_categories = [
+            "chunking", "embedding", "retrieval", 
+            "query_processing", "reranking", "generation",
+            "combined"  # For overall results and comparisons
+        ]
+        
+        # Create tabs for different experiment types
+        tabs = st.tabs([category.replace("_", " ").title() for category in experiment_categories])
+        
+        # Function to load and format recommendations from JSON
+        def load_recommendations(json_path):
+            try:
+                with open(json_path, 'r') as f:
+                    data = json.load(f)
+                return data
+            except:
+                return None
+        
+        # Function to render a figure if it exists
+        def render_figure(fig_path, caption=None):
+            if os.path.exists(fig_path):
+                st.image(fig_path, caption=caption, use_container_width=True)
+                return True
+            return False
+        
+        # Function to render data from CSV
+        def render_csv(csv_path, max_rows=20):
+            try:
+                df = pd.read_csv(csv_path)
+                # Handle any NaN values for display
+                df = df.fillna("N/A")
+                st.dataframe(df, use_container_width=True)
+                
+                # Provide download option
+                csv_data = df.to_csv(index=False).encode('utf-8')
+                b64 = base64.b64encode(csv_data).decode()
+                href = f'<a href="data:file/csv;base64,{b64}" download="{os.path.basename(csv_path)}">Download CSV</a>'
+                st.markdown(href, unsafe_allow_html=True)
+                return True
+            except Exception as e:
+                st.error(f"Error loading CSV file: {str(e)}")
+                return False
+        
+        # Process each category in its respective tab
+        for i, category in enumerate(experiment_categories):
+            with tabs[i]:
+                st.markdown(f'<p class="sub-header">{category.replace("_", " ").title()} Experiment Results</p>', unsafe_allow_html=True)
+                
+                # Check for analysis folder
+                analysis_dir = os.path.join(figures_dir, f"{category}_analysis")
+                has_content = False
+                
+                # Check for specific category-related files in figures directory
+                specific_figures = [
+                    f for f in os.listdir(figures_dir) 
+                    if f.startswith(category) and (f.endswith('.png') or f.endswith('.jpg'))
+                ] if os.path.exists(figures_dir) else []
+                
+                # Summary file paths
+                summary_csv = os.path.join(figures_dir, f"{category}_summary.csv")
+                recommendations_json = os.path.join(figures_dir, "recommendations.json")
+                
+                # First show direct category figures
+                if specific_figures:
+                    st.markdown("### Key Visualizations")
+                    cols = st.columns(min(2, len(specific_figures)))
+                    for j, fig_file in enumerate(specific_figures):
+                        col_idx = j % len(cols)
+                        with cols[col_idx]:
+                            # Create a display name from the filename
+                            display_name = fig_file.replace(f"{category}_", "").replace("_", " ").replace(".png", "").replace(".jpg", "")
+                            display_name = display_name.title()
+                            render_figure(os.path.join(figures_dir, fig_file), caption=display_name)
+                            has_content = True
+                
+                # Show analysis folder contents if it exists
+                if os.path.exists(analysis_dir):
+                    analysis_files = os.listdir(analysis_dir)
+                    
+                    # Filter by type
+                    png_files = [f for f in analysis_files if f.endswith('.png') or f.endswith('.jpg')]
+                    csv_files = [f for f in analysis_files if f.endswith('.csv')]
+                    json_files = [f for f in analysis_files if f.endswith('.json')]
+                    
+                    # Display visualizations
+                    if png_files:
+                        st.markdown("### Analysis Visualizations")
+                        display_cols = min(2, len(png_files))
+                        fig_cols = st.columns(display_cols)
+                        
+                        for j, fig_file in enumerate(png_files):
+                            col_idx = j % display_cols
+                            with fig_cols[col_idx]:
+                                # Create a display name from the filename
+                                display_name = fig_file.replace("_", " ").replace(".png", "").replace(".jpg", "")
+                                display_name = ' '.join(word.capitalize() for word in display_name.split())
+                                render_figure(os.path.join(analysis_dir, fig_file), caption=display_name)
+                        has_content = True
+                    
+                    # Display data tables
+                    if csv_files:
+                        st.markdown("### Data Analysis")
+                        for csv_file in csv_files:
+                            display_name = csv_file.replace("_", " ").replace(".csv", "")
+                            display_name = ' '.join(word.capitalize() for word in display_name.split())
+                            
+                            with st.expander(f"{display_name} Data", expanded=False):
+                                render_csv(os.path.join(analysis_dir, csv_file))
+                        has_content = True
+                    
+                    # Display JSON data (like parameters)
+                    if json_files:
+                        st.markdown("### Configuration Parameters")
+                        for json_file in json_files:
+                            display_name = json_file.replace("_", " ").replace(".json", "")
+                            display_name = ' '.join(word.capitalize() for word in display_name.split())
+                            
+                            try:
+                                with open(os.path.join(analysis_dir, json_file), 'r') as f:
+                                    json_data = json.load(f)
+                                    
+                                with st.expander(f"{display_name}", expanded=False):
+                                    st.json(json_data)
+                            except:
+                                st.error(f"Error loading JSON file: {json_file}")
+                        has_content = True
+                
+                # Show summary CSV if it exists
+                if os.path.exists(summary_csv):
+                    st.markdown("### Summary Results")
+                    render_csv(summary_csv)
+                    has_content = True
+                
+                # For category-specific recommendations
+                if os.path.exists(recommendations_json):
+                    recommendations = load_recommendations(recommendations_json)
+                    if recommendations and category in recommendations:
+                        st.markdown("### Recommendations")
+                        rec_data = recommendations[category]
+                        
+                        # Display recommendations in a nice format
+                        st.markdown('<div class="content-box">', unsafe_allow_html=True)
+                        if isinstance(rec_data, list):
+                            for j, rec in enumerate(rec_data):
+                                st.markdown(f"**{j+1}.** {rec}")
+                        elif isinstance(rec_data, dict):
+                            for key, value in rec_data.items():
+                                st.markdown(f"**{key}:** {value}")
+                        else:
+                            st.write(rec_data)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        has_content = True
+                
+                # Check if there's any category-specific folder in results directory
+                results_category_dir = os.path.join(results_dir, category)
+                if os.path.exists(results_category_dir) and os.path.isdir(results_category_dir):
+                    st.markdown("### Detailed Results")
+                    
+                    # List subdirectories (experiment runs)
+                    result_runs = [d for d in os.listdir(results_category_dir) 
+                                if os.path.isdir(os.path.join(results_category_dir, d))]
+                    
+                    if result_runs:
+                        # Sort runs by modification time (newest first)
+                        result_runs.sort(key=lambda x: os.path.getmtime(os.path.join(results_category_dir, x)), reverse=True)
+                        
+                        # Create a selectbox for choosing the run
+                        selected_run = st.selectbox(
+                            "Select Experiment Run",
+                            result_runs,
+                            key=f"select_run_{category}"
+                        )
+                        
+                        # Display contents of the selected run
+                        run_dir = os.path.join(results_category_dir, selected_run)
+                        run_files = os.listdir(run_dir)
+                        
+                        # Categorize files
+                        run_images = [f for f in run_files if f.endswith('.png') or f.endswith('.jpg')]
+                        run_csvs = [f for f in run_files if f.endswith('.csv')]
+                        run_jsons = [f for f in run_files if f.endswith('.json')]
+                        
+                        # Display images
+                        if run_images:
+                            st.markdown("#### Visualizations")
+                            cols = st.columns(min(2, len(run_images)))
+                            for j, img in enumerate(run_images):
+                                col_idx = j % len(cols)
+                                with cols[col_idx]:
+                                    display_name = img.replace("_", " ").replace(".png", "").replace(".jpg", "")
+                                    display_name = display_name.title()
+                                    render_figure(os.path.join(run_dir, img), caption=display_name)
+                        
+                        # Display CSVs
+                        if run_csvs:
+                            st.markdown("#### Data Tables")
+                            for csv_file in run_csvs:
+                                display_name = csv_file.replace("_", " ").replace(".csv", "")
+                                display_name = display_name.title()
+                                with st.expander(f"{display_name}", expanded=False):
+                                    render_csv(os.path.join(run_dir, csv_file))
+                        
+                        # Display JSONs
+                        if run_jsons:
+                            st.markdown("#### Configuration & Parameters")
+                            for json_file in run_jsons:
+                                display_name = json_file.replace("_", " ").replace(".json", "")
+                                display_name = display_name.title()
+                                try:
+                                    with open(os.path.join(run_dir, json_file), 'r') as f:
+                                        json_data = json.load(f)
+                                    with st.expander(f"{display_name}", expanded=False):
+                                        st.json(json_data)
+                                except:
+                                    st.error(f"Error loading JSON file: {json_file}")
+                        
+                        has_content = True
+                    else:
+                        st.info(f"No experiment runs found for {category}.")
+                
+                # Check for combined results
+                if category == "combined":
+                    combined_csv = os.path.join(figures_dir, "combined_results.csv")
+                    if os.path.exists(combined_csv):
+                        st.markdown("### Cross-Experiment Comparison")
+                        st.info("This dataset compares results across different experiment types.")
+                        
+                        # Read the CSV with proper handling of NaN values
+                        try:
+                            df = pd.read_csv(combined_csv)
+                            # Fill NaN values with "N/A" for display
+                            df_display = df.fillna("N/A")
+                            
+                            # Display the data
+                            st.dataframe(df_display, use_container_width=True)
+                            
+                            # Only try to visualize if we have numerical data
+                            numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
+                            if len(numeric_cols) >= 2:
+                                st.markdown("### Visualization of Key Metrics")
+                                
+                                # Filter out columns with all NaN values
+                                valid_metrics = [col for col in numeric_cols 
+                                                if not df[col].isna().all()]
+                                
+                                # Only proceed if we have valid metrics
+                                if len(valid_metrics) >= 2:
+                                    # Allow selecting metrics to plot
+                                    x_axis = st.selectbox(
+                                        "X-Axis Metric", 
+                                        valid_metrics,
+                                        key="combined_x_metric"
+                                    )
+                                    
+                                    y_axis = st.selectbox(
+                                        "Y-Axis Metric", 
+                                        [m for m in valid_metrics if m != x_axis],
+                                        key="combined_y_metric"
+                                    )
+                                    
+                                    # Create a color column if we have a third dimension
+                                    color_col = None
+                                    if len(valid_metrics) > 2:
+                                        color_options = ["None"] + [m for m in valid_metrics if m != x_axis and m != y_axis]
+                                        color_selection = st.selectbox(
+                                            "Color Dimension", 
+                                            color_options,
+                                            key="combined_color_metric"
+                                        )
+                                        if color_selection != "None":
+                                            color_col = color_selection
+                                    
+                                    # Filter to only rows where both selected metrics have values
+                                    plot_data = df.dropna(subset=[x_axis, y_axis])
+                                    
+                                    if not plot_data.empty:
+                                        # Create the plot
+                                        fig, ax = plt.subplots(figsize=(10, 6))
+                                        
+                                        if color_col:
+                                            # Drop rows where color column is NaN
+                                            plot_data = plot_data.dropna(subset=[color_col])
+                                            scatter = ax.scatter(
+                                                plot_data[x_axis], 
+                                                plot_data[y_axis],
+                                                c=plot_data[color_col], 
+                                                cmap='viridis', 
+                                                alpha=0.7,
+                                                s=100
+                                            )
+                                            cbar = plt.colorbar(scatter)
+                                            cbar.set_label(color_col)
+                                        else:
+                                            ax.scatter(
+                                                plot_data[x_axis], 
+                                                plot_data[y_axis], 
+                                                alpha=0.7,
+                                                s=100
+                                            )
+                                        
+                                        # Get categorical columns to use as labels
+                                        cat_cols = df.select_dtypes(include=['object']).columns.tolist()
+                                        if cat_cols:
+                                            # Use the first categorical column for labels
+                                            for i, row in plot_data.iterrows():
+                                                ax.annotate(
+                                                    row[cat_cols[0]], 
+                                                    (row[x_axis], row[y_axis]),
+                                                    xytext=(5, 5),
+                                                    textcoords='offset points'
+                                                )
+                                        
+                                        ax.set_xlabel(x_axis)
+                                        ax.set_ylabel(y_axis)
+                                        ax.set_title(f"{y_axis} vs {x_axis}")
+                                        ax.grid(True, linestyle='--', alpha=0.7)
+                                        
+                                        st.pyplot(fig)
+                                        plt.close(fig)
+                                    else:
+                                        st.warning("Not enough data points with both selected metrics.")
+                            
+                            # Provide download option
+                            csv_data = df.to_csv(index=False).encode('utf-8')
+                            b64 = base64.b64encode(csv_data).decode()
+                            href = f'<a href="data:file/csv;base64,{b64}" download="combined_results.csv">Download CSV</a>'
+                            st.markdown(href, unsafe_allow_html=True)
+                            
+                            has_content = True
+                        except Exception as e:
+                            st.error(f"Error processing combined results: {str(e)}")
+                
+                # Show a message if no content was found for this category
+                if not has_content:
+                    st.info(f"No results found for {category} experiments. Run the corresponding experiment to generate data.")
+    with result_view_tabs[1]:
+        browse_experiment_results()
+
+def browse_experiment_results():
+    """Browse experiment results from the results directory organized chronologically"""
+    st.markdown('<p class="main-header">🔍 Experiment Results Browser</p>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="info-box">', unsafe_allow_html=True)
+    st.markdown("""
+    This page allows you to browse all experiment runs chronologically. 
+    Experiment results are organized by type and date/time of execution.
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Check if results directory exists
+    results_dir = "results"
+    
+    if not os.path.exists(results_dir):
+        st.markdown('<div class="warning-box">', unsafe_allow_html=True)
+        st.warning("""
+        No experiment results found. To generate results:
+        1. Run experiments using run_experiments.py 
+        2. Or run individual experiment modules in the experiments/ directory
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+    
+    # Get all experiment folders
+    # Get all experiment folders - modified to skip non-experiment directories
+    experiment_folders = [f for f in os.listdir(results_dir) 
+                        if os.path.isdir(os.path.join(results_dir, f)) 
+                        and f not in ["Evaluation", "figures", "Paper figures"]]
+    
+    if not experiment_folders:
+        st.info("No experiment runs found in the results directory.")
+        return
+    
+    # Parse experiment folder names to extract info
+    experiment_data = []
+    
+    for folder in experiment_folders:
+        try:
+            # Extract experiment type and datetime
+            parts = folder.split('_')
+            
+            # Handle different naming patterns
+            if len(parts) >= 3 and parts[-1].isdigit() and parts[-2].isdigit():
+                # Standard format: type_YYYYMMDD_HHMMSS
+                exp_type = '_'.join(parts[:-2])
+                date_str = parts[-2]
+                time_str = parts[-1]
+                
+                # Format date and time for display
+                formatted_date = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:8]}"
+                formatted_time = f"{time_str[:2]}:{time_str[2:4]}:{time_str[4:6]}"
+                
+                # Create datetime object for sorting
+                datetime_obj = datetime.datetime.strptime(
+                    f"{date_str} {time_str}", 
+                    "%Y%m%d %H%M%S"
+                )
+                
+                experiment_data.append({
+                    'folder': folder,
+                    'type': exp_type,
+                    'date': formatted_date,
+                    'time': formatted_time,
+                    'datetime': datetime_obj,
+                    'path': os.path.join(results_dir, folder)
+                })
+            else:
+                # Handle non-standard format
+                experiment_data.append({
+                    'folder': folder,
+                    'type': folder,
+                    'date': 'Unknown',
+                    'time': 'Unknown',
+                    'datetime': datetime.datetime.min,
+                    'path': os.path.join(results_dir, folder)
+                })
+        except Exception as e:
+            # If parsing fails, still include the folder with minimal info
+            experiment_data.append({
+                'folder': folder,
+                'type': folder,
+                'date': 'Unknown',
+                'time': 'Unknown',
+                'datetime': datetime.datetime.min,
+                'path': os.path.join(results_dir, folder)
+            })
+    
+    # Sort experiments by datetime (newest first)
+    experiment_data.sort(key=lambda x: x['datetime'], reverse=True)
+    
+    # Group experiments by type
+    experiment_types = sorted(list(set(exp['type'] for exp in experiment_data)))
+    
+    # Create tabs for different experiment types
+    tabs = st.tabs([exp_type.replace("_", " ").title() for exp_type in experiment_types])
+    
+    # Process each experiment type in its respective tab
+    for i, exp_type in enumerate(experiment_types):
+        with tabs[i]:
+            st.markdown(f'<p class="sub-header">{exp_type.replace("_", " ").title()} Experiments</p>', unsafe_allow_html=True)
+            
+            # Filter experiments of this type
+            type_experiments = [exp for exp in experiment_data if exp['type'] == exp_type]
+            
+            # Create a selection widget for choosing the experiment run
+            run_display_names = [f"{exp['date']} at {exp['time']}" if exp['date'] != 'Unknown' 
+                                else exp['folder'] for exp in type_experiments]
+            
+            selected_index = st.selectbox(
+                f"Select {exp_type.replace('_', ' ').title()} Run",
+                range(len(run_display_names)),
+                format_func=lambda i: run_display_names[i],
+                key=f"select_run_{exp_type}"
+            )
+            
+            selected_experiment = type_experiments[selected_index]
+            
+            # Display metadata about the selected experiment
+            st.markdown("### Experiment Details")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown(f"**Date:** {selected_experiment['date']}")
+            with col2:
+                st.markdown(f"**Time:** {selected_experiment['time']}")
+            
+            # Path to selected experiment folder
+            exp_path = selected_experiment['path']
+            
+            # Check for config.json
+            config_path = os.path.join(exp_path, "config.json")
+            if os.path.exists(config_path):
+                with st.expander("Experiment Configuration", expanded=False):
+                    try:
+                        with open(config_path, 'r') as f:
+                            config_data = json.load(f)
+                        st.json(config_data)
+                    except Exception as e:
+                        st.error(f"Error loading config.json: {e}")
+            
+            # Check for results.csv
+            results_csv_path = os.path.join(exp_path, "results.csv")
+            if os.path.exists(results_csv_path):
+                with st.expander("Results Data (CSV)", expanded=False):
+                    try:
+                        df = pd.read_csv(results_csv_path)
+                        # Handle NaN values for display
+                        df = df.fillna("N/A")
+                        st.dataframe(df, use_container_width=True)
+                        
+                        # Provide download option
+                        csv_data = df.to_csv(index=False).encode('utf-8')
+                        b64 = base64.b64encode(csv_data).decode()
+                        href = f'<a href="data:file/csv;base64,{b64}" download="results.csv">Download CSV</a>'
+                        st.markdown(href, unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error(f"Error loading results.csv: {e}")
+            
+            # Check for results.json
+            results_json_path = os.path.join(exp_path, "results.json")
+            if os.path.exists(results_json_path):
+                with st.expander("Detailed Results (JSON)", expanded=False):
+                    try:
+                        with open(results_json_path, 'r') as f:
+                            results_data = json.load(f)
+                        st.json(results_data)
+                    except Exception as e:
+                        st.error(f"Error loading results.json: {e}")
+            
+            # Check for report directory
+            report_dir = os.path.join(exp_path, "report")
+            if os.path.exists(report_dir) and os.path.isdir(report_dir):
+                st.markdown("### Visualizations")
+                
+                # Get all image files in the report directory
+                image_files = [f for f in os.listdir(report_dir) 
+                              if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                
+                if image_files:
+                    # Sort image files by name
+                    image_files.sort()
+                    
+                    # Group images by 2 for display
+                    for i in range(0, len(image_files), 2):
+                        col1, col2 = st.columns(2)
+                        
+                        # First image
+                        img_path = os.path.join(report_dir, image_files[i])
+                        img_name = image_files[i].replace('.png', '').replace('.jpg', '').replace('_', ' ')
+                        img_name = ' '.join(word.title() for word in img_name.split())
+                        
+                        with col1:
+                            st.image(img_path, caption=img_name, use_container_width=True)
+                        
+                        # Second image (if available)
+                        if i + 1 < len(image_files):
+                            img_path = os.path.join(report_dir, image_files[i + 1])
+                            img_name = image_files[i + 1].replace('.png', '').replace('.jpg', '').replace('_', ' ')
+                            img_name = ' '.join(word.title() for word in img_name.split())
+                            
+                            with col2:
+                                st.image(img_path, caption=img_name, use_container_width=True)
+                else:
+                    st.info("No visualizations found in the report directory.")
+            
+            # Check for other CSV files at the top level
+            csv_files = [f for f in os.listdir(exp_path) 
+                        if f.lower().endswith('.csv') and f != 'results.csv']
+            
+            if csv_files:
+                st.markdown("### Additional Data Files")
+                
+                for csv_file in csv_files:
+                    file_path = os.path.join(exp_path, csv_file)
+                    file_name = csv_file.replace('.csv', '').replace('_', ' ')
+                    file_name = ' '.join(word.title() for word in file_name.split())
+                    
+                    with st.expander(f"{file_name}", expanded=False):
+                        try:
+                            df = pd.read_csv(file_path)
+                            # Handle NaN values
+                            df = df.fillna("N/A")
+                            st.dataframe(df, use_container_width=True)
+                            
+                            # Provide download option
+                            csv_data = df.to_csv(index=False).encode('utf-8')
+                            b64 = base64.b64encode(csv_data).decode()
+                            href = f'<a href="data:file/csv;base64,{b64}" download="{csv_file}">Download CSV</a>'
+                            st.markdown(href, unsafe_allow_html=True)
+                        except Exception as e:
+                            st.error(f"Error loading {csv_file}: {e}")
+            
+            # Check for other JSON files at the top level
+            json_files = [f for f in os.listdir(exp_path) 
+                        if f.lower().endswith('.json') and f not in ['config.json', 'results.json']]
+            
+            if json_files:
+                st.markdown("### Additional Parameter Files")
+                
+                for json_file in json_files:
+                    file_path = os.path.join(exp_path, json_file)
+                    file_name = json_file.replace('.json', '').replace('_', ' ')
+                    file_name = ' '.join(word.title() for word in file_name.split())
+                    
+                    with st.expander(f"{file_name}", expanded=False):
+                        try:
+                            with open(file_path, 'r') as f:
+                                json_data = json.load(f)
+                            st.json(json_data)
+                        except Exception as e:
+                            st.error(f"Error loading {json_file}: {e}")
+
 
 # Create the new evaluation_page function
 def evaluation_page():
@@ -3496,6 +4119,8 @@ def main():
         metrics_page()
     elif st.session_state.current_page == "Experiment Lab":
         experiment_lab_page()
+    elif st.session_state.current_page == "Experiment Results":
+        experiment_results_page()
     elif st.session_state.current_page == "Evaluation":
         evaluation_page()
     elif st.session_state.current_page == "About":

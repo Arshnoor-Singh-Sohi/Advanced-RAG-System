@@ -1,0 +1,9 @@
+{
+  "dataset": "Sample data",
+  "embedding_model": "all-MiniLM-L6-v2",
+  "retrieval_methods": [
+    "vector",
+    "bm25",
+    "hybrid"
+  ]
+}

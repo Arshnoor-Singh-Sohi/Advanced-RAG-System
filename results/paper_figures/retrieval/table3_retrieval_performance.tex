@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+\caption{Performance Comparison of Different Retrieval Methods}
+\begin{center}
+\begin{tabular}{|l|l|l|c|c|c|}
+\hline
+\textbf{Method} & \textbf{Type} & \textbf{Query Expansion} & \textbf{Precision@3} & \textbf{Recall@3} & \textbf{MRR} \\ 
+\hline
+bm25 & bm25 & none & 1.0000 & 0.2450 & 1.0000 \\ 
+bm25_expanded & bm25 & simple & 1.0000 & 0.2450 & 1.0000 \\ 
+hybrid_0.3 & hybrid & none & 1.0000 & 0.2450 & 1.0000 \\ 
+hybrid_0.5 & hybrid & none & 1.0000 & 0.2450 & 1.0000 \\ 
+hybrid_0.7 & hybrid & none & 0.9333 & 0.2200 & 1.0000 \\ 
+hybrid_expanded & hybrid & simple & 1.0000 & 0.2450 & 1.0000 \\ 
+vector & vector & none & 0.8667 & 0.2033 & 1.0000 \\ 
+vector_expanded & vector & simple & 0.8667 & 0.2033 & 1.0000 \\ 
+\hline
+\end{tabular}
+\label{tab:retrieval}
+\end{center}
+\end{table}

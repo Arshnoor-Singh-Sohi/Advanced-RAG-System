@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\caption{Performance Comparison of Different Generation Configurations}
+\begin{center}
+\begin{tabular}{|l|l|l|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Prompt Template} & \textbf{Prompt Description} & \textbf{Retrieval Config} & \textbf{Precision At 1} & \textbf{Precision At 3} & \textbf{Precision At 5} & \textbf{Recall At 3} & \textbf{Recall At 5} & \textbf{Mrr} & \textbf{Answer Precision} & \textbf{Answer Recall} & \textbf{Faithfulness} & \textbf{Citation Rate} & \textbf{Answer Correctness} & \textbf{Precision} & \textbf{Recall} \\ 
+\hline
+basic & Basic prompt & reranked_3 & nan & nan & nan & nan & nan & nan & 0.1954 & 0.1954 & 0.7914 & 0.0000 & 0.7200 & nan & nan \\ 
+basic & Basic prompt & top_3 & nan & nan & nan & nan & nan & nan & 0.1817 & 0.1817 & 0.8199 & 0.0000 & 0.6800 & nan & nan \\ 
+basic & Basic prompt & top_5 & nan & nan & nan & nan & nan & nan & 0.1709 & 0.1709 & 0.8241 & 0.0000 & 0.6800 & nan & nan \\ 
+citation & Request citations & reranked_3 & nan & nan & nan & nan & nan & nan & 0.1954 & 0.1954 & 0.7914 & 0.0000 & 0.7200 & nan & nan \\ 
+citation & Request citations & top_3 & nan & nan & nan & nan & nan & nan & 0.1817 & 0.1817 & 0.8199 & 0.0000 & 0.6800 & nan & nan \\ 
+citation & Request citations & top_5 & nan & nan & nan & nan & nan & nan & 0.1709 & 0.1709 & 0.8241 & 0.0000 & 0.6800 & nan & nan \\ 
+extractive & Extract answer & reranked_3 & nan & nan & nan & nan & nan & nan & 0.1954 & 0.1954 & 0.7914 & 0.0000 & 0.7200 & nan & nan \\ 
+extractive & Extract answer & top_3 & nan & nan & nan & nan & nan & nan & 0.1817 & 0.1817 & 0.8199 & 0.0000 & 0.6800 & nan & nan \\ 
+extractive & Extract answer & top_5 & nan & nan & nan & nan & nan & nan & 0.1709 & 0.1709 & 0.8241 & 0.0000 & 0.6800 & nan & nan \\ 
+instructional & Detailed instructions & reranked_3 & nan & nan & nan & nan & nan & nan & 0.1954 & 0.1954 & 0.7914 & 0.0000 & 0.7200 & nan & nan \\ 
+instructional & Detailed instructions & top_3 & nan & nan & nan & nan & nan & nan & 0.1817 & 0.1817 & 0.8199 & 0.0000 & 0.6800 & nan & nan \\ 
+instructional & Detailed instructions & top_5 & nan & nan & nan & nan & nan & nan & 0.1709 & 0.1709 & 0.8241 & 0.0000 & 0.6800 & nan & nan \\ 
+\hline
+\end{tabular}
+\label{tab:generation}
+\end{center}
+\end{table}

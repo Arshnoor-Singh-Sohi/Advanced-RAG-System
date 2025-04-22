@@ -1,0 +1,18 @@
+[
+  {
+    "chunking_strategy": "fixed",
+    "chunk_size": 100,
+    "retrieval_method": "vector",
+    "metric_precision": 1.0,
+    "metric_recall": 1.0,
+    "metric_mrr": 1.0
+  },
+  {
+    "chunking_strategy": "paragraph",
+    "chunk_size": "auto",
+    "retrieval_method": "bm25",
+    "metric_precision": 0.9,
+    "metric_recall": 0.8,
+    "metric_mrr": 0.85
+  }
+]

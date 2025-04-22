@@ -1,0 +1,7 @@
+{
+  "corpus_file": "sample_corpus.pkl",
+  "sample_size": 50,
+  "num_queries": 5,
+  "embedding_model": "all-MiniLM-L6-v2",
+  "output_dir_arg": "results"
+}

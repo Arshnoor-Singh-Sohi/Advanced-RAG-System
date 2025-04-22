@@ -1,0 +1,9 @@
+{
+  "dataset": "sample_corpus.pkl",
+  "sample_size": 50,
+  "num_queries": 5,
+  "chunk_strategy": "fixed",
+  "chunk_size": 64,
+  "chunk_overlap": 0,
+  "embedding_model": "all-MiniLM-L6-v2"
+}

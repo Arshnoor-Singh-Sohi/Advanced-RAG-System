@@ -1,0 +1,54 @@
+[
+  {
+    "embedding_model": "all-MiniLM-L6-v2",
+    "embedding_type": "sentence_transformer",
+    "embedding_dim": 384,
+    "embedding_time_sec": 22.025402545928955,
+    "docs_per_second": 0.18160848555021467,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 1.0,
+    "metric_precision_at_5": 1.0,
+    "metric_recall_at_3": 0.75,
+    "metric_recall_at_5": 1.0,
+    "metric_mrr": 1.0
+  },
+  {
+    "embedding_model": "all-mpnet-base-v2",
+    "embedding_type": "sentence_transformer",
+    "embedding_dim": 768,
+    "embedding_time_sec": 0.8991425037384033,
+    "docs_per_second": 4.448683032299139,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 1.0,
+    "metric_precision_at_5": 1.0,
+    "metric_recall_at_3": 0.75,
+    "metric_recall_at_5": 1.0,
+    "metric_mrr": 1.0
+  },
+  {
+    "embedding_model": "multi-qa-mpnet-base-dot-v1",
+    "embedding_type": "sentence_transformer",
+    "embedding_dim": 768,
+    "embedding_time_sec": 0.8478736877441406,
+    "docs_per_second": 4.717683845859672,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 1.0,
+    "metric_precision_at_5": 1.0,
+    "metric_recall_at_3": 0.75,
+    "metric_recall_at_5": 1.0,
+    "metric_mrr": 1.0
+  },
+  {
+    "embedding_model": "BAAI/bge-small-en-v1.5",
+    "embedding_type": "huggingface",
+    "embedding_dim": 384,
+    "embedding_time_sec": 0.4386305809020996,
+    "docs_per_second": 9.11929120804457,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 1.0,
+    "metric_precision_at_5": 1.0,
+    "metric_recall_at_3": 0.75,
+    "metric_recall_at_5": 1.0,
+    "metric_mrr": 1.0
+  }
+]

@@ -30,7 +30,7 @@ ENV/
 # Data and results (except .gitkeep files)
 data/*
 !data/.gitkeep
-results/*
+# results/*
 !results/.gitkeep
 
 # IDEs

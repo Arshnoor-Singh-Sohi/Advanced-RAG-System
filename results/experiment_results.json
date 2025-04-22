@@ -1,0 +1,11 @@
+{
+  "experiments.test_framework": true,
+  "experiments.chunking_experiment": true,
+  "experiments.embedding_experiment": true,
+  "experiments.retrieval_experiment": true,
+  "experiments.query_processing_experiment": true,
+  "experiments.reranking_experiment": true,
+  "experiments.generation_experiment": true,
+  "analysis.analyze_results": true,
+  "analysis.paper_figures": true
+}

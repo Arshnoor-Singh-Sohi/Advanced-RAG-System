@@ -1,0 +1,86 @@
+[
+  {
+    "reranking_method": "no_reranking",
+    "description": "Base retrieval without reranking",
+    "reranking_time_sec": 12.298849821090698,
+    "queries_per_second": 0.40654208098595884,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.8666666666666666,
+    "metric_precision_at_5": 0.8400000000000001,
+    "metric_recall_at_3": 0.2033333333333333,
+    "metric_recall_at_5": 0.31666666666666665,
+    "metric_mrr": 1.0
+  },
+  {
+    "reranking_method": "cross_encoder",
+    "description": "Cross-encoder reranking",
+    "reranking_time_sec": 27.406757354736328,
+    "queries_per_second": 0.18243675949267013,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.9333333333333332,
+    "metric_precision_at_5": 0.8400000000000001,
+    "metric_recall_at_3": 0.22000000000000003,
+    "metric_recall_at_5": 0.31666666666666665,
+    "metric_mrr": 1.0
+  },
+  {
+    "reranking_method": "llm_reranking",
+    "description": "LLM-based reranking",
+    "reranking_time_sec": 10.633158445358276,
+    "queries_per_second": 0.4702271696311141,
+    "metric_precision_at_1": 0.8,
+    "metric_precision_at_3": 0.8,
+    "metric_precision_at_5": 0.8,
+    "metric_recall_at_3": 0.17833333333333332,
+    "metric_recall_at_5": 0.30333333333333334,
+    "metric_mrr": 0.9
+  },
+  {
+    "reranking_method": "hybrid_fusion",
+    "description": "Fusion of vector and BM25 rankings",
+    "reranking_time_sec": 6.916088342666626,
+    "queries_per_second": 0.7229520145302478,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.9333333333333332,
+    "metric_precision_at_5": 0.8400000000000001,
+    "metric_recall_at_3": 0.22000000000000003,
+    "metric_recall_at_5": 0.31666666666666665,
+    "metric_mrr": 1.0
+  },
+  {
+    "reranking_method": "cross_encoder_fusion",
+    "description": "Fusion of vector and cross-encoder rankings",
+    "reranking_time_sec": 15.159404516220093,
+    "queries_per_second": 0.3298282590619015,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.8666666666666666,
+    "metric_precision_at_5": 0.8400000000000001,
+    "metric_recall_at_3": 0.2033333333333333,
+    "metric_recall_at_5": 0.31666666666666665,
+    "metric_mrr": 1.0
+  },
+  {
+    "reranking_method": "multi_stage",
+    "description": "Multi-stage reranking pipeline",
+    "reranking_time_sec": 13.36454701423645,
+    "queries_per_second": 0.37412416557581785,
+    "metric_precision_at_1": 0.8,
+    "metric_precision_at_3": 0.26666666666666666,
+    "metric_precision_at_5": 0.16,
+    "metric_recall_at_3": 0.06499999999999999,
+    "metric_recall_at_5": 0.06499999999999999,
+    "metric_mrr": 0.8
+  },
+  {
+    "reranking_method": "keyword_fusion",
+    "description": "Keyword and semantic fusion",
+    "reranking_time_sec": 15.4789879322052,
+    "queries_per_second": 0.3230185346677042,
+    "metric_precision_at_1": 0.8,
+    "metric_precision_at_3": 0.26666666666666666,
+    "metric_precision_at_5": 0.16,
+    "metric_recall_at_3": 0.06499999999999999,
+    "metric_recall_at_5": 0.06499999999999999,
+    "metric_mrr": 0.8
+  }
+]

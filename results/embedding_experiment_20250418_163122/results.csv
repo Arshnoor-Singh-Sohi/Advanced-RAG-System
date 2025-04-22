@@ -1,0 +1,5 @@
+embedding_model,embedding_type,embedding_dim,embedding_time_sec,docs_per_second,metric_precision_at_1,metric_precision_at_3,metric_precision_at_5,metric_recall_at_3,metric_recall_at_5,metric_mrr
+all-MiniLM-L6-v2,sentence_transformer,384,63.29523730278015,0.0631959081038836,1.0,1.0,1.0,0.75,1.0,1.0
+all-mpnet-base-v2,sentence_transformer,768,2.631026268005371,1.5203192946577735,1.0,1.0,1.0,0.75,1.0,1.0
+multi-qa-mpnet-base-dot-v1,sentence_transformer,768,2.3436279296875,1.7067555601854263,1.0,1.0,1.0,0.75,1.0,1.0
+BAAI/bge-small-en-v1.5,huggingface,384,1.0193393230438232,3.9241103620487254,1.0,1.0,1.0,0.75,1.0,1.0

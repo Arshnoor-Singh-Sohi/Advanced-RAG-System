@@ -1,0 +1,3 @@
+chunking_strategy,chunk_size,retrieval_method,metric_precision,metric_recall,metric_mrr
+fixed,100,vector,1.0,1.0,1.0
+paragraph,auto,bm25,0.9,0.8,0.85

@@ -1,0 +1,62 @@
+[
+  {
+    "technique": "original",
+    "description": "Original query without modification",
+    "processing_time_sec": 7.1165077686309814,
+    "queries_per_second": 0.7025917995958095,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.8666666666666666,
+    "metric_precision_at_5": 0.8400000000000001,
+    "metric_recall_at_3": 0.2033333333333333,
+    "metric_recall_at_5": 0.31666666666666665,
+    "metric_mrr": 1.0
+  },
+  {
+    "technique": "simple_expansion",
+    "description": "Expand with synonyms",
+    "processing_time_sec": 34.03099322319031,
+    "queries_per_second": 0.14692489188334257,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.8666666666666666,
+    "metric_precision_at_5": 0.8400000000000001,
+    "metric_recall_at_3": 0.2033333333333333,
+    "metric_recall_at_5": 0.31666666666666665,
+    "metric_mrr": 1.0
+  },
+  {
+    "technique": "llm_expansion",
+    "description": "Multiple queries from LLM",
+    "processing_time_sec": 54.7937753200531,
+    "queries_per_second": 0.09125124105420292,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.8666666666666666,
+    "metric_precision_at_5": 0.8400000000000001,
+    "metric_recall_at_3": 0.2033333333333333,
+    "metric_recall_at_5": 0.31666666666666665,
+    "metric_mrr": 1.0
+  },
+  {
+    "technique": "hyde",
+    "description": "Hypothetical Document Embeddings",
+    "processing_time_sec": 12.403747320175171,
+    "queries_per_second": 0.4031039871206751,
+    "metric_precision_at_1": 0.8,
+    "metric_precision_at_3": 0.8666666666666666,
+    "metric_precision_at_5": 0.8,
+    "metric_recall_at_3": 0.2033333333333333,
+    "metric_recall_at_5": 0.30333333333333334,
+    "metric_mrr": 0.9
+  },
+  {
+    "technique": "enhanced_hyde",
+    "description": "Enhanced Hypothetical Document Embeddings",
+    "processing_time_sec": 8.204501390457153,
+    "queries_per_second": 0.6094215555640732,
+    "metric_precision_at_1": 1.0,
+    "metric_precision_at_3": 0.8666666666666666,
+    "metric_precision_at_5": 0.8,
+    "metric_recall_at_3": 0.2033333333333333,
+    "metric_recall_at_5": 0.29999999999999993,
+    "metric_mrr": 1.0
+  }
+]
