@@ -1214,7 +1214,7 @@ def configuration_page():
             /* Enhanced Tab Styling */
             .stTabs [data-baseweb="tab-list"] {
                 gap: 8px;
-                background-color: #f8fafc;
+                background-color: gray-50;
                 padding: 10px 10px 0 10px;
                 border-radius: 10px 10px 0 0;
                 border: 1px solid #e2e8f0;
@@ -1223,7 +1223,7 @@ def configuration_page():
             
             .stTabs [data-baseweb="tab"] {
                 height: 50px;
-                background-color: #f1f5f9;
+                background-color: gray-50;
                 border-radius: 8px 8px 0 0;
                 gap: 8px;
                 padding: 10px 16px;
@@ -1234,7 +1234,7 @@ def configuration_page():
             }
             
             .stTabs [aria-selected="true"] {
-                background-color: #ffffff !important;
+                background-color: gray-50 !important;
                 border-bottom: 4px solid #3b82f6 !important;
                 color: #1e40af !important;
                 padding-bottom: 20px;
@@ -1243,17 +1243,17 @@ def configuration_page():
             }
             
             .stTabs [data-baseweb="tab"]:hover {
-                background-color: #e0e7ff;
+                background-color: gray-50;
                 color: #1e3a8a;
             }
             
             .stTabs [data-baseweb="tab-highlight"] {
-                background-color: #3b82f6;
+                background-color: gray-50;
                 border-radius: 8px;
             }
             
             .stTabs [data-baseweb="tab-panel"] {
-                background-color: #ffffff;
+                # background-color: gray-50;
                 border: 1px solid #e2e8f0;
                 border-top: none;
                 border-radius: 0 0 10px 10px;
@@ -2337,7 +2337,7 @@ def metrics_page():
     
     # Enhanced bold, large, centered header
     st.markdown('<p class="super-header">📊 RAG System Metrics & Analytics</p>', unsafe_allow_html=True)
-    
+
     # Check if there's conversation history
     if not st.session_state.conversation_history:
         st.markdown('<div class="warning-box">', unsafe_allow_html=True)
