@@ -1,0 +1,273 @@
+[
+  {
+    "config_name": "default",
+    "config": {
+      "corpus_path": "data\\corpus.pkl",
+      "index_path": "data/faiss_index",
+      "chunking_strategy": "recursive",
+      "chunk_size": 1000,
+      "chunk_overlap": 200,
+      "embedding_model": "all-MiniLM-L6-v2",
+      "retrieval_method": "hybrid",
+      "retrieval_alpha": 0.7,
+      "top_k": 7,
+      "query_expansion": true,
+      "expansion_method": "simple",
+      "use_hyde": true,
+      "hyde_method": "basic",
+      "hyde_num_docs": 3,
+      "use_reranking": true,
+      "reranking_method": "multi_stage",
+      "reranking_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "reranking_stages": [
+        "semantic",
+        "cross_encoder",
+        "diversity"
+      ],
+      "diversity_alpha": 0.7,
+      "prompt_template": "Answer the question based ONLY on the following context:\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:",
+      "temperature": 0.5,
+      "use_mmr": true,
+      "mmr_fetch_k": 20,
+      "mmr_lambda": 0.5,
+      "bm25_k1": 1.5,
+      "bm25_b": 0.75,
+      "query_transformation": "none",
+      "multiquery_num_variations": 3
+    },
+    "timestamp": "2025-04-23T21:08:42.957568",
+    "dataset_name": "rag_example",
+    "question_results": [
+      {
+        "question": "What is Retrieval-Augmented Generation (RAG)?",
+        "expected_answer": "Retrieval-Augmented Generation (RAG) is a technique that combines the power of large language models with information retrieval systems. It enhances the quality of generated text by retrieving relevant information from a knowledge base.",
+        "generated_answer": "I couldn't find a specific answer to your question in the available knowledge base.",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.9471141338348388,
+        "answer_time": 0.40590605735778806,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.18604651162790697,
+        "faithfulness": 0.0,
+        "category": "definition",
+        "difficulty": "easy"
+      },
+      {
+        "question": "What are the main components of a RAG system?",
+        "expected_answer": "A RAG system typically consists of three main components: 1) A Retriever that finds relevant information, 2) A Generator that creates responses, and 3) A Knowledge Base of documents or facts.",
+        "generated_answer": "\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Explored Reddit\u2019s impact on digital culture and privacy, presenting findings in a clear and accessible report Gained experience in building and deploying web applications\n \nMachine Learning Jun 2022 - Aug 2022\nVenus Multi Media Punjab, IN\n\uf0b7Earned a Machine Learning certification, gaining hands-on experience with tools like Pandas, Numpy, and Scikit-\nLearn\n \nPERSONAL PROJECTS\nTickFit Sep 2024 - Dec 2024\nGitHub: github.com/Arshnoor-Singh-Sohi/TickFit, Windsor, Ontario",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.8219917774200439,
+        "answer_time": 0.35228219032287594,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.06382978723404256,
+        "faithfulness": 0.9884908984145626,
+        "category": "components",
+        "difficulty": "easy"
+      },
+      {
+        "question": "How does vector search work in RAG systems?",
+        "expected_answer": "Vector search in RAG systems works by converting text into numerical vectors and finding documents with similar vector representations. This allows for semantic searching beyond simple keyword matching.",
+        "generated_answer": "\uf0b7Deployed on Vercel with global access and unique URL-based note publishing, demonstrating leadership and initiative \nin project management, development, product development, and process design\n \nReddit Aug 2023 - Dec 2023\nGitHub: github.com/Arshnoor-Singh-Sohi/Reddit, Amritsar, Punjab \uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Explored Reddit\u2019s impact on digital culture and privacy, presenting findings in a clear and accessible report",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.740410304069519,
+        "answer_time": 0.31731870174407956,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.06976744186046512,
+        "faithfulness": 1.0,
+        "category": "technique",
+        "difficulty": "medium"
+      },
+      {
+        "question": "What are embedding models and why are they important for RAG?",
+        "expected_answer": "Embedding models transform text into numerical vectors that capture semantic meaning. They are crucial for RAG systems because they enable semantic similarity search, allowing the system to find relevant documents even when the wording differs from the query.",
+        "generated_answer": "\uf0b7Deployed on Vercel with global access and unique URL-based note publishing, demonstrating leadership and initiative \nin project management, development, product development, and process design\n \nReddit Aug 2023 - Dec 2023\nGitHub: github.com/Arshnoor-Singh-Sohi/Reddit, Amritsar, Punjab EDUCATION\nMaster of Applied Computing Sep 2024 - Present\nUniversity of Windsor, Windsor, ON\nRelevant Coursework: Neural Networks and Deep Learning, Topics in Applied AI, Database Technologies, Software \nEngineering\n \nBachelor of Technology, Computer Science and Engineering Aug 2020 - May 2024\nPunjab Technical University, Punjab, IN\n \nCERTIFICATIONS & TRAINING\nFull Stack Web Development Aug 2023 - Dec 2023\nVenus Multi Media Punjab, IN\n\uf0b7Learned HTML, CSS, JavaScript, React for frontend; Node.js, Next.js,Express.js, MySQL, MongoDB for backend.",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.789203143119812,
+        "answer_time": 0.3382299184799194,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.034188034188034185,
+        "faithfulness": 0.9889161220043573,
+        "category": "technique",
+        "difficulty": "medium"
+      },
+      {
+        "question": "What is document chunking and why is it important in RAG systems?",
+        "expected_answer": "Document chunking is the process of splitting documents into smaller pieces to enable more precise retrieval. It's important for RAG systems because it allows the retriever to find specific relevant sections rather than entire documents, improving the precision of the generated answers.",
+        "generated_answer": "\uf0b7Deployed on Vercel with global access and unique URL-based note publishing, demonstrating leadership and initiative \nin project management, development, product development, and process design\n \nReddit Aug 2023 - Dec 2023\nGitHub: github.com/Arshnoor-Singh-Sohi/Reddit, Amritsar, Punjab \uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Explored Reddit\u2019s impact on digital culture and privacy, presenting findings in a clear and accessible report",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.862341833114624,
+        "answer_time": 0.36957507133483886,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.04166666666666667,
+        "faithfulness": 1.0,
+        "category": "technique",
+        "difficulty": "medium"
+      },
+      {
+        "question": "What is the difference between BM25 and vector search in RAG systems?",
+        "expected_answer": "BM25 is a keyword-based search algorithm that ranks documents based on term frequency and document length, while vector search uses semantic embeddings to find documents with similar meaning regardless of specific keywords. BM25 is better at exact matches, while vector search excels at understanding concepts and semantics.",
+        "generated_answer": "\uf0b7Deployed on Vercel with global access and unique URL-based note publishing, demonstrating leadership and initiative \nin project management, development, product development, and process design\n \nReddit Aug 2023 - Dec 2023\nGitHub: github.com/Arshnoor-Singh-Sohi/Reddit, Amritsar, Punjab \uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Explored Reddit\u2019s impact on digital culture and privacy, presenting findings in a clear and accessible report",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.8139979362487793,
+        "answer_time": 0.348856258392334,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.10309278350515463,
+        "faithfulness": 1.0,
+        "category": "comparison",
+        "difficulty": "hard"
+      },
+      {
+        "question": "What is reranking in the context of RAG, and why is it useful?",
+        "expected_answer": "Reranking in RAG is the process of taking initially retrieved documents and reordering them using more sophisticated (often computationally expensive) models or criteria. It's useful because it improves precision by applying more advanced relevance judgments after the initial retrieval step, which helps provide the generator with higher quality context.",
+        "generated_answer": "\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Explored Reddit\u2019s impact on digital culture and privacy, presenting findings in a clear and accessible report \uf0b7Deployed on Vercel with global access and unique URL-based note publishing, demonstrating leadership and initiative \nin project management, development, product development, and process design\n \nReddit Aug 2023 - Dec 2023\nGitHub: github.com/Arshnoor-Singh-Sohi/Reddit, Amritsar, Punjab",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.7171445846557617,
+        "answer_time": 0.30734767913818356,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.09523809523809523,
+        "faithfulness": 1.0,
+        "category": "technique",
+        "difficulty": "hard"
+      },
+      {
+        "question": "How does the chunking strategy affect RAG performance?",
+        "expected_answer": "The chunking strategy affects RAG performance by determining how documents are split into retrievable pieces. Different strategies (fixed-size, sentence-based, paragraph-based, semantic) influence whether related information stays together or gets split apart. This impacts retrieval precision, as overly large chunks might contain irrelevant information, while too small chunks might lose context.",
+        "generated_answer": "I couldn't find a specific answer to your question in the available knowledge base.",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.7944669485092163,
+        "answer_time": 0.3404858350753784,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.032786885245901634,
+        "faithfulness": 0.0,
+        "category": "performance",
+        "difficulty": "hard"
+      },
+      {
+        "question": "What is Maximal Marginal Relevance (MMR) in RAG systems?",
+        "expected_answer": "Maximal Marginal Relevance (MMR) is a technique used in RAG systems to balance relevance and diversity in retrieved documents. It works by selecting documents that are both relevant to the query and different from already selected documents, which helps reduce redundancy in the context provided to the generator.",
+        "generated_answer": "\uf0b7Deployed on Vercel with global access and unique URL-based note publishing, demonstrating leadership and initiative \nin project management, development, product development, and process design\n \nReddit Aug 2023 - Dec 2023\nGitHub: github.com/Arshnoor-Singh-Sohi/Reddit, Amritsar, Punjab \uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Explored Reddit\u2019s impact on digital culture and privacy, presenting findings in a clear and accessible report",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.8269364833831787,
+        "answer_time": 0.3544013500213623,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.060606060606060615,
+        "faithfulness": 1.0,
+        "category": "technique",
+        "difficulty": "hard"
+      },
+      {
+        "question": "What is HyDE (Hypothetical Document Embeddings) in RAG?",
+        "expected_answer": "HyDE (Hypothetical Document Embeddings) is a technique where the system first generates a hypothetical document that might contain the answer to a query, then uses the embedding of this document for retrieval instead of the query embedding. This bridges the gap between questions and answers in vector space, improving retrieval quality especially for complex queries.",
+        "generated_answer": "\uf0b7Deployed on Vercel with global access and unique URL-based note publishing, demonstrating leadership and initiative \nin project management, development, product development, and process design\n \nReddit Aug 2023 - Dec 2023\nGitHub: github.com/Arshnoor-Singh-Sohi/Reddit, Amritsar, Punjab \uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Conducted a detailed analysis of Reddit\u2019s structure, user interactions, and platform dynamics, focusing on features like \nsubreddits, voting systems, and content moderation\n\uf0b7Explored Reddit\u2019s impact on digital culture and privacy, presenting findings in a clear and accessible report",
+        "retrieved_docs": [
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown",
+          "Source Unknown"
+        ],
+        "relevant_docs": [],
+        "retrieval_time": 0.7228988885879516,
+        "answer_time": 0.30981380939483644,
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "rouge1": 0.0784313725490196,
+        "faithfulness": 1.0,
+        "category": "technique",
+        "difficulty": "hard"
+      }
+    ],
+    "aggregate_metrics": {
+      "avg_retrieval_time": 0.8036506032943725,
+      "avg_answer_time": 0.34442168712615967,
+      "avg_precision": 0.0,
+      "avg_recall": 0.0,
+      "avg_mrr": 0.0,
+      "avg_rouge1": 0.07656536387213472,
+      "avg_faithfulness": 0.7977407020418921,
+      "question_count": 10
+    }
+  }
+]
