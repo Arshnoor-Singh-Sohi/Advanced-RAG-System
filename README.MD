@@ -15,14 +15,7 @@ This repository contains a comprehensive Retrieval-Augmented Generation (RAG) sy
 
 <hr>
 
-<div align="center">
-  <h2>System Architecture</h2>
-  <p>The diagram below illustrates the layered architecture and data flow of our RAG system:</p>
-  
-  <kbd>
-    <img src="path/to/architecture_diagram.png" alt="RAG System Architecture" width="90%">
-  </kbd>
-</div>
+
 
 ## 🧩 Architecture Components
 
