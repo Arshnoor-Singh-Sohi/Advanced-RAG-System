@@ -2,6 +2,277 @@
 
 This repository contains a comprehensive Retrieval-Augmented Generation (RAG) system designed for both practical knowledge management applications and as an experimental platform for advanced RAG research.
 
+# Advanced RAG System
+
+<div align="center">
+  <p>A modular retrieval-augmented generation system designed for experimentation and high-quality responses</p>
+  
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI">
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
+  <img src="https://img.shields.io/badge/FAISS-00BFFF?style=for-the-badge&logo=meta&logoColor=white" alt="FAISS">
+</div>
+
+<hr>
+
+<div align="center">
+  <h2>System Architecture</h2>
+  <p>The diagram below illustrates the layered architecture and data flow of our RAG system:</p>
+  
+  <kbd>
+    <img src="path/to/architecture_diagram.png" alt="RAG System Architecture" width="90%">
+  </kbd>
+</div>
+
+## 🧩 Architecture Components
+
+<div align="center">
+  <table>
+    <tr>
+      <th>Layer</th>
+      <th>Description</th>
+      <th>Key Files</th>
+    </tr>
+    <tr>
+      <td><div style="background-color:#cfe2f3; width:15px; height:15px; display:inline-block; margin-right:5px;"></div> Presentation</td>
+      <td>User interfaces for interacting with the RAG system</td>
+      <td><code>rag_app.py</code>, <code>streamlit_app.py</code></td>
+    </tr>
+    <tr>
+      <td><div style="background-color:#d9ead3; width:15px; height:15px; display:inline-block; margin-right:5px;"></div> RAG Pipeline</td>
+      <td>Core components that process queries and documents</td>
+      <td><code>rag_components.py</code>, <code>advanced_chunking.py</code>, etc.</td>
+    </tr>
+    <tr>
+      <td><div style="background-color:#d9d9d9; width:15px; height:15px; display:inline-block; margin-right:5px;"></div> Data & Storage</td>
+      <td>Management of corpus, vectors, and results</td>
+      <td><code>vectorstore_handler.py</code>, <code>data_processing.py</code></td>
+    </tr>
+    <tr>
+      <td><div style="background-color:#fce5cd; width:15px; height:15px; display:inline-block; margin-right:5px;"></div> Experimentation</td>
+      <td>Tools for running controlled experiments</td>
+      <td><code>run_experiments.py</code>, <code>experiment_tracker.py</code></td>
+    </tr>
+    <tr>
+      <td><div style="background-color:#ead1dc; width:15px; height:15px; display:inline-block; margin-right:5px;"></div> Analysis</td>
+      <td>Results processing and visualization</td>
+      <td><code>analyze_results.py</code>, <code>paper_figures.py</code></td>
+    </tr>
+    <tr>
+      <td><div style="background-color:#f4cccc; width:15px; height:15px; display:inline-block; margin-right:5px;"></div> External Services</td>
+      <td>Third-party dependencies</td>
+      <td>OpenAI, HuggingFace, FAISS</td>
+    </tr>
+  </table>
+</div>
+
+## ✨ Key Features
+
+- 📝 **Advanced Document Chunking**: Semantic chunking that preserves context
+- 🔍 **Enhanced Retrieval**: Multiple retrieval strategies including hybrid search
+- 🔄 **Query Transformations**: HyDE, multi-query generation, and query rewriting
+- 📊 **Sophisticated Reranking**: Multi-stage reranking with relevance models
+- 🧪 **Experimentation Framework**: Tools for controlled testing of RAG variants
+- 📈 **Analysis Tools**: Comprehensive evaluation metrics and visualizations
+- 🔗 **Modular Design**: Easily swap components for different use cases
+
+## 📚 Architecture Breakdown
+
+<details>
+  <summary><b>🖥️ Presentation Layer</b></summary>
+  
+  The Presentation Layer provides interfaces for users to interact with the RAG system:
+  
+  - **CLI Interface**: Command-line tool for quick queries and batch processing
+  - **Web UI**: Streamlit-based interface for interactive exploration and visualization
+  
+  These interfaces communicate with the RAG Pipeline Orchestrator to process queries and display results.
+</details>
+
+<details>
+  <summary><b>⚙️ RAG Pipeline</b></summary>
+  
+  The RAG Pipeline contains the core components that process user queries and documents:
+  
+  - **Pipeline Orchestrator**: Coordinates the flow between components
+  - **Document Chunking**: Splits documents into semantic units using advanced techniques
+  - **Embedding Providers**: Converts text into vector representations
+  - **Retrieval**: Searches vector store for relevant document chunks
+  - **Query Processing**: Enhances queries using techniques like HyDE
+  - **Query Transformations**: Generates query variations to improve recall
+  - **Reranking**: Improves precision by reordering retrieved chunks
+  - **Advanced Reranking**: Uses LLM feedback for further refinement
+  - **Generation**: Creates final responses using retrieved context
+</details>
+
+<details>
+  <summary><b>💾 Data & Storage Layer</b></summary>
+  
+  This layer manages all data assets and persistence:
+  
+  - **Raw Data Storage**: Original documents in various formats
+  - **Corpus Loader**: Utilities for loading and preprocessing documents
+  - **Vectorstore Handler**: Interface to vector databases and indices
+  - **Configuration**: User settings and system parameters
+  - **Results Storage**: Experiment outputs and evaluation metrics
+</details>
+
+<details>
+  <summary><b>🧪 Experimentation Layer</b></summary>
+  
+  Tools for systematic testing of RAG variants:
+  
+  - **Experiment Driver**: Controls execution of experiment batches
+  - **Experiment Modules**: Individual experiment configurations
+  - **Experiment Tracker**: Logs metrics and parameters
+  - **General Utilities**: Helper functions for experimentation
+</details>
+
+## 🔄 Process Flow
+
+This system processes queries through the following steps:
+
+1. **User Input**: Query submitted via CLI or Web interface
+2. **Query Enhancement**: Initial query is processed and potentially transformed
+3. **Document Retrieval**: Relevant chunks retrieved from vector store
+4. **Reranking**: Results are refined based on relevance
+5. **Context Preparation**: Selected chunks formatted as context
+6. **Response Generation**: LLM generates the final answer
+7. **Result Delivery**: Response returned to user with supporting evidence
+
+
+```mermaid
+flowchart TD
+    %% Presentation / UI Layer
+    subgraph "Presentation / UI Layer"
+        direction TB
+        CLI["CLI Interface\n(rag_app.py)"]:::ui
+        Web["Web UI\n(streamlit_app.py)"]:::ui
+    end
+
+    %% RAG Pipeline Layer
+    subgraph "RAG Pipeline" 
+        direction TB
+        Orchestrator["RAG Pipeline Orchestrator\n(rag_components.py)"]:::rag
+        Chunking["Document Chunking\n(advanced_chunking.py)"]:::rag
+        Embeddings["Embedding Providers\n(llm_integrations.py)"]:::rag
+        Retrieval["Retrieval / Vector Search\n(vectorstore_handler.py)"]:::rag
+        QueryProc["Query Processing\n(enhanced_hyde.py)"]:::rag
+        Transforms["Query Transformations\n(query_transformations.py)"]:::rag
+        Rerank["Reranking Mechanisms\n(reranking.py)"]:::rag
+        AdvRerank["Advanced Reranking\n(advanced_reranking.py)"]:::rag
+        Generation["Generation / Prompting\n(llm_integrations.py)"]:::rag
+    end
+
+    %% Data & Storage Layer
+    subgraph "Data & Storage Layer"
+        direction TB
+        Corpus["Raw Data Storage\n(data/)"]:::data
+        CorpusLoader["Corpus Loader Utilities\n(data_processing.py)"]:::data
+        VectorStore["Vectorstore Handler\n(vectorstore_handler.py)"]:::data
+        Config["Configuration\n(user_config.json)"]:::data
+        Results["Results Storage\n(results/)"]:::data
+        FiguresDir["Figures Output\n(figures/)"]:::data
+        PaperFigDir["Paper Figures\n(paper_figures/)"]:::data
+    end
+
+    %% Experimentation Layer
+    subgraph "Experimentation Orchestration"
+        direction TB
+        ExpDriver["Experiment Driver\n(run_experiments.py)"]:::exp
+        ExpModules["Experiment Modules\n(experiments/*.py)"]:::exp
+        Tracker["Experiment Tracker\n(src/utils/experiment_tracker.py)"]:::exp
+        Utils["General Utilities\n(src/utils/utils.py)"]:::exp
+    end
+
+    %% Analysis & Reporting Layer
+    subgraph "Analysis & Reporting"
+        direction TB
+        Analyze["Analyze Results\n(analysis/analyze_results.py)"]:::ana
+        PaperFigures["Generate Paper Figures\n(analysis/paper_figures.py)"]:::ana
+    end
+
+    %% External Services
+    subgraph "External Services"
+        direction TB
+        LLM["LLM Providers\n(OpenAI/HuggingFace)"]:::ext
+        FAISS["FAISS Index\n(persisted)"]:::ext
+    end
+
+    %% Connections
+    CLI -->|submit query| Orchestrator
+    Web -->|submit query| Orchestrator
+
+    Orchestrator -->|chunk docs| Chunking
+    Chunking -->|chunks| Embeddings
+    Embeddings -->|vectors| Retrieval
+    Retrieval -->|candidates| QueryProc
+    QueryProc -->|augmented query| Transforms
+    Transforms -->|transformed query| Rerank
+    Rerank -->|ranked| AdvRerank
+    AdvRerank -->|final candidates| Generation
+    Generation -->|prompts| LLM
+    LLM -->|response| Generation
+    Generation -->|answer| Orchestrator
+    Orchestrator -->|return answer| CLI
+    Orchestrator -->|return answer| Web
+
+    %% Experiment flow
+    ExpDriver -->|runs| ExpModules
+    ExpDriver -->|uses| Tracker
+    ExpDriver -->|writes JSON/CSV| Results
+    ExpModules -->|invoke pipeline| Orchestrator
+
+    %% Analysis flow
+    Analyze -->|reads| Results
+    Analyze -->|produces| FiguresDir
+    PaperFigures -->|reads| FiguresDir
+    PaperFigures -->|outputs| PaperFigDir
+
+    %% Data interactions
+    Orchestrator -->|load corpus| CorpusLoader
+    CorpusLoader -->|reads| Corpus
+    Retrieval -->|reads/writes| FAISS
+    Results -->|stored on disk| Results
+
+    %% Styles
+    classDef ui fill:#cfe2f3,stroke:#000,stroke-width:1px
+    classDef rag fill:#d9ead3,stroke:#000,stroke-width:1px
+    classDef data fill:#d9d9d9,stroke:#000,stroke-width:1px
+    classDef exp fill:#fce5cd,stroke:#000,stroke-width:1px
+    classDef ana fill:#ead1dc,stroke:#000,stroke-width:1px
+    classDef ext fill:#f4cccc,stroke:#000,stroke-width:1px
+
+    %% Click Events
+    click CLI "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/app/rag_app.py"
+    click Web "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/app/streamlit_app.py"
+    click Orchestrator "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/rag_components.py"
+    click Chunking "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/advanced_chunking.py"
+    click Embeddings "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/llm_integrations.py"
+    click Retrieval "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/vectorstore_handler.py"
+    click QueryProc "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/enhanced_hyde.py"
+    click Transforms "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/query_transformations.py"
+    click Rerank "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/reranking.py"
+    click AdvRerank "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/advanced_reranking.py"
+    click Generation "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/llm_integrations.py"
+    click CorpusLoader "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/components/data_processing.py"
+    click ExpDriver "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/run_experiments.py"
+    click ExpModules "https://github.com/arshnoor-singh-sohi/advanced-rag-system/tree/main/experiments/"
+    click Tracker "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/utils/experiment_tracker.py"
+    click Utils "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/src/utils/utils.py"
+    click Config "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/user_config.json"
+    click Corpus "https://github.com/arshnoor-singh-sohi/advanced-rag-system/tree/main/data/"
+    click Results "https://github.com/arshnoor-singh-sohi/advanced-rag-system/tree/main/results/"
+    click Analyze "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/analysis/analyze_results.py"
+    click PaperFigures "https://github.com/arshnoor-singh-sohi/advanced-rag-system/blob/main/analysis/paper_figures.py"
+    click FiguresDir "https://github.com/arshnoor-singh-sohi/advanced-rag-system/tree/main/figures/"
+    click PaperFigDir "https://github.com/arshnoor-singh-sohi/advanced-rag-system/tree/main/paper_figures/"
+
+
+```
+
+
+
 ## Live Demo
 
 Try the live application: [Advanced RAG Knowledge Management System](https://advanced-rag-system.streamlit.app/)
