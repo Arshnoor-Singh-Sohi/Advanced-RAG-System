@@ -127,13 +127,13 @@ def run_generation_experiment(
     chunk_size: int = 128,      # Default is int
     chunk_overlap: int = 0,       # Default is int
     embedding_model: str = "all-MiniLM-L6-v2",
-    llm_function: Callable = mock_llm_generation, # Default from paste.txt
+    llm_function: Callable = mock_llm_generation, # Default
     output_dir: str = "results"
 ):
     """
     Run experiments to compare different generation techniques
     """
-    # --- Keep os.makedirs, data loading, sampling exactly as in paste-2.txt ---
+    # --- Keep os.makedirs, data loading
     os.makedirs(output_dir, exist_ok=True)
     try:
         with open(corpus_file, "rb") as f: corpus_data = pickle.load(f)
@@ -147,10 +147,10 @@ def run_generation_experiment(
     else: queries_sample = query_data
     print(f"Running generation experiments with {len(corpus_sample)} documents and {len(queries_sample)} queries")
 
-    # --- Keep tracker initialization exactly as in paste-2.txt ---
+    # --- Keep tracker initializatio
     tracker = ExperimentTracker("generation_experiment")
 
-    # --- Load best configuration (Keep exactly as in paste-2.txt) ---
+    # --- Load best configuration 
     best_config = load_best_configuration(output_dir)
 
     # --- Assign and FIX TYPES for chunk_size and chunk_overlap ---
@@ -194,7 +194,7 @@ def run_generation_experiment(
     # --- END OF FIX ---
 
 
-    # --- Keep Log experiment configuration exactly as in paste-2.txt (using current_ variables) ---
+    # --- Keep Log experiment configuration 
     tracker.log_experiment_config({
         "dataset": os.path.basename(corpus_file),
         "sample_size": len(corpus_sample),
@@ -228,7 +228,7 @@ def run_generation_experiment(
 
     print(f"Created {len(chunked_docs)} chunks")
 
-    # --- Keep Extract texts and IDs exactly as in paste-2.txt ---
+    # --- Keep Extract texts and IDs 
     # NOTE: Assumes chunking returns dicts with 'text'/'chunk_id'. Add validation if needed.
     try:
         chunk_texts = [doc["text"] for doc in chunked_docs]
@@ -237,7 +237,7 @@ def run_generation_experiment(
         print(f"ERROR: KeyError '{ke}' accessing chunk data. Ensure strategy '{current_chunk_strategy}' returns dicts with 'text'/'chunk_id'.")
         return None
 
-    # --- Keep Generate embeddings exactly as in paste-2.txt ---
+    # --- Keep Generate embeddings 
     print(f"Generating embeddings using {current_embedding_model}...")
     try:
         # Requires ORIGINAL static EmbeddingProvider
@@ -251,29 +251,29 @@ def run_generation_experiment(
         print(f"Error generating embeddings: {e}"); return None
 
 
-    # --- Keep Define prompt templates exactly as in paste-2.txt ---
+    # --- Keep Define prompt templates
     prompt_templates = [
         {"name": "basic", "description": "Basic prompt", "template": "Context: {context}\n\nQuestion: {query}\n\nAnswer:"},
-        {"name": "instructional", "description": "Detailed instructions", "template": "System: You are a helpful assistant... Use ONLY the following context... If the context doesn't contain the answer, say you don't know.\n\nContext: {context}\n\nUser: {query}"}, # Removed ellipsis from original paste
+        {"name": "instructional", "description": "Detailed instructions", "template": "System: You are a helpful assistant... Use ONLY the following context... If the context doesn't contain the answer, say you don't know.\n\nContext: {context}\n\nUser: {query}"}, # Removed ellipsis from original 
         {"name": "extractive", "description": "Extract answer", "template": "System: You must extract the answer... Quote the relevant parts...\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer:"},
         {"name": "citation", "description": "Request citations", "template": "System: You are a helpful assistant... Include citations...\n\nContext: {context}\n\nQuestion: {query}\n\nAnswer with citations:"}
     ]
 
-    # --- Keep Define retrieval configs exactly as in paste-2.txt ---
+    # --- Keep Define retrieval configs
     retrieval_configs = [
         {"name": "top_3", "description": "Top 3 documents", "k": 3},
         {"name": "top_5", "description": "Top 5 documents", "k": 5},
         {"name": "reranked_3", "description": "Top 10, reranked, top 3 used", "k": 3, "rerank": True}
     ]
 
-    # --- Keep Test combinations loop exactly as in paste-2.txt ---
+    # --- Keep Test combinations loop 
     for prompt_config in prompt_templates:
         for retrieval_config in retrieval_configs:
             config_name = f"{prompt_config['name']}_{retrieval_config['name']}"
             print(f"\nEvaluating generation with: {config_name}")
             try:
                 start_time = time.time()
-                # Keep call to evaluate_generation exactly as in paste-2.txt
+                # Keep call to evaluate_generation
                 generation_metrics = evaluate_generation(
                     queries_sample, chunk_embeddings, chunked_docs, doc_ids,
                     current_embedding_model, # Use final model name
@@ -281,7 +281,7 @@ def run_generation_experiment(
                 )
                 generation_time = time.time() - start_time
 
-                # Keep Log results exactly as in paste-2.txt
+                # Keep Log results
                 # Define sanitize helper if not global/imported
                 def sanitize_dict_for_json(d):
                      if not isinstance(d, dict): return d
@@ -313,7 +313,7 @@ def run_generation_experiment(
                 continue # Continue to next config combination
     # --- End combination loop ---
 
-    # --- Keep Generate report exactly as in paste-2.txt ---
+    # --- Keep Generate report 
     print("Generating experiment report...")
     try:
         report_path = tracker.generate_report()
