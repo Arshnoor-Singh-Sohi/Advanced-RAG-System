@@ -34,7 +34,7 @@ def run_chunking_experiment(
     output_dir: str = "results"
 ):
     """
-    Run experiments to compare different chunking strategies (Based on paste-4.txt + KeyError Fix + COMPLETE Exception Logging)
+    Run experiments to compare different chunking strategies 
     """
     # --- Keep os.makedirs, data loading, sampling, tracker init, config logging exactly as in the previous response ---
     os.makedirs(output_dir, exist_ok=True)
