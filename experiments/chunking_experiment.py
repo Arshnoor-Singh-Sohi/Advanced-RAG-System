@@ -36,7 +36,7 @@ def run_chunking_experiment(
     """
     Run experiments to compare different chunking strategies 
     """
-    # --- Keep os.makedirs, data loading, sampling, tracker init, config logging exactly as in the previous response ---
+    
     os.makedirs(output_dir, exist_ok=True)
     try: # Load corpus
         with open(corpus_file, "rb") as f: corpus_data = pickle.load(f)
@@ -67,7 +67,7 @@ def run_chunking_experiment(
         "output_dir_arg": output_dir
     })
 
-    # Define chunking configurations (Keep exactly as previous response)
+    # Define chunking configurations
     chunking_configs = [
         {"strategy": "fixed", "size": 64, "overlap": 0}, {"strategy": "fixed", "size": 64, "overlap": 16},
         {"strategy": "fixed", "size": 128, "overlap": 0}, {"strategy": "fixed", "size": 128, "overlap": 32},
@@ -87,7 +87,7 @@ def run_chunking_experiment(
         start_chunk_time = time.time()
 
         try: # Outer try-except for chunking and validation stages
-            # --- Apply chunking strategy (Keep if/elif block exactly as previous response) ---
+            # --- Apply chunking strategy
             if config["strategy"] == "semantic_segmentation":
                 chunker = config.get("chunker", AdvancedSemanticChunker())
                 chunked_docs = chunker.chunk_by_semantic_segmentation(corpus_sample, target_chunk_size=200, min_chunk_size=100)
@@ -116,7 +116,7 @@ def run_chunking_experiment(
                  print("Warning: Chunking produced no documents. Skipping evaluation.")
                  continue
 
-            # --- Validation Loop for KeyError: 'chunk_id' (Keep exactly as previous response) ---
+            # --- Validation Loop for KeyError: 'chunk_id'
             validated_chunks = []
             for i, doc in enumerate(chunked_docs):
                 if not isinstance(doc, dict):
@@ -137,7 +137,7 @@ def run_chunking_experiment(
                  continue
             # --- End Validation Loop ---
 
-            # --- Access chunk texts and IDs (Keep try/except block exactly as previous response) ---
+            # --- Access chunk texts and IDs
             try:
                  chunk_texts = [doc["text"] for doc in chunked_docs]
                  doc_ids = [doc["chunk_id"] for doc in chunked_docs]
@@ -148,7 +148,7 @@ def run_chunking_experiment(
 
             # --- Inner try-except for Embeddings, Evaluation, Logging ---
             try:
-                # --- Generate embeddings (Keep static call exactly as previous response) ---
+                # --- Generate embeddings
                 start_time = time.time()
                 chunk_embeddings = EmbeddingProvider.get_sentence_transformer_embeddings(
                     chunk_texts, model_name=embedding_model
@@ -156,12 +156,12 @@ def run_chunking_experiment(
                 embed_time = time.time() - start_time
                 print(f"Generated embeddings in {embed_time:.2f} seconds")
 
-                # --- Evaluate retrieval (Keep calls exactly as previous response) ---
+                # --- Evaluate retrieval 
                 vector_search_metrics = evaluate_retrieval(queries_sample, chunk_embeddings, chunked_docs, doc_ids, "vector", embedding_model)
                 bm25_search_metrics = evaluate_retrieval(queries_sample, chunk_embeddings, chunked_docs, doc_ids, "bm25", embedding_model)
                 hybrid_search_metrics = evaluate_retrieval(queries_sample, chunk_embeddings, chunked_docs, doc_ids, "hybrid", embedding_model)
 
-                # --- Log Results (Keep sanitize function and logging blocks exactly as previous response) ---
+                # --- Log Results
                 def sanitize_dict_for_json(d):
                     if not isinstance(d, dict): return d
                     return {k: list(v) if isinstance(v, set) else v for k, v in d.items()}
@@ -244,7 +244,7 @@ def run_chunking_experiment(
         # --- End Outer Try-Except ---
     # --- End Main Loop ---
 
-    # --- Generate Report (Keep exactly as previous response) ---
+    # --- Generate Report
     print("\nGenerating experiment report...")
     try:
         report_path = tracker.generate_report()
