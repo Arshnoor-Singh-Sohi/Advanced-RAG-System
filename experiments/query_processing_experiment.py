@@ -83,7 +83,7 @@ def run_query_processing_experiment(
     """
     Run experiments to compare different query processing techniques
     """
-    # --- Keep os.makedirs, data loading, sampling exactly as in paste-2.txt ---
+   
     os.makedirs(output_dir, exist_ok=True)
     try:
         with open(corpus_file, "rb") as f: corpus_data = pickle.load(f)
@@ -97,10 +97,10 @@ def run_query_processing_experiment(
     else: queries_sample = query_data
     print(f"Running query processing experiments with {len(corpus_sample)} documents and {len(queries_sample)} queries")
 
-    # --- Keep tracker initialization exactly as in paste-2.txt ---
+    
     tracker = ExperimentTracker("query_processing_experiment")
 
-    # --- Load best configuration (Keep exactly as in paste-2.txt) ---
+    # --- Load best configuration
     best_config = load_best_configuration(output_dir)
 
     # --- Assign and FIX TYPES for chunk_size and chunk_overlap ---
@@ -183,7 +183,7 @@ def run_query_processing_experiment(
 
     print(f"Created {len(chunked_docs)} chunks")
 
-    # --- Extract texts and IDs (Keep exactly as in paste-2.txt, assumes chunking works) ---
+    # --- Extract texts and IDs 
     # NOTE: Consider adding validation loop here if chunking methods might not return dicts with 'text'/'chunk_id'
     try:
         chunk_texts = [doc["text"] for doc in chunked_docs]
@@ -192,7 +192,7 @@ def run_query_processing_experiment(
         print(f"ERROR: KeyError '{ke}' accessing chunk data. Ensure chunking strategy '{final_chunk_strategy}' returns dicts with 'text' and 'chunk_id'.")
         return None
 
-    # --- Generate embeddings (Keep exactly as in paste-2.txt) ---
+    # --- Generate embeddings 
     print(f"Generating embeddings using {final_embedding_model}...")
     try:
         # Requires ORIGINAL static EmbeddingProvider
@@ -205,7 +205,7 @@ def run_query_processing_experiment(
     except Exception as e:
         print(f"Error generating embeddings: {e}"); return None
 
-    # --- Define query techniques (Keep exactly as in paste-2.txt) ---
+    # --- Define query techniques 
     query_techniques = [
         {"name": "original", "description": "Original query without modification"},
         {"name": "simple_expansion", "description": "Expand with synonyms", "method": "simple"},
@@ -216,7 +216,7 @@ def run_query_processing_experiment(
         {"name": "hybrid_hyde", "description": "Hybrid query-HyDE approach"} # Note: evaluate function missing for this
     ]
 
-    # --- Test each query technique (Keep loop structure exactly as in paste-2.txt) ---
+    # --- Test each query technique 
     for technique in query_techniques:
         technique_name = technique["name"]
         print(f"\nEvaluating query technique: {technique_name}")
@@ -225,7 +225,7 @@ def run_query_processing_experiment(
             result_metrics = {} # Initialize
 
             # --- Call appropriate evaluation function based on name ---
-            # --- KEEP THIS if/elif block EXACTLY as in paste-2.txt ---
+           
             if technique_name == "original":
                 result_metrics = evaluate_original_queries(queries_sample, chunk_embeddings, chunked_docs, doc_ids, final_embedding_model)
             elif technique_name == "simple_expansion" or technique_name == "llm_expansion":
@@ -235,14 +235,14 @@ def run_query_processing_experiment(
             elif technique_name == "enhanced_hyde":
                 result_metrics = evaluate_enhanced_hyde(queries_sample, chunk_embeddings, chunked_docs, doc_ids, final_embedding_model, llm_function)
             # --- MISSING EVAL FUNCTIONS FOR: multi_hyde, hybrid_hyde ---
-            # --- If you run these, you will get an error later ---
+
             else:
                  print(f"Warning: Evaluation function for technique '{technique_name}' not implemented in the main loop. Skipping evaluation.")
                  continue # Skip to next technique if no eval function is called
 
             technique_time = time.time() - start_time
 
-            # Log results (Keep logging logic exactly as in paste-2.txt, check keys)
+            # Log results
             # Define sanitize helper if not global
             def sanitize_dict_for_json(d):
                 if not isinstance(d, dict): return d
@@ -267,7 +267,7 @@ def run_query_processing_experiment(
             continue # Continue to next technique
     # --- End technique loop ---
 
-    # --- Generate report (Keep exactly as in paste-2.txt) ---
+    # --- Generate report 
     print("Generating experiment report...")
     try:
         report_path = tracker.generate_report()
