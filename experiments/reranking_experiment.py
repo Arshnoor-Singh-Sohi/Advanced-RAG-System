@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 from typing import List, Dict, Any, Tuple, Optional, Callable
 
-# Add the project root to the path
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.components.rag_components import DocumentChunker, EmbeddingProvider, RetrievalMethods
@@ -92,13 +92,13 @@ def run_reranking_experiment(
     chunk_size: int = 128,      # Default is int
     chunk_overlap: int = 0,       # Default is int
     embedding_model: str = "all-MiniLM-L6-v2",
-    llm_function: Callable = mock_llm_reranker, # Corrected default from paste.txt
+    llm_function: Callable = mock_llm_reranker, # Corrected default 
     output_dir: str = "results"
 ):
     """
     Run experiments to compare different reranking methods
     """
-    # --- Keep os.makedirs, data loading, sampling exactly as in paste.txt ---
+    
     os.makedirs(output_dir, exist_ok=True)
     try:
         with open(corpus_file, "rb") as f: corpus_data = pickle.load(f)
@@ -112,10 +112,10 @@ def run_reranking_experiment(
     else: queries_sample = query_data
     print(f"Running reranking experiments with {len(corpus_sample)} documents and {len(queries_sample)} queries")
 
-    # --- Keep tracker initialization exactly as in paste.txt ---
+   
     tracker = ExperimentTracker("reranking_experiment")
 
-    # --- Load best configuration (Keep exactly as in paste.txt) ---
+    # --- Load best configuration
     best_config = load_best_configuration(output_dir)
 
     # --- Assign and FIX TYPES for chunk_size and chunk_overlap ---
@@ -165,7 +165,7 @@ def run_reranking_experiment(
     print(f"Using embedding model: {final_embedding_model}")
 
 
-    # --- Keep Log experiment configuration exactly as in paste.txt (using final_ variables) ---
+    # --- Keep Log experiment configuration
     tracker.log_experiment_config({
         "dataset": os.path.basename(corpus_file),
         "sample_size": len(corpus_sample),
@@ -199,7 +199,7 @@ def run_reranking_experiment(
 
     print(f"Created {len(chunked_docs)} chunks")
 
-    # --- Keep Extract texts and IDs exactly as in paste.txt ---
+    # --- Keep Extract texts and IDs
     # NOTE: Requires validation loop here if chunking methods don't guarantee structure
     try:
         chunk_texts = [doc["text"] for doc in chunked_docs]
@@ -208,7 +208,7 @@ def run_reranking_experiment(
          print(f"ERROR: KeyError '{ke}' accessing chunk data. Ensure chunking returns dicts with 'text' and 'chunk_id'.")
          return None
 
-    # --- Keep Generate embeddings exactly as in paste.txt ---
+    # --- Keep Generate embeddings
     print(f"Generating embeddings using {final_embedding_model}...")
     try:
         # Requires ORIGINAL static EmbeddingProvider
@@ -222,7 +222,7 @@ def run_reranking_experiment(
         print(f"Error generating embeddings: {e}"); return None
 
 
-    # --- Keep Define reranking methods exactly as in paste.txt ---
+    # --- Keep Define reranking methods 
     reranking_methods = [
         {"name": "no_reranking", "description": "Base retrieval without reranking"},
         {"name": "cross_encoder", "description": "Cross-encoder reranking", "model": "cross-encoder/ms-marco-MiniLM-L-6-v2"},
@@ -233,13 +233,13 @@ def run_reranking_experiment(
         {"name": "keyword_fusion", "description": "Keyword and semantic fusion", "stages": ["semantic", "keyword", "diversity"]}
     ]
 
-    # --- Keep Test each reranking method loop structure exactly as in paste.txt ---
+    # --- Keep Test each reranking method loop structure
     for method in reranking_methods:
         method_name = method["name"]
         print(f"\nEvaluating reranking method: {method_name}")
         try:
             start_time = time.time()
-            # --- Keep call to evaluate_reranking_method exactly as in paste.txt ---
+            # --- Keep call to evaluate_reranking_method 
             reranking_metrics = evaluate_reranking_method(
                 queries_sample,
                 chunk_embeddings,
@@ -251,7 +251,7 @@ def run_reranking_experiment(
             )
             reranking_time = time.time() - start_time
 
-            # --- Keep Log results exactly as in paste.txt ---
+            # --- Keep Log results
             # Define sanitize helper if needed locally
             def sanitize_dict_for_json(d):
                  if not isinstance(d, dict): return d
@@ -281,7 +281,7 @@ def run_reranking_experiment(
             continue # Continue to next method
     # --- End reranker loop ---
 
-    # --- Keep Generate report exactly as in paste.txt ---
+    # --- Keep Generate report 
     print("Generating experiment report...")
     try:
         report_path = tracker.generate_report()
